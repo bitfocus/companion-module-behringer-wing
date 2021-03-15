@@ -1,0 +1,17 @@
+{
+	"send_bm": {
+		"bus": 16,
+		"main": 4
+	},
+	"send_bmm": {
+		"main": 4,
+		"mtx": 8,
+		"bus": 8
+	},
+	"send_m": {
+		"mtx": 8
+	},
+	"direct": {
+		"dir": 2
+	}
+}

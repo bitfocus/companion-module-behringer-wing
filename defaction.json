@@ -1,0 +1,140 @@
+
+{
+	"baseActions": {
+		"fdr": {
+			"label": "Fader Set",
+			"vSfx": "f",
+			"inType": "fader"
+		},
+		"fdr_a": {
+			"label": "Fader Adjust",
+			"vSfx": "f",
+			"inType": "fader_a"
+		},
+		"fdr_s": {
+			"label": "Fader Store",
+			"vSfx": "f",
+			"inType": "fader_s"
+		},
+		"fdr_r": {
+			"label": "Fader Recall",
+			"vSfx": "f",
+			"inType": "fader_r"
+		},
+		"mute": {
+			"label": "Mute",
+			"inType": "onoff",
+			"fSfx": "mute",
+			"choiceType": "ON_OFF",
+			"default": "0"
+		},
+		"$solo": {
+			"label": "Solo",
+			"inType": "solo",
+			"fSfx": "$solo",
+			"choiceType": "ON_OFF",
+			"default": "0"
+		},
+		"name": {
+			"label": "Name",
+			"inType": "textinput",
+			"vSfx": "n",
+			"inMin": 0,
+			"inMax": 16,
+			"default": ""
+		},
+		"icon": {
+			"label": "Icon",
+			"inType": "number",
+			"fSfx": "icon",
+			"inMin": 0,
+			"inMax": 999,
+			"default": 0
+		},
+		"col": {
+			"label": "Color",
+			"inType": "color",
+			"fSfx": "col",
+			"default": 1
+		},
+		"led": {
+			"label": "LED",
+			"inType": "led",
+			"fSfx": "led",
+			"choiceType": "ON_OFF",
+			"default": "0"
+		}
+	},
+	"sendActions": {
+		"send_bm": {
+			"label": "Ch, Aux Send",
+			"sendType": "send_bm",
+			"fSfx": "",
+			"choiceType": "send_bm"
+		},
+		"send_bmm": {
+			"label": "Bus Send",
+			"sendType": "send_bmm",
+			"fSfx": "",
+			"choiceType": "send_bmm"
+		},
+		"send_m": {
+			"label": "Main Send",
+			"sendType": "send_m",
+			"fSfx": "",
+			"choiceType": "send_m"
+		},
+		"direct": {
+			"label": "Matrix Direct In",
+			"sendType": "direct",
+			"fSfx": "",
+			"choiceType": "direct"
+		}
+	},
+	"sendOptions": {
+		"on": {
+			"label": "On",
+			"sendType": "onoff",
+			"fSfx": "on",
+			"choiceType": "ON_OFF",
+			"default": "1"
+		},
+		"lvl": {
+			"label": "Level Set",
+			"vSfx": "l",
+			"sendType": "lvl"
+		},
+		"lvl_a": {
+			"label": "Level Adjust",
+			"vSfx": "l",
+			"sendType": "lvl_a"
+		},
+		"lvl_s": {
+			"label": "Level Store",
+			"vSfx": "l",
+			"sendType": "lvl_s"
+		},
+		"lvl_r": {
+			"label": "Level Recall",
+			"vSfx": "l",
+			"sendType": "lvl_r"
+		}
+	},
+	"mgrpActions": {
+		"name": {
+			"label": "Name",
+			"inType": "textinput",
+			"vSfx": "n",
+			"inMin": 0,
+			"inMax": 8,
+			"default": ""
+		},
+		"mute": {
+			"label": "On",
+			"inType": "onoff",
+			"fSfx": "mute",
+			"choiceType": "ON_OFF",
+			"default": "0"
+		}
+	}
+}
