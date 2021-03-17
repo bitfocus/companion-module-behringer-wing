@@ -5,8 +5,6 @@ var stripDef = require('./defstrip.json');
 var monDef = require('./defmons.json');
 var actDef = require('./defaction.json');
 var busDef = require('./defbus.json');
-const { AlexaForBusiness } = require('aws-sdk');
-const { clone } = require('lodash');
 var debug;
 var log;
 
@@ -122,7 +120,6 @@ instance.prototype.init = function() {
 
 	self.build_strips();
 	self.build_monitor();
-	//self.build_fbs_vars();
 	self.init_actions();
 	self.init_variables();
 	self.init_feedbacks();
@@ -171,10 +168,14 @@ instance.prototype.doFades = function () {
 		c.atStep++;
 		var atStep = c.atStep;
 		var newVal = c.startVal + (c.delta * atStep)
+		var v = (Math.sign(c.delta)>0) ? Math.min(c.finalVal, newVal) : Math.max(c.finalVal, newVal);
 
-		arg.value = (Math.sign(c.delta)>0) ? Math.min(c.finalVal, newVal) : Math.max(c.finalVal, newVal);
+		arg.value = self.faderToDB(v);
 
 		self.sendOSC(f, arg);
+		self.debug(f + ": ", arg);
+		self.setVariable(self.xStat[f].dvID + '_p',Math.round(v * 100));
+		self.setVariable(self.xStat[f].dvID + '_d',self.faderToDB(v,true));
 
 		if (atStep > c.steps) {
 			fadeDone.push(f);
@@ -183,6 +184,7 @@ instance.prototype.doFades = function () {
 
 	// delete completed fades
 	for (f in fadeDone) {
+		self.sendOSC(fadeDone[f],[]);
 		delete self.crossFades[fadeDone[f]];
 	}
 }
@@ -276,14 +278,7 @@ instance.prototype.init_presets = function () {
 instance.prototype.build_strips = function () {
 	var self = this;
 
-	var i, b, c, d, l;
-
-	var baseLabel;
-	var chID;
-	var theID;
-	var muteID;
-	var bOrF;
-	var sChan;
+	var i, b;
 
 	var stat = {};
 	var fb2stat = {};
@@ -849,251 +844,6 @@ instance.prototype.build_strips = function () {
 	}
 
 
-		// 	theID = chID + muteSfx;
-		// 	self.fbToStat[fbID] = theID;
-		// 	stat[theID] = {
-		// 		isOn: false,
-		// 		hasOn: stripDef[i].hasOn,
-		// 		valid: false,
-		// 		fbID: fbID,
-		// 		polled: 0
-		// 	};
-		// 	theID = chID + fadeSfx;
-		// 	fID = 'f_' + unslash(fbID);
-		// 	self.fbToStat[fID] = theID;
-		// 	stat[theID] = {
-		// 		fader: 0.0,
-		// 		valid: false,
-		// 		fbID: fID,
-		// 		fSteps: 1024,
-		// 		varID: fID,
-		// 		polled: 0
-		// 	};
-		// 	defVariables.push({
-		// 		label: stripDef[i].description + " dB",
-		// 		name: fID + "_d"
-		// 	});
-		// 	defVariables.push({
-		// 		label: stripDef[i].description + " %",
-		// 		name: fID + "_p"
-		// 	});
-		// 	if ('' != labelSfx) {
-		// 		theID = chID + labelSfx + "/name";
-		// 		fID = 'l_' + unslash(fbID);
-		// 		self.fbToStat[fID] = theID;
-		// 		stat[theID] = {
-		// 			name: fbID,
-		// 			defaultName: baseLabel,
-		// 			valid: false,
-		// 			fbID: fID,
-		// 			polled: 0
-		// 		};
-		// 		defVariables.push({
-		// 			label: stripDef[i].description + " Label",
-		// 			name: fID
-		// 		});
-		// 		theID = chID + labelSfx + "/color";
-		// 		fID = 'c_' + unslash(fbID);
-		// 		self.fbToStat[fID] = theID;
-		// 		stat[theID] = {
-		// 			color: 0,
-		// 			valid: false,
-		// 			fbID: fID,
-		// 			polled: 0
-		// 		};
-		// 	}
-		// 	if (stripDef[i].hasLevel) {
-		// 		for (b = 1; b<11; b++) {
-		// 			bOrF = (b < 7 ? 'b' : 'f');
-		// 			sChan = (b < 7 ? b : b-6);
-		// 			theID = chID + '/mix/' + ('00' + b).slice(-2) + '/level';
-		// 			sendID = (b<7 ? " Bus " + b : " FX " + (b - 6) );
-		// 			fID = 's_' + unslash(fbID) + c + '_' + bOrF + sChan;
-		// 			self.fbToStat[fID] = theID;
-		// 			stat[theID] = {
-		// 				level: 0.0,
-		// 				valid: false,
-		// 				fbID: fID,
-		// 				fSteps: 161,
-		// 				varID: fID,
-		// 				polled: 0
-		// 			};
-		// 			defVariables.push({
-		// 				label: capFirst(fbID) + " " + c + sendID + " dB",
-		// 				name: fID + "_d"
-		// 			});
-		// 			defVariables.push({
-		// 				label: capFirst(fbID) + " " + c + sendID + " %",
-		// 				name: fID + "_p"
-		// 			});
-		// 		}
-		// 	}
-		// } else {
-		// 	for (c = stripDef[i].min; c <= stripDef[i].max; c++) {
-		// 		theID = chID + '/' + ('00' + c).slice(-d) + muteSfx;
-		// 		fID = fbID + '_' + c;
-		// 		self.fbToStat[fID] = theID;
-		// 		stat[theID] = {
-		// 			isOn: false,
-		// 			hasOn: stripDef[i].hasOn,
-		// 			valid: false,
-		// 			fbID: fbID,
-		// 			polled: 0
-		// 		};
-		// 		if ('' != fadeSfx) {
-		// 			theID = chID  + '/' + ('00' + c).slice(-d) + fadeSfx;
-		// 			fID = 'f_' + unslash(fbID) + c;
-		// 			self.fbToStat[fID] = theID;
-		// 			stat[theID] = {
-		// 				fader: 0.0,
-		// 				valid: false,
-		// 				fSteps: 1024,
-		// 				fbID: fID,
-		// 				varID: fID,
-		// 				polled: 0
-		// 			};
-		// 			defVariables.push({
-		// 				label: stripDef[i].description + " " + c + " dB",
-		// 				name: fID + "_d"
-		// 			});
-		// 			defVariables.push({
-		// 				label: stripDef[i].description + " " + c + " %",
-		// 				name: fID + "_p"
-		// 			});
-		// 			if (stripDef[i].hasLevel) {
-		// 				for (b = 1; b<11; b++) {
-		// 					bOrF = (b < 7 ? 'b' : 'f');
-		// 					sChan = (b < 7 ? b : b-6);
-		// 					theID = chID + '/' + ('00' + c).slice(-d) + '/mix/' + ('00' + b).slice(-2) + '/level';
-		// 					sendID = (b<7 ? " Bus " + b : " FX " + (b - 6) );
-		// 					fID = 's_' + unslash(fbID) + c + '_' + bOrF + sChan;
-		// 					self.fbToStat[fID] = theID;
-		// 					stat[theID] = {
-		// 						level: 0.0,
-		// 						valid: false,
-		// 						fbID: fID,
-		// 						fSteps: 161,
-		// 						varID: fID,
-		// 						polled: 0
-		// 					};
-		// 					defVariables.push({
-		// 						label: capFirst(fbID) + " " + c + sendID + " dB",
-		// 						name: fID + "_d"
-		// 					});
-		// 					defVariables.push({
-		// 						label: capFirst(fbID) + " " + c + sendID + " %",
-		// 						name: fID + "_p"
-		// 					});
-		// 				}
-		// 			}
-		// 		}
-		// 		if ('' != labelSfx) {
-		// 			theID = chID + '/' + ('00' + c).slice(-d) + labelSfx + "/name";
-		// 			fID = 'l_' + unslash(fbID) + c;
-		// 			self.fbToStat[fID] = theID;
-		// 			stat[theID] = {
-		// 				name: fbID + c,
-		// 				defaultName: baseLabel + c,
-		// 				valid: false,
-		// 				fbID: fID,
-		// 				polled: 0
-		// 			};
-		// 			defVariables.push({
-		// 				label: stripDef[i].description + " " + c + " Label",
-		// 				name: fID
-		// 			});
-		// 			theID = chID + '/' + ('00' + c).slice(-d) + labelSfx + "/color";
-		// 			fID = 'c_' + unslash(fbID) + c;
-		// 			self.fbToStat[fID] = theID;
-		// 			stat[theID] = {
-		// 				color: 0,
-		// 				valid: false,
-		// 				fbID: 'c_' + unslash(fbID),
-		// 				polled: 0
-		// 			};
-		// 		}
-		// 	}
-		// }
-
-		// // mute feedback defs
-		// fbDescription = stripDef[i].description + " " + (stripDef[i].hasOn ? "Muted" : "On");
-		// muteFeedbacks[fbID] = {
-		// 	label: 		 "Color when " + fbDescription,
-		// 	description: "Set button colors when " + fbDescription,
-		// 	options: [
-		// 		{
-		// 			type: 'colorpicker',
-		// 			label: 'Foreground color',
-		// 			id: 'fg',
-		// 			default: '16777215'
-		// 		},
-		// 		{
-		// 			type: 'colorpicker',
-		// 			label: 'Background color',
-		// 			id: 'bg',
-		// 			default: self.rgb(128,0, 0)
-		// 		},
-		// 	],
-		// 	callback: function(feedback, bank) {
-		// 		var theChannel = feedback.options.theChannel;
-		// 		var fbType = feedback.type;
-		// 		var stat;
-		// 		if (theChannel) {
-		// 			stat = self.xStat[self.fbToStat[fbType + '_' + theChannel]];
-		// 		} else if ( self.fbToStat[fbType] ) {
-		// 			stat = self.xStat[self.fbToStat[fbType]];
-		// 		}
-		// 		if (stat.isOn != stat.hasOn) {
-		// 			return { color: feedback.options.fg, bgcolor: feedback.options.bg };
-		// 		}
-		// 	}
-		// };
-		// if (d>0) {
-		// 	muteFeedbacks[fbID].options.push( {
-		// 		type: 'number',
-		// 		label: stripDef[i].description + ' number',
-		// 		id: 'theChannel',
-		// 		default: 1,
-		// 		min: stripDef[i].min,
-		// 		max: stripDef[i].max,
-		// 		range: false,
-		// 		required: true
-		// 	} );
-		// }
-
-		// // channel color feedbacks
-		// if (stripDef[i].hasOn) {
-		// 	fbDescription = stripDef[i].description + " label";
-		// 	var cID = 'c_' + unslash(fbID);
-		// 	colorFeedbacks[cID] = {
-		// 		label: 		 "Color of " + fbDescription,
-		// 		description: "Use button colors from " + fbDescription,
-		// 		options: [],
-		// 		callback: function(feedback, bank) {
-		// 			var theChannel = feedback.options.theChannel;
-		// 			var fbType = feedback.type;
-		// 			var stat;
-		// 			if (theChannel) {
-		// 				stat = self.xStat[self.fbToStat[fbType + theChannel]];
-		// 			} else if ( self.fbToStat[fbType] ) {
-		// 				stat = self.xStat[self.fbToStat[fbType]];
-		// 			}
-		// 			return { color: self.COLOR_VALUES[stat.color].fg, bgcolor: self.COLOR_VALUES[stat.color].bg };
-		// 		}
-		// 	};
-		// 	if (d>0) {
-		// 		colorFeedbacks[cID].options.push( {
-		// 			type: 'number',
-		// 			label: stripDef[i].description + ' number',
-		// 			id: 'theChannel',
-		// 			default: 1,
-		// 			min: stripDef[i].min,
-		// 			max: stripDef[i].max,
-		// 			range: false,
-		// 			required: true
-		// 		} );
-		// 	}
-
 
 	self.xStat = stat;
 	self.variableDefs = defVariables;
@@ -1103,10 +853,6 @@ instance.prototype.build_strips = function () {
 	self.muteFeedbacks = muteFeedbacks;
 	Object.assign(self.muteFeedbacks, onFeedbacks);
 
-
-	// Object.assign(self.actionDefs, sendActions);
-	// Object.assign(self.actionDefs, muteActions);
-	// Object.assign(self.actionDefs, storeActions);
 };
 
 instance.prototype.build_monitor = function () {
@@ -1183,7 +929,6 @@ instance.prototype.build_monitor = function () {
 	Object.assign(self.xStat, stat);
 	Object.assign(self.actionDefs, soloActions);
 	Object.assign(self.muteFeedbacks, soloFeedbacks);
-//	Object.assign(self.variableDefs, soloVariables);
 }
 
 instance.prototype.pollStats = function () {
@@ -1279,30 +1024,54 @@ instance.prototype.stepsToFader = function (i, steps) {
 	return Math.floor(res * 10000) / 10000;
 }
 
-instance.prototype.faderToDB = function ( f, steps ) {
+instance.prototype.faderToDB = function ( f, asString ) {
 // “f” represents OSC float data. f: [0.0, 1.0]
 // “d” represents the dB float data. d:[-oo, +10]
-	var d = 0;
 
-	if (f >= 0.5) {
-		d = f * 40.0 - 30.0;		// max dB value: +10.
-	} else if (f >= 0.25) {
-		d = f * 80.0 - 50.0;
-	} else if (f >= 0.0625) {
-		d = f * 160.0 - 70.0;
-	} else if (f >= 0.0) {
-		d = f * 480.0 - 144.0;		// min dB value: -144 or -oo
+	// float Lin2db(float lin) {
+	// 	if (lin <= 0.0) return -144.0;
+	// 	if (lin < 0.062561095) return (lin - 0.1875) * 30. / 0.0625;
+	// 	if (lin < 0.250244379) return (lin - 0.4375) / 0.00625;
+	// 	if (lin < 0.500488759) return (lin - 0.6250) / 0.0125;
+	// 	if (lin < 1.0) return (lin - 0.750) / 0.025;
+	// 	return 10.;
+
+	var self = this;
+	var d = 0;
+	var steps = self.FADER_STEPS;
+
+	if (f <= 0.0) {
+		d = -144;
+	} else if (f < 0.062561095) {
+		d = (f - 0.1875) * 30.0 / 0.0625;
+	} else if (f < 0.250244379) {
+		d = (f - 0.4375) / 0.00625;
+	} else if (f < 0.500488759) {
+		d = (f - 0.6250) / 0.0125;
+	} else if (f < 1.0) {
+		d = (f - 0.750) / 0.025;
+	} else {
+		d = 10.0;
 	}
-	return (f==0 ? "-oo" : (d>0 ? '+':'') + (Math.round(d * (steps - 0.5)) / steps).toFixed(1));
+
+	d = (Math.round(d * (steps - 0.5)) / steps)
+
+	if (asString) {
+		return (f==0 ? "-oo" : (d>=0 ? '+':'') + d.toFixed(1));
+	} else {
+		return d;
+	}
 };
 
-instance.prototype.dbToFader = function ( d ) {
+instance.prototype.dbToFloat = function ( d ) {
 	// “d” represents the dB float data. d:[-144, +10]
 	// “f” represents OSC float data. f: [0.0, 1.0]
 	var f = 0;
 
-	if (d < -60.) {
-		f = (d + 144.) / 480.;
+	if (d <= -90) {
+		f = 0;
+	} else if (d < -60.) {
+		f = (d + 90.) / 480.;
 	} else if (d < -30.) {
 		f = (d + 70.) / 160.;
 	} else if (d < -10.) {
@@ -1369,7 +1138,7 @@ instance.prototype.init_osc = function() {
 					v = Math.floor(v * 10000) / 10000;
 					self.xStat[node][leaf] = v;
 					self.setVariable(self.xStat[node].dvID + '_p',Math.round(v * 100));
-					self.setVariable(self.xStat[node].dvID + '_d',self.faderToDB(v,self.FADER_STEPS));
+					self.setVariable(self.xStat[node].dvID + '_d',self.faderToDB(v,true));
 					self.xStat[node].idx = self.fLevels[self.FADER_STEPS].findIndex((i) => i >= v);
 					break;
 				case 'name':
@@ -1776,7 +1545,8 @@ instance.prototype.action = function(action) {
 	var cmd;
 	var subAct = action.action.slice(-2);
 	var opt = action.options;
-	var nVal, bVal, fVal;
+	var fVal;
+	var needEcho = true;
 	var arg = [];
 
 	// calculate new fader/level float
@@ -1813,7 +1583,7 @@ instance.prototype.action = function(action) {
 				// r is left undefined since there is nothing to send
 			break;
 			default:			// set new value
-				r = self.dbToFader(opt.fad);
+				r = self.dbToFloat(opt.fad);
 		}
 		// set up cross fade?
 		if (span>0 && r >= 0) {
@@ -1831,9 +1601,13 @@ instance.prototype.action = function(action) {
 				}
 				// start the xfade
 				r = oldVal + xDelta;
+				needEcho = false;
 			}
 		}
 		self.debug(`---------- ${oldIdx}:${oldVal} by ${byVal}(${opTicks}) fadeTo ${newIdx}:${r} ----------`);
+		if (r !== undefined) {
+			r = self.faderToDB(r)
+		}
 		return r;
 	}
 
@@ -1858,7 +1632,7 @@ instance.prototype.action = function(action) {
 		case 'fdr_s':
 		case 'fdr_r':
 			cmd = opt.strip + '/fdr';
-			if ((fVal = fadeTo(cmd, opt)) < 0) {
+			if ((fVal = fadeTo(cmd, opt)) === undefined) {
 				cmd = undefined;
 			} else {
 				arg = {
@@ -1891,7 +1665,7 @@ instance.prototype.action = function(action) {
 		case 'send_bmm_lvl_r':
 		case 'send_m_lvl_r':
 			cmd = opt.source + opt.bus + '/lvl';
-			if ((fVal = fadeTo(cmd, opt)) < 0) {
+			if ((fVal = fadeTo(cmd, opt)) === undefined) {
 				cmd = undefined;
 			} else {
 				arg = {
@@ -2000,6 +1774,10 @@ instance.prototype.action = function(action) {
 	if (cmd !== undefined) {
 		self.sendOSC(cmd,arg);
 		self.debug(cmd, arg);
+		// force a reply
+		if (needEcho) {
+			self.sendOSC(cmd,[]);
+		}
 	}
 };
 

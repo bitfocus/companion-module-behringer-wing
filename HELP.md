@@ -30,7 +30,7 @@ Solo Mono | Controls the Mono mix-down of the Solo output
 
 **Note *mute, LED, slolo*:** These actions also have a Toggle option that inverts the current state of the board channel.
 
-**Note *fader adjustment*:** This module stores fader position as a range from 0 (-oo dB) to 100 (+10dB). The conversion from position to dB is explained below. Fader changes also have an optional duration of 0 to 60000 mSec (0 to 60 seconds) to create cross fades.
+**Note *fader adjustment*:** This module uses an internal fader *position* as a range from 0.0 (-oo dB) to 100.0 (+10dB). Fader changes also have an optional duration of 0 to 60000 mSec (0 to 60 seconds) to create cross fades.
 
 **Note *Storage and Recall*:** Each channel or bus send has one save value. Recall will only restore the last value saved. There are also 10 Global slots available to store a value that may be recalled to any channel. Recalling an empty slot will have no effect.
 
