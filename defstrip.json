@@ -31,7 +31,7 @@
 		"hasRel": true,
 		"act": "baseActions",
 		"send": "send_bmm",
-		"sendID": "bus/"
+		"sendID": "send/"
 	},
 	"main": {
 		"id": "main",
@@ -55,7 +55,7 @@
 		"hasRel": true,
 		"act": "baseActions",
 		"send": "direct",
-		"sendID": "MX"
+		"sendID": "send/MX"
 	},
 	"dir": {
 		"id": "dir",
