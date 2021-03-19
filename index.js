@@ -1375,6 +1375,7 @@ instance.prototype.sendOSC = function (node, arg) {
 			address: node,
 			args: arg
 		});
+		self.debug('sending ',node, (arg? arg:''));
 	}
 };
 
