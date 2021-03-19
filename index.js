@@ -348,7 +348,8 @@ instance.prototype.build_strips = function () {
 						break;
 					case 'name':
 						dvID = dvID + '_' + act.vSfx;
-						stat[path].name = defaultLabel + i;
+						stat[path].defaultName = defaultLabel + i;
+						stat[path].name = defaultLabel + 1;
 						stat[path].dvID = dvID;
 						defVariables.push( {
 							label: strip.description + ' ' + i + ' ' + act.label,
@@ -382,7 +383,7 @@ instance.prototype.build_strips = function () {
 					for (a in busActs) {
 						if (!a.match('_')) {
 							act = busActs[a];
-							path = 	path = `/${strip.id}/${i}/${busStrip.sendID}${bs}/${a}`;
+							path = 	`/${strip.id}/${i}/${busStrip.sendID}${bs}/${a}`;
 							fbID = fbIDbase + a;
 							dvID = `${strip.id}${i}_${b}${bs}`;
 							if (act.fSfx) {
@@ -1146,11 +1147,14 @@ instance.prototype.init_osc = function() {
 					if (v=='') {
 						v = self.xStat[node].defaultName;
 					}
+					if (node.match(/\/main/)) {
+						v = v;
+					}
 					self.xStat[node].name = v;
 					self.setVariable(self.xStat[node].dvID, v);
 					break;
 				case 'col':
-					self.xStat[node].color = v;
+					self.xStat[node].color = parseInt(args[0].value)
 					self.checkFeedbacks(self.xStat[node].fbID);
 					self.checkFeedbacks('led');
 					break;
@@ -1172,7 +1176,7 @@ instance.prototype.init_osc = function() {
 				} else {
 					// debug(message);
 				}
-			} else if (leaf == '?') {
+			} else if (leaf == '*') {
 				// /?~~,s~~WING,192.168.1.71,PGM,ngc‐full,NO_SERIAL,1.07.2‐40‐g1b1b292b:develop~~~~
 				var mixer_info = args[0].value.split(',');
 				self.myMixer.ip = mixer_info[1]
@@ -1375,6 +1379,7 @@ instance.prototype.sendOSC = function (node, arg) {
 			address: node,
 			args: arg
 		});
+		// self.debug('sending ',node, (arg? arg:''));
 	}
 };
 
