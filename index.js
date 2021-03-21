@@ -5,6 +5,7 @@ var stripDef = require('./defstrip.json');
 var monDef = require('./defmons.json');
 var actDef = require('./defaction.json');
 var busDef = require('./defbus.json');
+
 var debug;
 var log;
 
@@ -37,6 +38,7 @@ function instance(system, id, config) {
 	self.muteFeedbacks = {};
 	self.colorFeedbacks = {};
 	self.variableDefs = [];
+	self.soloList = new Set();
 	self.fLevels = {};
 	self.FADER_STEPS = 1540;
 	self.fLevels[self.FADER_STEPS] = [];
@@ -44,8 +46,8 @@ function instance(system, id, config) {
 	self.crossFades = {};
 	self.needStats = true;
 
-	self.PollTimeout = 400;
-	self.PollCount = 8;
+	self.PollTimeout = 600;
+	self.PollCount = 7;
 
 	self.build_choices();
 
@@ -105,6 +107,8 @@ instance.prototype.updateConfig = function(config) {
 		self.log('info', `Sync Started (${self.PollCount}/${self.PollTimeout})`);
 		self.config.analyze = false;
 	} else {
+		self.PollCount = 7;
+		self.PollTimeout = 600;
 		self.init();
 	}
 };
@@ -120,6 +124,7 @@ instance.prototype.init = function() {
 
 	self.build_strips();
 	self.build_monitor();
+	self.build_talk();
 	self.init_actions();
 	self.init_variables();
 	self.init_feedbacks();
@@ -398,11 +403,11 @@ instance.prototype.build_strips = function () {
 								stat[path].idx = 0;
 								stat[path].lvl = 0.0;
 								defVariables.push({
-									label: strip.description + ' ' + i + ' dB',
+									label: strip.description + ' ' + i + ' to ' + busStrip.label + ' ' + bs + ' dB',
 									name: dvID + "_d"
 								});
 								defVariables.push({
-									label: strip.description + ' ' + i + ' %',
+									label: strip.description + ' ' + i + ' to ' + busStrip.label + ' ' + bs + ' %',
 									name: dvID + "_p"
 								});
 								stat[path].dvID = dvID;
@@ -844,8 +849,6 @@ instance.prototype.build_strips = function () {
 		}
 	}
 
-
-
 	self.xStat = stat;
 	self.variableDefs = defVariables;
 	self.actionDefs = acts;
@@ -930,7 +933,177 @@ instance.prototype.build_monitor = function () {
 	Object.assign(self.xStat, stat);
 	Object.assign(self.actionDefs, soloActions);
 	Object.assign(self.muteFeedbacks, soloFeedbacks);
-}
+};
+
+instance.prototype.build_talk = function () {
+	var self = this;
+	var basePfx = '/cfg/talk/'
+	var baseID = 'talk';
+	var talkActions = {};
+	var stat = {};
+	var talkFeedbacks = {};
+	var newAct;
+	var newFB;
+
+	var talkBus =	{
+		id: 'bus',
+		type: 'dropdown',
+		label: 'Bus',
+		default: 'A',
+		choices: [
+			{ id: 'A', label: 'Talkback A' },
+			{ id: 'B', label: 'Talkback B' }
+		]
+	}
+
+	var talkDest = {
+		id: 'dest',
+		type: 'dropdown',
+		label: 'Destination',
+		choices: []
+	}
+
+	for (var bus of ['A','B']) {
+		stat[basePfx + bus + '/$on'] = {
+			fbID: baseID,
+			isOn: false,
+			polled: 0,
+			valid: false
+		}
+		for (var n=1; n<=16; n++) {
+			var dest = 'B' + n;
+			stat[basePfx + bus + '/' + dest ] ={
+				fbID: baseID + '_d',
+				isOn: false,
+				polled: 0,
+				valid: false
+			};
+			if ('A' == bus) {
+				talkDest.choices.push({
+					id: dest,
+					label: 'Bus ' + n
+				});
+			}
+		}
+		for (var n=1; n<=4; n++) {
+			var dest = 'M' + n;
+			stat[basePfx + bus + '/' + dest ] = {
+				fbID: baseID + '_d',
+				isOn: false,
+				polled: 0,
+				valid: false
+			};
+			if ('A' == bus) {
+				talkDest.choices.push({
+					id: dest,
+					label: 'Main ' + n
+				});
+			}
+		}
+	}
+
+	talkDest.default = 'B1';
+
+	// TB A/B on/off
+	newAct = {
+		id:	'talk',
+		label: 'Talkback',
+		description: 'Turn Talkback On/Off',
+		options: [
+			talkBus,
+			{
+				id: 'on',
+				type: 'dropdown',
+				label: 'State',
+				default: '1',
+				choices: self.CHOICES_ON_OFF
+			}
+		]
+	}
+
+	talkActions[newAct.id] = newAct;
+	newAct = {
+		id:	'talk_d',
+		label: 'Talkback Destination',
+		description: 'Enable Talkback Destination',
+		options: [
+			talkBus,
+			talkDest,
+			{
+				id: 'on',
+				type: 'dropdown',
+				label: 'State',
+				default: '1',
+				choices: self.CHOICES_ON_OFF
+			}
+		]
+	}
+	talkActions[newAct.id] = newAct;
+
+	var newFB = {
+		id: 'talk',
+		label: 'Color for Talkback On',
+		options: [
+			talkBus,
+			{
+				type: 'colorpicker',
+				label: 'Foreground color',
+				id: 'fg',
+				default: '16777215'
+			},
+			{
+				type: 'colorpicker',
+				label: 'Background color',
+				id: 'bg',
+				default: self.rgb(128, 0, 0)
+			}
+		],
+		callback: function(feedback, bank) {
+			var theNode = '/cfg/talk/' + feedback.options.bus + '/$on';
+			var stat = self.xStat[theNode];
+			if (stat.isOn) {
+				return { color: feedback.options.fg, bgcolor: feedback.options.bg };
+			}
+		}
+	}
+
+	talkFeedbacks[newFB.id] = newFB;
+
+	newFB = {
+		id: 'talk_d',
+		label: 'Color for Talkback Destination On',
+		options: [
+			talkBus,
+			talkDest,
+			{
+				type: 'colorpicker',
+				label: 'Foreground color',
+				id: 'fg',
+				default: '16777215'
+			},
+			{
+				type: 'colorpicker',
+				label: 'Background color',
+				id: 'bg',
+				default: self.rgb(0 , 102, 0)
+			}
+		],
+		callback: function(feedback, bank) {
+			var theNode = '/cfg/talk/' + feedback.options.bus + '/' + feedback.options.dest;
+			var stat = self.xStat[theNode];
+			if (stat.isOn) {
+				return { color: feedback.options.fg, bgcolor: feedback.options.bg };
+			}
+		}
+	};
+
+	talkFeedbacks[newFB.id] = newFB;
+
+	Object.assign(self.xStat, stat);
+	Object.assign(self.actionDefs, talkActions);
+	// muteFeedbacks is generically on/off
+	Object.assign(self.muteFeedbacks, talkFeedbacks);
+};
 
 instance.prototype.pollStats = function () {
 	var self = this;
@@ -1133,6 +1306,13 @@ instance.prototype.init_osc = function() {
 					if ('led' == leaf) {
 						self.checkFeedbacks('col');
 					}
+					if ('$solo' == leaf) {
+						if (v == 1){
+							self.soloList.add(node);
+						} else {
+							self.soloList.delete(node);
+						}
+					}
 					break;
 				case 'fdr':
 				case 'lvl':
@@ -1165,6 +1345,10 @@ instance.prototype.init_osc = function() {
 					break;
 				default:
 					if (node.match(/\$solo/)) {
+						self.xStat[node].isOn = (v == 1);
+						self.checkFeedbacks(self.xStat[node].fbID);
+					}
+					if (node.match(/^\/cfg\/talk\//)) {
 						self.xStat[node].isOn = (v == 1);
 						self.checkFeedbacks(self.xStat[node].fbID);
 					}
@@ -1340,14 +1524,15 @@ instance.prototype.config_fields = function () {
 			tooltip: 'The IP of the WING console',
 			width: 6,
 			regex: this.REGEX_IP
-		},
-		{
-			type: 	'checkbox',
-			label: 	'Analyze',
-			id:		'analyze',
-			tooltip: 'Cycle through console sync timing variables\nThis will temporarily disable the module',
-			default: 0
 		}
+		// ,
+		// {
+		// 	type: 	'checkbox',
+		// 	label: 	'Analyze',
+		// 	id:		'analyze',
+		// 	tooltip: 'Cycle through console sync timing variables\nThis will temporarily disable the module',
+		// 	default: 0
+		// }
 	];
 };
 
@@ -1746,6 +1931,22 @@ instance.prototype.action = function(action) {
 				type: 'i',
 				value: setToggle(cmd, opt.set)
 			};
+		break;
+
+		case 'talk':
+			cmd = '/cfg/talk/' + opt.bus + '/$on'
+			arg = {
+				type: 'i',
+				value: setToggle(cmd, opt.on)
+			}
+		break;
+
+		case 'talk_d':
+			cmd = '/cfg/talk/' + opt.bus + '/' + opt.dest;
+			arg = {
+				type: 'i',
+				value: setToggle(cmd, opt.on)
+			}
 		break;
 
 		case 'clearsolo':
