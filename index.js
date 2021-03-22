@@ -1827,7 +1827,7 @@ instance.prototype.action = function(action) {
 				if (slot) {		// sanity check
 					self.tempStore[slot] = stat[node];
 				}
-				r = -1;
+				r = undefined;
 				// the 'store' actions are internal to this module only
 				// r is left undefined since there is nothing to send
 			break;
@@ -1839,7 +1839,7 @@ instance.prototype.action = function(action) {
 			var xSteps = span / (1000 / self.fadeResolution);
 			var xDelta = Math.floor((r - oldVal) / xSteps * 10000) / 10000;
 			if (xDelta == 0) { // already there
-				r = -1;
+				r = undefined;
 			} else {
 				self.crossFades[cmd] = {
 					steps: xSteps,
