@@ -4,6 +4,8 @@ This Module controls the Behringer WING series of consoles
 go over to [Behringer](https://www.behringer.com/product.html?modelCode=P0BV2)
 to get additional information about the consoles and their capabilities.
 
+**Please note:** This module uses a subscription command to receive updates from the console when something changes, such as Channel 5 fader *moved* or Channal 10 *muted*. Unlike other Behringer consoles, the WING only supports one subscription at a time, with the most recent request being the only receiver. If you use another app to control the WING at the same time, some of the Feedback information may not match the current console status.
+
 ## Configuration
 **Target IP:** Enter the IP address of the Mixer
 

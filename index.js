@@ -35,7 +35,7 @@ function instance(system, id, config) {
 	self.fbToStat = {};
 
 	self.actionDefs = {};
-	self.muteFeedbacks = {};
+	self.toggleFeedbacks = {};
 	self.colorFeedbacks = {};
 	self.variableDefs = [];
 	self.soloList = new Set();
@@ -46,7 +46,7 @@ function instance(system, id, config) {
 	self.crossFades = {};
 	self.needStats = true;
 
-	self.PollTimeout = 600;
+	self.PollTimeout = 800;
 	self.PollCount = 7;
 
 	self.build_choices();
@@ -108,7 +108,7 @@ instance.prototype.updateConfig = function(config) {
 		self.config.analyze = false;
 	} else {
 		self.PollCount = 7;
-		self.PollTimeout = 600;
+		self.PollTimeout = 800;
 		self.init();
 	}
 };
@@ -140,6 +140,7 @@ instance.prototype.init = function() {
 instance.prototype.pulse = function () {
 	var self = this;
 	self.sendOSC("/*s", []);
+	self.debug('re-subscribe');
 	// any leftover status needed?
 	if (self.myMixer.model == '') {
 		self.sendOSC("/?", []);
@@ -429,7 +430,7 @@ instance.prototype.build_strips = function () {
 	var newColor;
 	var newOn;
 	var lbl;
-	var muteFeedbacks = {};
+	var toggleFeedbacks = {};
 	var colorFeedbacks = {};
 	var onFeedbacks = {};
 
@@ -634,7 +635,7 @@ instance.prototype.build_strips = function () {
 			colorFeedbacks[newColor.id] = newColor;
 		}
 		if (newMute) {
-			muteFeedbacks[newMute.id] = newMute;
+			toggleFeedbacks[newMute.id] = newMute;
 		}
 	}
 
@@ -854,8 +855,8 @@ instance.prototype.build_strips = function () {
 	self.actionDefs = acts;
 	self.fbToStat = fb2stat;
 	self.colorFeedbacks = colorFeedbacks;
-	self.muteFeedbacks = muteFeedbacks;
-	Object.assign(self.muteFeedbacks, onFeedbacks);
+	self.toggleFeedbacks = toggleFeedbacks;
+	Object.assign(self.toggleFeedbacks, onFeedbacks);
 
 };
 
@@ -867,7 +868,6 @@ instance.prototype.build_monitor = function () {
 	var fb2stat = self.fbToStat;
 	var soloActions = {};
 	var soloFeedbacks = {};
-	var soloVariables = [];
 
 	var def = monDef;
 
@@ -930,9 +930,68 @@ instance.prototype.build_monitor = function () {
 			};
 		}
 	}
+	actID = 'clearsolo';
+	soloID = '/$stat/solo'
+	soloActions[actID] = {
+		label: 'Solo Clear',
+		description: 'Clear all active Solos',
+		options: []
+	};
+	stat[soloID] = {
+		fbID: actID,
+		isOn: false,
+		valid: false,
+		polled: 0
+	};
+	self.fbToStat[actID] = soloID;
+	soloFeedbacks[actID] = {
+		label: 		 'Any Solo Active',
+		options: [
+			{
+				type: 	'checkbox',
+				label: 	'Blink?',
+				id:		'blink',
+				default: 0
+			},
+			{
+				type: 'colorpicker',
+				label: 'Foreground color',
+				id: 'fg',
+				default: 0
+			},
+			{
+				type: 'colorpicker',
+				label: 'Background color',
+				id: 'bg',
+				default: self.rgb(168, 168, 0)
+			},
+		],
+		callback: function(feedback, bank) {
+			var opt = feedback.options;
+			var fbType = feedback.type;
+			var stat = self.xStat[self.fbToStat[fbType]];
+
+			if (stat.isOn) {
+				if (opt.blink) {		// wants blink
+					if (self.blinkingFB[stat.fbID]) {
+						self.blinkingFB[stat.fbID] = false;
+						// blink off
+						return;
+					} else {
+						self.blinkingFB[stat.fbID] = true;
+					}
+				}
+				return { color: opt.fg, bgcolor: opt.bg };
+			} else if (self.blinkingFB[stat.fbID]) {
+				delete self.blinkingFB[stat.fbID];
+			}
+
+		}
+	};
+
 	Object.assign(self.xStat, stat);
 	Object.assign(self.actionDefs, soloActions);
-	Object.assign(self.muteFeedbacks, soloFeedbacks);
+	Object.assign(self.toggleFeedbacks, soloFeedbacks);
 };
 
 instance.prototype.build_talk = function () {
@@ -1101,8 +1160,7 @@ instance.prototype.build_talk = function () {
 
 	Object.assign(self.xStat, stat);
 	Object.assign(self.actionDefs, talkActions);
-	// muteFeedbacks is generically on/off
-	Object.assign(self.muteFeedbacks, talkFeedbacks);
+	Object.assign(self.toggleFeedbacks, talkFeedbacks);
 };
 
 instance.prototype.pollStats = function () {
@@ -1302,17 +1360,20 @@ instance.prototype.init_osc = function() {
 				case 'led':
 				case '$solo':
 					self.xStat[node].isOn = (v == 1);
-					self.checkFeedbacks(self.xStat[node].fbID);
 					if ('led' == leaf) {
 						self.checkFeedbacks('col');
 					}
 					if ('$solo' == leaf) {
+						var gs = true;
 						if (v == 1){
 							self.soloList.add(node);
 						} else {
 							self.soloList.delete(node);
+							gs = (self.soloList.size > 0);
 						}
+						self.xStat['/$stat/solo'].isOn = gs;
 					}
+					self.checkFeedbacks(self.xStat[node].fbID);
 					break;
 				case 'fdr':
 				case 'lvl':
@@ -1344,11 +1405,9 @@ instance.prototype.init_osc = function() {
 					self.checkFeedbacks(self.xStat[node].fbID);
 					break;
 				default:
-					if (node.match(/\$solo/)) {
-						self.xStat[node].isOn = (v == 1);
-						self.checkFeedbacks(self.xStat[node].fbID);
-					}
-					if (node.match(/^\/cfg\/talk\//)) {
+					if ( node.match(/\$solo/)
+					|| node.match(/^\/cfg\/talk\//)
+					|| node.match(/^\/\$stat\/solo/) ) {
 						self.xStat[node].isOn = (v == 1);
 						self.checkFeedbacks(self.xStat[node].fbID);
 					}
@@ -1387,7 +1446,7 @@ instance.prototype.init_osc = function() {
 			self.status(self.STATUS_WARNING,"Loading status");
 			self.log('info', `Sync Started (${self.PollCount}/${self.PollTimeout})`);
 			self.firstPoll();
-			self.heartbeat = setInterval( function () { self.pulse(); }, 9500);
+			self.heartbeat = setInterval( function () { self.pulse(); }, 9000);
 			self.blinker = setInterval( function() { self.blink(); }, 1000);
 			self.fader = setInterval( function() { self.doFades(); }, 1000 / self.fadeResolution);
 		});
@@ -1509,7 +1568,7 @@ instance.prototype.init_feedbacks = function() {
 		// 	}
 		// }
 	};
-	Object.assign(feedbacks,this.muteFeedbacks);
+	Object.assign(feedbacks,this.toggleFeedbacks);
 	Object.assign(feedbacks,this.colorFeedbacks);
 	this.setFeedbackDefinitions(feedbacks);
 };
@@ -1951,13 +2010,12 @@ instance.prototype.action = function(action) {
 
 		case 'clearsolo':
 			// WING does not have this as a command
-			// TODO: keep track of 'solos' to reset each one
-			// cmd = '/-action/clearsolo';
-			// // needs an arg for some silly reason
-			// arg = {
-			// 	type: 'i',
-			// 	value: 1
-			// };
+			// so we keep track of 'solos' to reset each one
+			for (var s of self.soloList) {
+				self.sendOSC(s, {type: 'i', value: 0 });
+				self.sendOSC(s,[]);
+			}
+
 		break;
 
 		// case 'load_snap':
