@@ -1863,7 +1863,7 @@ instance.prototype.action = function(action) {
 	// internal function for action (not anonymous)
 	// self is properly scoped to next outer closure
 	function setToggle(cmd, opt) {
-		return '2' == opt ? (1-(self.xStat[cmd].isOn ? 1 : 0)) : parseInt(opt);
+		return 2 == parseInt(opt) ? (1-(self.xStat[cmd].isOn ? 1 : 0)) : parseInt(opt);
 	}
 
 	switch (action.action){
@@ -1872,7 +1872,7 @@ instance.prototype.action = function(action) {
 			cmd = opt.strip + '/mute';
 			arg = {
 				type: 'i',
-				value: setToggle(cmd, opt.mute)
+				value: setToggle(cmd, opt.on)
 			};
 		break;
 
@@ -1976,7 +1976,7 @@ instance.prototype.action = function(action) {
 		case 'icon':
 			arg = {
 				type: 'i',
-				value: parseInt(opt.col)
+				value: parseInt(opt.icon)
 			};
 			cmd = opt.strip + '/icon';
 		break;
