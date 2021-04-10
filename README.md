@@ -18,3 +18,9 @@ See also HELP.md and LICENSE
 **V1.0.0**
 * Implement a 'Clear All Solo' function
 * Cleanup: remove excess debugging code
+
+**V1.0.1**
+* Fix typos on certain mute actions
+
+**V1.0.1**
+* Fix Repo URL in HELP.md
