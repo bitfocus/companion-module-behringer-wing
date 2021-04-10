@@ -68,5 +68,5 @@ Variable | Description
 Solo Feedback indicator changes the button color to white text on black with an overlay:<br>
 ![Solo](images/solo-opaque.png "Solo")
 
-For additional actions please raise a feature request at [github](https://github.com/bitfocus/companion/companion-module-behringer-wing)
+For additional actions please raise a feature request at [github](https://github.com/bitfocus/companion-module-behringer-wing)
 
