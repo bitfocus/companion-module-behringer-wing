@@ -1944,7 +1944,7 @@ instance.prototype.action = function(action) {
 			cmd = opt.strip + '/$solo';
 			arg = {
 				type: 'i',
-				value: setToggle(cmd, opt.$solo)
+				value: setToggle(cmd, opt.on)
 			};
 
 		break;
@@ -1953,7 +1953,7 @@ instance.prototype.action = function(action) {
 			cmd = opt.strip + '/led';
 			arg = {
 				type: 'i',
-				value: setToggle(cmd, opt.led)
+				value: setToggle(cmd, opt.on)
 			};
 		break;
 
