@@ -22,5 +22,8 @@ See also HELP.md and LICENSE
 **V1.0.1**
 * Fix typos on certain mute actions
 
-**V1.0.1**
+**V1.0.2**
 * Fix Repo URL in HELP.md
+
+**V1.0.3**
+* Fix remaining switch/toggle actions
