@@ -27,3 +27,6 @@ See also HELP.md and LICENSE
 
 **V1.0.3**
 * Fix remaining switch/toggle actions
+
+**V1.0.4**
+* Fix DCA Channel count (16 not 8)
