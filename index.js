@@ -58,23 +58,6 @@ function instance(system, id, config) {
 		self.config._configIdx = -1;
 	}
 
-	self.addUpgradeScript( function(config, actions, releaseActions, feedbacks) {
-		var changed = false;
-
-		function upgradePass(actions) {
-			for (var k in actions) {
-				var action = actions[k];
-
-			return changed;
-			}
-
-			changed = upgradePass(actions) || changed;
-			changed = upgradePass(releaseActions) || changed;
-
-			return changed;
-		}
-	});
-
 	// each instance needs a separate local port
 	id.split('').forEach(function (c) {
 		po += c.charCodeAt(0);
@@ -85,6 +68,15 @@ function instance(system, id, config) {
 	self.log = log;
 
 	return self;
+}
+
+instance.GetUpgradeScripts = function() {
+	return [
+		function() {
+			// 'old' script that does nothing, but cannot be removed
+			return false
+		}
+	]
 }
 
 instance.prototype.ICON_SOLO =
