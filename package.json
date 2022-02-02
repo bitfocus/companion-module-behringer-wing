@@ -19,5 +19,13 @@
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "John Knight, Jr <istnv@ayesti.com>",
-	"license": "MIT"
+	"license": "MIT",
+	"homepage": "https://github.com/bitfocus/companion-module-behringer-wing#readme",
+	"bugs": {
+		"url": "https://github.com/bitfocus/companion-module-behringer-wing/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/bitfocus/companion-module-behringer-wing.git"
+	}
 }
