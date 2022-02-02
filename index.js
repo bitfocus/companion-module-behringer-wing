@@ -1778,7 +1778,7 @@ instance.prototype.init_actions = function(system) {
 
 	Object.assign(newActions, self.actionDefs);
 
-	self.system.emit('instance_actions', self.id, newActions);
+	self.setActions(newActions);
 };
 
 instance.prototype.action = function(action) {
