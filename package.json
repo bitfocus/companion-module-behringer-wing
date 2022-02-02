@@ -3,10 +3,12 @@
 	"legacy": [
 		"wing"
 	],
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"api_version": "1.0.0",
 	"keywords": [
-		"Audio", "Mixer", "Console"
+		"Audio",
+		"Mixer",
+		"Console"
 	],
 	"manufacturer": "Behringer",
 	"product": "WING",
