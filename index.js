@@ -64,9 +64,6 @@ function instance(system, id, config) {
 	});
 	self.port_offset = po;
 
-	self.debug = debug;
-	self.log = log;
-
 	return self;
 }
 
