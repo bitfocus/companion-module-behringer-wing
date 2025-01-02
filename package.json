@@ -1,31 +1,49 @@
 {
-	"name": "behringer-wing",
-	"legacy": [
-		"wing"
-	],
-	"version": "1.0.8",
-	"api_version": "1.0.0",
-	"keywords": [
-		"Audio",
-		"Mixer",
-		"Console"
-	],
-	"manufacturer": "Behringer",
-	"product": "WING",
-	"shortname": "wing",
-	"description": "Module to control Behringer WING consoles",
-	"main": "index.js",
+	"name": "wing-companion",
+	"version": "2.0.0",
+	"main": "dist/main.js",
+	"type": "module",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"postinstall": "husky",
+		"format": "prettier -w .",
+		"package": "run build && companion-module-build",
+		"build": "rimraf dist && run build:main",
+		"build:main": "tsc -p tsconfig.build.json",
+		"dev": "tsc -p tsconfig.build.json --watch",
+		"lint:raw": "eslint",
+		"lint": "run lint:raw ."
 	},
-	"author": "John Knight, Jr <istnv@ayesti.com>",
 	"license": "MIT",
-	"homepage": "https://github.com/bitfocus/companion-module-behringer-wing#readme",
-	"bugs": {
-		"url": "https://github.com/bitfocus/companion-module-behringer-wing/issues"
-	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/bitfocus/companion-module-behringer-wing.git"
-	}
+		"url": "git+https://github.com/bitfocus/companion-module-wing-companion.git"
+	},
+	"dependencies": {
+		"@companion-module/base": "~1.11.2",
+		"debounce-fn": "^6.0.0",
+		"osc": "^2.4.5",
+		"p-queue": "^8.0.1",
+		"type-fest": "^4.31.0"
+	},
+	"devDependencies": {
+		"@companion-module/tools": "^2.1.1",
+		"@types/node": "^22.10.2",
+		"eslint": "^9.17.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^15.2.11",
+		"prettier": "^3.4.2",
+		"rimraf": "^6.0.1",
+		"typescript": "~5.5.4",
+		"typescript-eslint": "^8.18.1"
+	},
+	"prettier": "@companion-module/tools/.prettierrc.json",
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"yarn lint:raw --fix"
+		]
+	},
+	"packageManager": "yarn@4.5.3"
 }
