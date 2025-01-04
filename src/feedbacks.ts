@@ -44,7 +44,6 @@ export function GetFeedbacksList(
 	_self: InstanceBaseExt<WingConfig>,
 	state: WingState,
 	subs: WingSubscriptions,
-	_send: (cmd: string, argument?: number | string) => void,
 	ensureLoaded: (path: string) => void,
 ): CompanionFeedbackDefinitions {
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {

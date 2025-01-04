@@ -1,5 +1,3 @@
-import { WingState } from '../state/index.js'
-import { WingTransitions } from '../transitions.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
 	GetFaderInputField,
@@ -12,6 +10,8 @@ import {
 import { getNodeNumber, getNumber, runTransition } from './utils.js'
 import { CompanionActionWithCallback } from './common.js'
 import { BusCommands as Commands } from '../commands/bus.js'
+import { InstanceBaseExt } from '../types.js'
+import { WingConfig } from '../config.js'
 
 export enum BusActions {
 	SetBusColor = 'set-bus-color',
@@ -23,12 +23,11 @@ export enum BusActions {
 	SetBusToBusMute = 'set-bus-to-bus-mute',
 }
 
-export function createBusActions(
-	state: WingState,
-	transitions: WingTransitions,
-	send: (cmd: string, argument?: number | string) => void,
-	ensureLoaded: (path: string) => void,
-): CompanionActionDefinitions {
+export function createBusActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
+	const send = self.sendCommand
+	const ensureLoaded = self.ensureLoaded
+	const state = self.state
+	const transitions = self.transitions
 	const actions: { [id in BusActions]: CompanionActionWithCallback | undefined } = {
 		[BusActions.SetBusColor]: {
 			name: 'Set Bus Color',

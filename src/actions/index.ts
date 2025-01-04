@@ -1,20 +1,15 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { WingState } from '../state/index.js'
-import { WingTransitions } from '../transitions.js'
 import { createChannelActions } from '../actions/channel.js'
 import { GetOtherActions as createOtherActions } from './other.js'
 import { createBusActions as createBusActions } from './bus.js'
+import { InstanceBaseExt } from '../types.js'
+import { WingConfig } from '../config.js'
 
-export function createActions(
-	state: WingState,
-	transitions: WingTransitions,
-	send: (cmd: string, argument?: number | string) => void,
-	ensureLoaded: (path: string) => void,
-): CompanionActionDefinitions {
+export function createActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
 	const actions = {
-		...createOtherActions(send),
-		...createChannelActions(state, transitions, send, ensureLoaded),
-		...createBusActions(state, transitions, send, ensureLoaded),
+		...createOtherActions(self),
+		...createChannelActions(self),
+		...createBusActions(self),
 	}
 
 	return actions

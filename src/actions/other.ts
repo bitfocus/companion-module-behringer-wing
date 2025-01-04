@@ -1,12 +1,16 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
 import { CompanionActionWithCallback } from './common.js'
+import { InstanceBaseExt } from '../types.js'
+import { WingConfig } from '../config.js'
 
 export enum OtherActionId {
 	SendCommand = 'send-command',
 	SendCommandWithNumber = 'send-command-with-number',
 }
 
-export function GetOtherActions(send: (cmd: string, argument?: number | string) => void): CompanionActionDefinitions {
+export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
+	const send = self.sendCommand
+
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.SendCommand]: {
 			name: 'Send Command',

@@ -1,5 +1,4 @@
-import { WingState, StateUtil } from '../state/index.js'
-import { WingTransitions } from '../transitions.js'
+import { StateUtil } from '../state/index.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
 	GetFaderInputField,
@@ -20,6 +19,8 @@ import { FadeDurationChoice } from '../choices/fades.js'
 import { CompanionActionWithCallback } from './common.js'
 import { GetEqParameterChoice } from '../choices/eq.js'
 import { EqModelChoice } from '../choices/eq.js'
+import { InstanceBaseExt } from '../types.js'
+import { WingConfig } from '../config.js'
 
 export enum ChannelActions {
 	SetChannelMainConnection = 'set-channel-main-connection',
@@ -44,12 +45,12 @@ export enum ChannelActions {
 	ChannelUndoPanoramaDelta = 'channel-undo-panorama-delta',
 }
 
-export function createChannelActions(
-	state: WingState,
-	transitions: WingTransitions,
-	send: (cmd: string, argument?: number | string) => void,
-	ensureLoaded: (path: string) => void,
-): CompanionActionDefinitions {
+export function createChannelActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
+	const send = self.sendCommand
+	const ensureLoaded = self.ensureLoaded
+	const transitions = self.transitions
+	const state = self.state
+
 	const actions: { [id in ChannelActions]: CompanionActionWithCallback | undefined } = {
 		[ChannelActions.SetChannelMainConnection]: {
 			name: 'Set Channel Main Connection',

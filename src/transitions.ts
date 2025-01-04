@@ -1,4 +1,3 @@
-import { MetaArgument } from 'osc'
 import { WingConfig } from './config.js'
 import { Easing } from './easings.js'
 import { InstanceBaseExt } from './types.js'
@@ -24,11 +23,9 @@ export class WingTransitions {
 		this.fadeUpdateRate = rate
 	}
 
-	// TODO: use the common send function of the base class
-	private sendOsc(cmd: string, arg: MetaArgument): void {
-		// this.instance(cmd, ar)
+	private sendOsc(cmd: string, arg?: string | number): void {
 		if (this.instance.config.host) {
-			this.instance.osc.send({ address: cmd, args: arg })
+			this.instance.sendCommand(cmd, arg)
 		}
 	}
 
@@ -46,10 +43,7 @@ export class WingTransitions {
 		for (const [path, info] of this.transitions.entries()) {
 			const newValue = info.steps.shift()
 			if (newValue !== undefined) {
-				this.sendOsc(path, {
-					type: 'f',
-					value: newValue,
-				})
+				this.sendOsc(path, newValue)
 			}
 			if (info.steps.length === 0) {
 				completedPaths.push(path)
@@ -80,7 +74,7 @@ export class WingTransitions {
 
 		if (stepCount <= 1 || typeof from !== 'number') {
 			this.transitions.delete(path)
-			this.sendOsc(path, { type: 'f', value: to }) // TODO: change this send to the common function
+			this.sendOsc(path, to)
 		} else {
 			const diff = to - from
 			const steps: number[] = []

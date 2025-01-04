@@ -44,7 +44,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		timeout: 200,
 		throwOnTimeout: true,
 	})
-	private transitions: WingTransitions
+	transitions: WingTransitions
 
 	private readonly messageFeedbacks = new Set<FeedbackId>()
 	private readonly debounceMessageFeedbacks: () => void
@@ -147,13 +147,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	updateActions(): void {
-		this.setActionDefinitions(createActions(this.state, this.transitions, this.sendCommand, this.ensureLoaded))
+		this.setActionDefinitions(createActions(this))
 	}
 
 	updateFeedbacks(): void {
-		this.setFeedbackDefinitions(
-			GetFeedbacksList(this, this.state, this.WingSubscriptions, this.sendCommand, this.ensureLoaded),
-		)
+		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.WingSubscriptions, this.ensureLoaded))
 	}
 
 	updateVariableDefinitions(): void {
@@ -299,14 +297,12 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	private updateCompanionWithState(): void {
 		this.state.updateNames(this.model)
-		this.setActionDefinitions(createActions(this.state, this.transitions, this.sendCommand, this.ensureLoaded))
-		this.setFeedbackDefinitions(
-			GetFeedbacksList(this, this.state, this.WingSubscriptions, this.sendCommand, this.ensureLoaded),
-		)
+		this.setActionDefinitions(createActions(this))
+		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.WingSubscriptions, this.ensureLoaded))
 		this.checkFeedbacks()
 	}
 
-	private sendCommand = (cmd: string, argument?: number | string): void => {
+	sendCommand = (cmd: string, argument?: number | string): void => {
 		if (!this.config.host) {
 			return
 		}
@@ -341,7 +337,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 	}
 
-	private ensureLoaded = (path: string): void => {
+	ensureLoaded = (path: string): void => {
 		this.requestQueue
 			.add(async () => {
 				if (this.inFlightRequests[path]) {
