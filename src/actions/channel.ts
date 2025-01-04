@@ -256,7 +256,6 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
 				let targetValue = ActionUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
-				console.log(delta)
 				if (targetValue) {
 					targetValue -= delta
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)

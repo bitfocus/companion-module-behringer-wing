@@ -236,7 +236,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.osc.on('message', (message): void => {
 			this.updateStatus(InstanceStatus.Ok)
 			const args = message.args as osc.MetaArgument[]
-			this.log('debug', `Received ${message.address} ${JSON.stringify(args[0])}`)
+			this.log('debug', `Received ${message.address} ${args[0].value}`)
 			this.state.set(message.address, args)
 
 			if (this.inFlightRequests[message.address]) {
@@ -341,12 +341,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.requestQueue
 			.add(async () => {
 				if (this.inFlightRequests[path]) {
-					this.log('debug', `Request "${path}" is already in flight`)
 					return
 				}
 
 				if (this.state.get(path)) {
-					this.log('debug', `Request ${path} is already loaded`)
 					return
 				}
 
@@ -360,9 +358,9 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 				await p
 			})
-			.catch((e: unknown) => {
+			.catch((_e: unknown) => {
 				delete this.inFlightRequests[path]
-				this.log('error', `Request failed for "${path}": (${e})`)
+				this.log('error', `Request failed for ${path}`)
 			})
 	}
 }

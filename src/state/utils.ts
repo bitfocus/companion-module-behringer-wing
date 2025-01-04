@@ -16,7 +16,6 @@ export function getStringFromState(cmd: string, state: WingState): string | unde
 
 export function storeValueWithKey(cmd: string, state: WingState, value: number | undefined): void {
 	const key = `${cmd}`
-	console.log(`Storing : ${key} = ${value}`)
 	if (value !== undefined) {
 		state.setPressValue(key, value)
 	}
