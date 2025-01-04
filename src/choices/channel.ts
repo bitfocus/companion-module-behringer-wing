@@ -10,28 +10,6 @@ export function getFilterModelOptions(): DropdownChoice[] {
 	]
 }
 
-export function getInputConnectionGroupChoices(): DropdownChoice[] {
-	return [
-		getIdLabelPair('OFF', 'Off'),
-		getIdLabelPair('LCL', 'Local'),
-		getIdLabelPair('AUX', 'Aux'),
-		getIdLabelPair('A', 'AES A'),
-		getIdLabelPair('B', 'AES B'),
-		getIdLabelPair('C', 'AES C'),
-		getIdLabelPair('SC', 'StageConnect'),
-		getIdLabelPair('USB', 'USB Player'),
-		getIdLabelPair('CRD', 'Expansion Card'),
-		getIdLabelPair('MOD', 'Module'),
-		getIdLabelPair('PLAY', 'Player'),
-		getIdLabelPair('AES'),
-		getIdLabelPair('USR', 'User'),
-		getIdLabelPair('OSC', 'Oscillator'),
-		getIdLabelPair('BUS', 'Bus'),
-		getIdLabelPair('MAIN', 'Main'),
-		getIdLabelPair('MTX', 'Matrix'),
-	]
-}
-
 export function getSendModeChoices(): DropdownChoice[] {
 	return [getIdLabelPair('PRE', 'Pre-Fade'), getIdLabelPair('POST', 'Post-Fade'), getIdLabelPair('GRP', 'Group')]
 }

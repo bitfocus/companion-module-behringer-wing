@@ -252,3 +252,25 @@ export function compareNumber(
 			return currentValue === targetValue
 	}
 }
+
+export function getSourceGroupChoices(): DropdownChoice[] {
+	return [
+		getIdLabelPair('OFF', 'Off'),
+		getIdLabelPair('LCL', 'Local'),
+		getIdLabelPair('AUX', 'Aux'),
+		getIdLabelPair('A', 'AES A'),
+		getIdLabelPair('B', 'AES B'),
+		getIdLabelPair('C', 'AES C'),
+		getIdLabelPair('SC', 'StageConnect'),
+		getIdLabelPair('USB', 'USB Player'),
+		getIdLabelPair('CRD', 'Expansion Card'),
+		getIdLabelPair('MOD', 'Module'),
+		getIdLabelPair('PLAY', 'Player'),
+		getIdLabelPair('AES', 'AES/EBU'),
+		getIdLabelPair('USR', 'User'),
+		getIdLabelPair('OSC', 'Oscillator'),
+		getIdLabelPair('BUS', 'Bus'),
+		getIdLabelPair('MAIN', 'Main'),
+		getIdLabelPair('MTX', 'Matrix'),
+	]
+}

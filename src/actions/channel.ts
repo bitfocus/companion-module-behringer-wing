@@ -10,7 +10,8 @@ import {
 	GetColorDropdown,
 	GetTextField,
 } from '../choices/common.js'
-import { getFilterModelOptions, getInputConnectionGroupChoices } from '../choices/channel.js'
+import { getSourceGroupChoices } from '../choices/common.js'
+import { getFilterModelOptions } from '../choices/channel.js'
 import { ChannelCommands as Commands } from '../commands/channel.js'
 import {
 	getNodeNumber,
@@ -58,7 +59,7 @@ export function createChannelActions(
 			name: 'Set Channel Main Connection',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				GetDropdown('Group', 'group', getInputConnectionGroupChoices()),
+				GetDropdown('Group', 'group', getSourceGroupChoices()),
 				GetNumberField('Index', 'index', 1, 64, 1, 1),
 			],
 			callback: async (event) => {
@@ -133,10 +134,7 @@ export function createChannelActions(
 				GetMuteDropdown('mute'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.SendOn(
-					getNodeNumber(event, 'channel'),
-					getNodeNumber(event, 'bus'),
-				)
+				const cmd = Commands.SendOn(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus'))
 				send(cmd, getNodeNumber(event, 'mute'))
 			},
 		},
@@ -151,19 +149,11 @@ export function createChannelActions(
 				...GetFaderInputField('level'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.SendLevel(
-					getNodeNumber(event, 'channel'),
-					getNodeNumber(event, 'bus'),
-				)
+				const cmd = Commands.SendLevel(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus'))
 				runTransition(cmd, 'level', event, state, transitions)
 			},
 			subscribe: (event) => {
-				ensureLoaded(
-					Commands.SendLevel(
-						getNodeNumber(event, 'channel'),
-						getNodeNumber(event, 'bus'),
-					),
-				)
+				ensureLoaded(Commands.SendLevel(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus')))
 			},
 		},
 		[ChannelActions.SetChannelSendPanorama]: {
@@ -174,16 +164,11 @@ export function createChannelActions(
 				...GetPanoramaSlider('pan'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.SendPan(
-					getNodeNumber(event, 'channel'),
-					getNodeNumber(event, 'bus'),
-				)
+				const cmd = Commands.SendPan(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus'))
 				runTransition(cmd, 'pan', event, state, transitions)
 			},
 			subscribe: (event) => {
-				ensureLoaded(
-					Commands.SendPan(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus')),
-				)
+				ensureLoaded(Commands.SendPan(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus')))
 			},
 		},
 		[ChannelActions.SetChannelFilterModel]: {
