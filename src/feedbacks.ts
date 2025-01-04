@@ -1,4 +1,4 @@
-import { WingState, WingSubscriptions } from './state.js'
+import { WingState, WingSubscriptions } from './state/index.js'
 import { InstanceBaseExt } from './types.js'
 import { WingConfig } from './config.js'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
@@ -11,7 +11,8 @@ import {
 } from '@companion-module/base'
 import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
 import { ChannelCommands } from './commands/channel.js'
-import { getNumberValueForCommand, getNodeNumber, getStringValueForCommand } from './actions/utils.js'
+import { getNumberFromState, getNodeNumber } from './actions/utils.js'
+import { StateUtil } from './state/index.js'
 import { getIdLabelPair } from './utils.js'
 import { StatusCommands } from './commands/status.js'
 
@@ -63,7 +64,7 @@ export function GetFeedbacksList(
 			},
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
-				const val = getStringValueForCommand(cmd, state)
+				const val = StateUtil.getStringFromState(cmd, state)
 				return val == 'OK'
 			},
 			subscribe: (event): void => {
@@ -90,7 +91,7 @@ export function GetFeedbacksList(
 			},
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = ChannelCommands.Pan(getNodeNumber(event, 'channel'))
-				const currentValue = getNumberValueForCommand(cmd, state)
+				const currentValue = getNumberFromState(cmd, state)
 				return (
 					typeof currentValue === 'number' && compareNumber(event.options.pan, event.options.comparator, currentValue)
 				)

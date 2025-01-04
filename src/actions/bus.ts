@@ -1,4 +1,4 @@
-import { WingState } from '../state.js'
+import { WingState } from '../state/index.js'
 import { WingTransitions } from '../transitions.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -9,7 +9,7 @@ import {
 	GetMuteDropdown,
 	GetTextField,
 } from '../choices/common.js'
-import { getNodeNumber, getNumberFromAction, runTransition } from './utils.js'
+import { getNodeNumber, getNumber, runTransition } from './utils.js'
 import { CompanionActionWithCallback } from './common.js'
 import { BusCommands as Commands } from '../commands/bus.js'
 
@@ -23,7 +23,7 @@ export enum BusActions {
 	SetBusToBusMute = 'set-bus-to-bus-mute',
 }
 
-export function GetBusActions(
+export function createBusActions(
 	state: WingState,
 	transitions: WingTransitions,
 	send: (cmd: string, argument?: number | string) => void,
@@ -35,7 +35,7 @@ export function GetBusActions(
 			options: [GetDropdown('Bus', 'bus', state.namedChoices.busses), GetNumberField('Color', 'color', 1, 12, 1, 1)],
 			callback: async (event) => {
 				const cmd = Commands.Color(getNodeNumber(event, 'bus'))
-				send(cmd, getNumberFromAction(event, 'color'))
+				send(cmd, getNumber(event, 'color'))
 			},
 		},
 		[BusActions.SetBusName]: {
@@ -51,7 +51,7 @@ export function GetBusActions(
 			options: [GetDropdown('Bus', 'bus', state.namedChoices.busses), GetMuteDropdown('mute')],
 			callback: async (event) => {
 				const cmd = Commands.Mute(getNodeNumber(event, 'bus'))
-				send(cmd, getNumberFromAction(event, 'mute'))
+				send(cmd, getNumber(event, 'mute'))
 			},
 		},
 		[BusActions.SetBusFader]: {
@@ -87,16 +87,11 @@ export function GetBusActions(
 				if (event.options.bus == event.options.busTo) {
 					return
 				}
-				const cmd = Commands.SendLevel(
-					getNodeNumber(event, 'bus'),
-					getNodeNumber(event, 'busTo'),
-				)
+				const cmd = Commands.SendLevel(getNodeNumber(event, 'bus'), getNodeNumber(event, 'busTo'))
 				runTransition(cmd, 'level', event, state, transitions)
 			},
 			subscribe: (event) => {
-				ensureLoaded(
-					Commands.SendLevel(getNodeNumber(event, 'bus'), getNodeNumber(event, 'busTo')),
-				)
+				ensureLoaded(Commands.SendLevel(getNodeNumber(event, 'bus'), getNodeNumber(event, 'busTo')))
 			},
 		},
 		[BusActions.SetBusToBusMute]: {
@@ -110,10 +105,7 @@ export function GetBusActions(
 				if (event.options.bus == event.options.busTo) {
 					return
 				}
-				const cmd = Commands.SendOn(
-					getNodeNumber(event, 'bus'),
-					getNodeNumber(event, 'busTo'),
-				)
+				const cmd = Commands.SendOn(getNodeNumber(event, 'bus'), getNodeNumber(event, 'busTo'))
 				send(cmd, event.options.mute as number)
 			},
 		},

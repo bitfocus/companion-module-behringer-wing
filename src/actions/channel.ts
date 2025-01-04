@@ -1,4 +1,4 @@
-import { WingState } from '../state.js'
+import { WingState, StateUtil } from '../state/index.js'
 import { WingTransitions } from '../transitions.js'
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
@@ -13,15 +13,7 @@ import {
 import { getSourceGroupChoices } from '../choices/common.js'
 import { getFilterModelOptions } from '../choices/channel.js'
 import { ChannelCommands as Commands } from '../commands/channel.js'
-import {
-	getNodeNumber,
-	getNumberFromAction,
-	getStringFromAction,
-	runTransition,
-	getNumberValueForCommand,
-	storeValueForAction,
-	getStoredValueForAction,
-} from './utils.js'
+import * as ActionUtil from './utils.js'
 import { FadeDurationChoice } from '../choices/fades.js'
 import { CompanionActionWithCallback } from './common.js'
 import { GetEqParameterChoice } from '../choices/eq.js'
@@ -63,18 +55,18 @@ export function createChannelActions(
 				GetNumberField('Index', 'index', 1, 64, 1, 1),
 			],
 			callback: async (event) => {
-				let cmd = Commands.MainInputConnectionGroup(getNodeNumber(event, 'channel'))
+				let cmd = Commands.MainInputConnectionGroup(ActionUtil.getNodeNumber(event, 'channel'))
 				send(cmd, event.options.group as string)
-				cmd = Commands.MainInputConnectionIndex(getNodeNumber(event, 'channel'))
-				send(cmd, getNumberFromAction(event, 'index'))
+				cmd = Commands.MainInputConnectionIndex(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getNumber(event, 'index'))
 			},
 		},
 		[ChannelActions.SetChannelColor]: {
 			name: 'Set Channel Color',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), GetColorDropdown('color')],
 			callback: async (event) => {
-				const cmd = Commands.Color(getNodeNumber(event, 'channel'))
-				send(cmd, getNumberFromAction(event, 'color'))
+				const cmd = Commands.Color(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getNumber(event, 'color'))
 			},
 		},
 		[ChannelActions.SetChannelName]: {
@@ -84,7 +76,7 @@ export function createChannelActions(
 				GetTextField('Channel Name', 'name', undefined, 'The name of the channel must be shorter than 16 characters'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.Name(getNodeNumber(event, 'channel'))
+				const cmd = Commands.Name(ActionUtil.getNodeNumber(event, 'channel'))
 				send(cmd, event.options.name as string)
 			},
 		},
@@ -92,23 +84,23 @@ export function createChannelActions(
 			name: 'Set Channel Mute',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), GetMuteDropdown('mute')],
 			callback: async (event) => {
-				const cmd = Commands.Mute(getNodeNumber(event, 'channel'))
-				send(cmd, getNumberFromAction(event, 'mute'))
+				const cmd = Commands.Mute(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getNumber(event, 'mute'))
 			},
 		},
 		[ChannelActions.SetChannelFader]: {
 			name: 'Set Channel Level',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...GetFaderInputField('level')],
 			callback: async (event) => {
-				const cmd = Commands.Fader(getNodeNumber(event, 'channel'))
-				runTransition(cmd, 'level', event, state, transitions)
+				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions)
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Fader(getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 			// learn: (event) => {
 			// 	const cmd = ChannelCommands.Fader(getObjectNumberFromAction(event, 'channel'))
-			// 	const level = getStringValueForCommand(cmd, state)
+			// 	const level = ActionUtil.getStringValueForCommand(cmd, state)
 			// 	return {
 			// 		...event.options,
 			// 		level: level ?? event.options.level
@@ -119,11 +111,11 @@ export function createChannelActions(
 			name: 'Set Channel Panorama',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...GetPanoramaSlider('pan')],
 			callback: async (event) => {
-				const cmd = Commands.Pan(getNodeNumber(event, 'channel'))
-				runTransition(cmd, 'pan', event, state, transitions)
+				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
+				ActionUtil.runTransition(cmd, 'pan', event, state, transitions)
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Pan(getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Pan(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
 		[ChannelActions.SetChannelSendMute]: {
@@ -134,8 +126,8 @@ export function createChannelActions(
 				GetMuteDropdown('mute'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.SendOn(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus'))
-				send(cmd, getNodeNumber(event, 'mute'))
+				const cmd = Commands.SendOn(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus'))
+				send(cmd, ActionUtil.getNodeNumber(event, 'mute'))
 			},
 		},
 		[ChannelActions.SetChannelSendLevel]: {
@@ -149,11 +141,16 @@ export function createChannelActions(
 				...GetFaderInputField('level'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.SendLevel(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus'))
-				runTransition(cmd, 'level', event, state, transitions)
+				const cmd = Commands.SendLevel(
+					ActionUtil.getNodeNumber(event, 'channel'),
+					ActionUtil.getNodeNumber(event, 'bus'),
+				)
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions)
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.SendLevel(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus')))
+				ensureLoaded(
+					Commands.SendLevel(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
 			},
 		},
 		[ChannelActions.SetChannelSendPanorama]: {
@@ -164,11 +161,13 @@ export function createChannelActions(
 				...GetPanoramaSlider('pan'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.SendPan(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus'))
-				runTransition(cmd, 'pan', event, state, transitions)
+				const cmd = Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus'))
+				ActionUtil.runTransition(cmd, 'pan', event, state, transitions)
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.SendPan(getNodeNumber(event, 'channel'), getNodeNumber(event, 'bus')))
+				ensureLoaded(
+					Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
 			},
 		},
 		[ChannelActions.SetChannelFilterModel]: {
@@ -178,8 +177,8 @@ export function createChannelActions(
 				GetDropdown('Filter', 'filter', getFilterModelOptions()),
 			],
 			callback: async (event) => {
-				const cmd = Commands.FilterModel(getNodeNumber(event, 'channel'))
-				send(cmd, getStringFromAction(event, 'filter'))
+				const cmd = Commands.FilterModel(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getString(event, 'filter'))
 			},
 		},
 		[ChannelActions.SetChannelEqType]: {
@@ -189,40 +188,40 @@ export function createChannelActions(
 				GetDropdown('EQ Model', 'model', EqModelChoice),
 			],
 			callback: async (event) => {
-				const cmd = Commands.EqModel(getNodeNumber(event, 'channel'))
-				send(cmd, getStringFromAction(event, 'model'))
+				const cmd = Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getString(event, 'model'))
 			},
 		},
 		[ChannelActions.SetChannelEqParameter]: {
 			name: 'Set Channel EQ Parameter',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...GetEqParameterChoice('STD', 'band')],
 			callback: async (event) => {
-				const cmd = Commands.EqModel(getNodeNumber(event, 'channel'))
-				send(cmd, getStringFromAction(event, 'model'))
+				const cmd = Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getString(event, 'model'))
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.EqModel(getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
 		[ChannelActions.ChannelFaderStore]: {
 			name: 'Store Channel Level',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels)],
 			callback: async (event) => {
-				const cmd = Commands.Fader(getNodeNumber(event, 'channel'))
-				const currentVal = getNumberValueForCommand(cmd, state)
-				storeValueForAction(cmd, state, currentVal)
+				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
+				const currentVal = ActionUtil.getNumberFromState(cmd, state)
+				StateUtil.storeValueWithKey(cmd, state, currentVal)
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Fader(getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
 		[ChannelActions.ChannelFaderRestore]: {
 			name: 'Restore Channel Level',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...FadeDurationChoice],
 			callback: async (event) => {
-				const cmd = Commands.Fader(getNodeNumber(event, 'channel'))
-				const restoreVal = getStoredValueForAction(cmd, state)
-				runTransition(cmd, 'level', event, state, transitions, restoreVal)
+				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
+				const restoreVal = StateUtil.getValueFromKey(cmd, state)
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
 			},
 		},
 		[ChannelActions.ChannelFaderDelta]: {
@@ -232,36 +231,36 @@ export function createChannelActions(
 				...GetFaderInputField('delta', 'Adjust (dB)'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.Fader(getNodeNumber(event, 'channel'))
-				let targetValue = getNumberValueForCommand(cmd, state)
+				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
+				let targetValue = ActionUtil.getNumberFromState(cmd, state)
 				if (targetValue) {
 					targetValue += event.options.delta as number
-					runTransition(cmd, 'level', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Fader(getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
 		[ChannelActions.ChannelPanoramaStore]: {
 			name: 'Store Channel Panorama',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels)],
 			callback: async (event) => {
-				const cmd = Commands.Pan(getNodeNumber(event, 'channel'))
-				const currentVal = getNumberValueForCommand(cmd, state)
-				storeValueForAction(cmd, state, currentVal)
+				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
+				const currentVal = ActionUtil.getNumberFromState(cmd, state)
+				StateUtil.storeValueWithKey(cmd, state, currentVal)
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Pan(getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Pan(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
 		[ChannelActions.ChannelPanoramaRestore]: {
 			name: 'Restore Channel Panorama',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...FadeDurationChoice],
 			callback: async (event) => {
-				const cmd = Commands.Pan(getNodeNumber(event, 'channel'))
-				const restoreVal = getStoredValueForAction(cmd, state)
-				runTransition(cmd, 'pan', event, state, transitions, restoreVal)
+				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
+				const restoreVal = StateUtil.getValueFromKey(cmd, state)
+				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal)
 			},
 		},
 		[ChannelActions.ChannelPanoramaDelta]: {
@@ -271,15 +270,15 @@ export function createChannelActions(
 				...GetPanoramaSlider('delta', 'Adjust'),
 			],
 			callback: async (event) => {
-				const cmd = Commands.Pan(getNodeNumber(event, 'channel'))
-				let targetValue = getNumberValueForCommand(cmd, state)
+				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
+				let targetValue = ActionUtil.getNumberFromState(cmd, state)
 				if (targetValue) {
 					targetValue += event.options.delta as number
-					runTransition(cmd, 'pan', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
 				}
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Fader(getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
 	}

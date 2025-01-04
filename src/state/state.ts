@@ -1,13 +1,9 @@
 import osc from 'osc'
-import { FeedbackId } from './feedbacks.js'
+import { FeedbackId } from '../feedbacks.js'
 import { DropdownChoice } from '@companion-module/base'
-import { ModelSpec } from './models/types.js'
-import { AuxCommands } from './commands/aux.js'
-import { getIdLabelPair } from './utils.js'
-import { ChannelCommands } from './commands/channel.js'
-import { BusCommands } from './commands/bus.js'
-import { MatrixCommands } from './commands/matrix.js'
-import { MainCommands } from './commands/main.js'
+import { ModelSpec } from '../models/types.js'
+import { getIdLabelPair } from '../utils.js'
+import * as Commands from '../commands/index.js'
 
 type Names = {
 	channels: DropdownChoice[]
@@ -84,42 +80,44 @@ export class WingState implements IStoredChannelSubject {
 	public updateNames(model: ModelSpec): void {
 		for (let ch = 1; ch <= model.channels; ch++) {
 			this.namedChoices.channels.push(
-				this.getNameForChoice(ch, ChannelCommands.Node(ch), ChannelCommands.RealName(ch), 'Channel'),
+				this.getNameForChoice(ch, Commands.Channel.Node(ch), Commands.Channel.RealName(ch), 'Channel'),
 			)
 		}
 		for (let aux = 1; aux <= model.auxes; aux++) {
-			this.namedChoices.auxes.push(this.getNameForChoice(aux, AuxCommands.Node(aux), AuxCommands.RealName(aux), 'Aux'))
+			this.namedChoices.auxes.push(
+				this.getNameForChoice(aux, Commands.Aux.Node(aux), Commands.Aux.RealName(aux), 'Aux'),
+			)
 		}
 		for (let bus = 1; bus <= model.busses; bus++) {
-			this.namedChoices.busses.push(this.getNameForChoice(bus, BusCommands.Node(bus), BusCommands.Name(bus), 'Bus'))
+			this.namedChoices.busses.push(this.getNameForChoice(bus, Commands.Bus.Node(bus), Commands.Bus.Name(bus), 'Bus'))
 		}
 		for (let matrix = 1; matrix <= model.matrices; matrix++) {
 			this.namedChoices.matrices.push(
-				this.getNameForChoice(matrix, MatrixCommands.Node(matrix), MatrixCommands.RealName(matrix), 'Bus'),
+				this.getNameForChoice(matrix, Commands.Matrix.Node(matrix), Commands.Matrix.RealName(matrix), 'Bus'),
 			)
 		}
 		for (let main = 1; main <= model.mains; main++) {
 			this.namedChoices.mains.push(
-				this.getNameForChoice(main, MainCommands.Node(main), MainCommands.RealName(main), 'Bus'),
+				this.getNameForChoice(main, Commands.Main.Node(main), Commands.Main.RealName(main), 'Bus'),
 			)
 		}
 	}
 
 	public requestNames(model: ModelSpec, ensureLoaded: (path: string) => void): void {
 		for (let ch = 1; ch <= model.channels; ch++) {
-			ensureLoaded(ChannelCommands.RealName(ch))
+			ensureLoaded(Commands.Channel.RealName(ch))
 		}
 		for (let aux = 1; aux <= model.auxes; aux++) {
-			ensureLoaded(AuxCommands.RealName(aux))
+			ensureLoaded(Commands.Aux.RealName(aux))
 		}
 		for (let bus = 1; bus <= model.busses; bus++) {
-			ensureLoaded(BusCommands.Name(bus))
+			ensureLoaded(Commands.Bus.Name(bus))
 		}
 		for (let mtx = 1; mtx <= model.matrices; mtx++) {
-			ensureLoaded(MatrixCommands.RealName(mtx))
+			ensureLoaded(Commands.Matrix.RealName(mtx))
 		}
 		for (let main = 1; main <= model.mains; main++) {
-			ensureLoaded(MainCommands.RealName(main))
+			ensureLoaded(Commands.Main.RealName(main))
 		}
 	}
 

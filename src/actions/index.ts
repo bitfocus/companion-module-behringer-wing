@@ -1,9 +1,9 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { WingState } from '../state.js'
+import { WingState } from '../state/index.js'
 import { WingTransitions } from '../transitions.js'
 import { createChannelActions } from '../actions/channel.js'
 import { GetOtherActions as createOtherActions } from './other.js'
-import { GetBusActions as createBusActions } from './bus.js'
+import { createBusActions as createBusActions } from './bus.js'
 
 export function createActions(
 	state: WingState,
