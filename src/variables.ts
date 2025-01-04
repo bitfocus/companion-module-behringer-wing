@@ -1,4 +1,4 @@
-import type { WingInstance } from './main.js'
+import type { WingInstance } from './index.js'
 
 export function UpdateVariableDefinitions(self: WingInstance): void {
 	self.setVariableDefinitions([
