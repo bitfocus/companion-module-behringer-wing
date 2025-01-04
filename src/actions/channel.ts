@@ -9,6 +9,8 @@ import {
 	GetMuteDropdown,
 	GetColorDropdown,
 	GetTextField,
+	GetFaderDeltaInputField,
+	GetPanoramaDeltaSlider,
 } from '../choices/common.js'
 import { getSourceGroupChoices } from '../choices/common.js'
 import { getFilterModelOptions } from '../choices/channel.js'
@@ -35,9 +37,11 @@ export enum ChannelActions {
 	ChannelFaderStore = 'channel-fader-store',
 	ChannelFaderRestore = 'channel-fader-restore',
 	ChannelFaderDelta = 'channel-fader-delta',
+	ChannelUndoFaderDelta = 'channel-undo-fader-delta',
 	ChannelPanoramaStore = 'channel-panorama-store',
 	ChannelPanoramaRestore = 'channel-panorama-restore',
 	ChannelPanoramaDelta = 'channel-panorama-delta',
+	ChannelUndoPanoramaDelta = 'channel-undo-panorama-delta',
 }
 
 export function createChannelActions(
@@ -228,13 +232,32 @@ export function createChannelActions(
 			name: 'Adjust Channel Level',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				...GetFaderInputField('delta', 'Adjust (dB)'),
+				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
 			],
 			callback: async (event) => {
 				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
 				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				const delta = event.options.delta as number
+				state.storeDelta(cmd, delta)
 				if (targetValue) {
-					targetValue += event.options.delta as number
+					targetValue += delta
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
+			},
+		},
+		[ChannelActions.ChannelUndoFaderDelta]: {
+			name: 'Undo Channel Level Adjust',
+			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...FadeDurationChoice],
+			callback: async (event) => {
+				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
+				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				const delta = state.restoreDelta(cmd)
+				console.log(delta)
+				if (targetValue) {
+					targetValue -= delta
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
@@ -267,13 +290,31 @@ export function createChannelActions(
 			name: 'Adjust Channel Panorama',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				...GetPanoramaSlider('delta', 'Adjust'),
+				...GetPanoramaDeltaSlider('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
 				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				const delta = event.options.delta as number
+				state.storeDelta(cmd, delta)
 				if (targetValue) {
-					targetValue += event.options.delta as number
+					targetValue += delta
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
+			},
+		},
+		[ChannelActions.ChannelUndoPanoramaDelta]: {
+			name: 'Undo Channel Panorama Adjust',
+			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...FadeDurationChoice],
+			callback: async (event) => {
+				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
+				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				const delta = state.restoreDelta(cmd) ?? 0
+				if (targetValue) {
+					targetValue -= delta
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
 				}
 			},
