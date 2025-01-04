@@ -10,9 +10,10 @@ import {
 	GetTextField,
 	GetFaderDeltaInputField,
 	GetPanoramaDeltaSlider,
+	getIconChoices,
 } from '../choices/common.js'
 import { getSourceGroupChoices } from '../choices/common.js'
-import { getFilterModelOptions } from '../choices/channel.js'
+import { getChannelProcessOrderChoices, getFilterModelOptions } from '../choices/channel.js'
 import { ChannelCommands as Commands } from '../commands/channel.js'
 import * as ActionUtil from './utils.js'
 import { FadeDurationChoice } from '../choices/fades.js'
@@ -35,6 +36,8 @@ export enum ChannelActions {
 	SetChannelFilterModel = 'set-channel-filter-model',
 	SetChannelEqType = 'set-channel-eq-type',
 	SetChannelEqParameter = 'set-channel-eq-parameter',
+	SetChannelProcessOrder = 'set-channel-process-order',
+	SetChannelIcon = 'set-channel-icon',
 	ChannelFaderStore = 'channel-fader-store',
 	ChannelFaderRestore = 'channel-fader-restore',
 	ChannelFaderDelta = 'channel-fader-delta',
@@ -206,6 +209,28 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			},
 			subscribe: (event) => {
 				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
+			},
+		},
+		[ChannelActions.SetChannelProcessOrder]: {
+			name: 'Set Channel Process Order',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('Order', 'order', getChannelProcessOrderChoices()),
+			],
+			callback: async (event) => {
+				const cmd = Commands.ProcessOrder(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getString(event, 'order'))
+			},
+		},
+		[ChannelActions.SetChannelIcon]: {
+			name: 'Set Channel Icon',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('Icon', 'icon', getIconChoices()),
+			],
+			callback: async (event) => {
+				const cmd = Commands.Icon(ActionUtil.getNodeNumber(event, 'channel'))
+				send(cmd, ActionUtil.getNumber(event, 'icon'))
 			},
 		},
 		[ChannelActions.ChannelFaderStore]: {

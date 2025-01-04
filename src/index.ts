@@ -330,7 +330,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		} else {
 			console.error('Unsupported argument type. Command aborted.')
 		}
-
+		// this.log('debug', 'Sending ' + cmd + ' ' + JSON.stringify(args))
 		this.osc.send({
 			address: cmd,
 			args: args,
