@@ -1,12 +1,12 @@
 import {
 	CompanionInputFieldDropdown,
+	CompanionInputFieldNumber,
+	CompanionInputFieldTextInput,
 	DropdownChoice,
 	InputValue,
-	SomeCompanionActionInputField,
-	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 import { FadeDurationChoice } from './fades.js'
-import { getIdLabelPair } from '../utils.js'
+import { getIdLabelPair } from '../choices/utils.js'
 
 export function GetNumberField(
 	label: string,
@@ -17,30 +17,7 @@ export function GetNumberField(
 	defaultValue?: number,
 	range?: boolean,
 	tooltip?: string,
-): SomeCompanionActionInputField {
-	return {
-		type: 'number',
-		label: label,
-		id: id,
-		default: defaultValue ?? 0,
-		min: min,
-		step: step,
-		max: max,
-		range: range,
-		tooltip: tooltip,
-	}
-}
-
-export function GetNumberFieldFeedback(
-	label: string,
-	id: string,
-	min: number,
-	max: number,
-	step?: number,
-	defaultValue?: number,
-	range?: boolean,
-	tooltip?: string,
-): SomeCompanionFeedbackInputField {
+): CompanionInputFieldNumber {
 	return {
 		type: 'number',
 		label: label,
@@ -59,7 +36,7 @@ export function GetTextField(
 	id: string,
 	defaultValue?: string,
 	tooltip?: string,
-): SomeCompanionActionInputField {
+): CompanionInputFieldTextInput {
 	return {
 		type: 'textinput',
 		label: label,
@@ -77,20 +54,8 @@ export function GetSlider(
 	step?: number,
 	defaultValue?: number,
 	tooltip?: string,
-): SomeCompanionActionInputField {
+): CompanionInputFieldNumber {
 	return GetNumberField(label, id, min, max, step, defaultValue, true, tooltip)
-}
-
-export function GetSliderFeedback(
-	label: string,
-	id: string,
-	min: number,
-	max: number,
-	step?: number,
-	defaultValue?: number,
-	tooltip?: string,
-): SomeCompanionFeedbackInputField {
-	return GetNumberFieldFeedback(label, id, min, max, step, defaultValue, true, tooltip)
 }
 
 export function GetDropdown(
@@ -99,7 +64,7 @@ export function GetDropdown(
 	choices: DropdownChoice[],
 	defaultChoice?: string,
 	tooltip?: string,
-): SomeCompanionActionInputField {
+): CompanionInputFieldDropdown {
 	return {
 		type: 'dropdown',
 		label: label,
@@ -110,34 +75,20 @@ export function GetDropdown(
 	}
 }
 
-export function GetDropdownFeedback(
-	label: string,
-	id: string,
-	choices: DropdownChoice[],
-	defaultChoice?: string,
-	tooltip?: string,
-): SomeCompanionFeedbackInputField {
-	return {
-		type: 'dropdown',
-		label: label,
-		id: id,
-		default: defaultChoice ?? choices[0].id,
-		choices: choices,
-		tooltip: tooltip,
-	}
-}
-
-export function GetMuteDropdown(id: string, label?: string): SomeCompanionActionInputField {
+export function GetMuteDropdown(id: string, label?: string): CompanionInputFieldDropdown {
 	return GetDropdown(
 		label ?? 'Mute',
 		id,
-		[getIdLabelPair('0', 'Mute'), getIdLabelPair('1', 'Unmute')],
+		[getIdLabelPair('0', 'Mute'), getIdLabelPair('1', 'Unmute'), getIdLabelPair('2', 'Toggle')],
 		'1',
-		'Select whether to Mute or Unmute your selected target',
+		'Select whether to Mute, Unmute or Toggle your selected target',
 	)
 }
 
-export function GetPanoramaSlider(id: string, name?: string): SomeCompanionActionInputField[] {
+export function GetPanoramaSlider(
+	id: string,
+	name?: string,
+): [CompanionInputFieldNumber, CompanionInputFieldNumber, CompanionInputFieldDropdown, CompanionInputFieldDropdown] {
 	return [
 		GetSlider(
 			name ?? 'Panorama',
@@ -152,32 +103,35 @@ export function GetPanoramaSlider(id: string, name?: string): SomeCompanionActio
 	]
 }
 
-export function GetPanoramaSliderFeedback(id: string, name?: string): SomeCompanionFeedbackInputField[] {
-	return [
-		GetSliderFeedback(
-			name ?? 'Panorama',
-			id,
-			-100,
-			100,
-			1,
-			0,
-			'Set the panorama of the selected target between -100 (Left) and +100 (Right)',
-		),
-	]
+export function GetPanoramaDeltaSlider(
+	id: string,
+	name?: string,
+): [CompanionInputFieldNumber, CompanionInputFieldNumber, CompanionInputFieldDropdown, CompanionInputFieldDropdown] {
+	return [GetSlider(name ?? 'Panorama', id, -200, 200, 1, 0), ...FadeDurationChoice]
 }
 
-export function GetGainSlider(id: string, name?: string): SomeCompanionActionInputField {
+export function GetGainSlider(id: string, name?: string): CompanionInputFieldNumber {
 	return GetSlider(name ?? 'Gain (dB)', id, -3, 45.5, 0.5, 10, 'Set the input gain of the selected target')
 }
 
-export function GetFaderInputField(id: string, name?: string): SomeCompanionActionInputField[] {
+export function GetFaderInputField(
+	id: string,
+	name?: string,
+): [CompanionInputFieldNumber, CompanionInputFieldNumber, CompanionInputFieldDropdown, CompanionInputFieldDropdown] {
 	return [
 		GetNumberField(name ?? 'Level (dB)', id, -144, 10, 1, 0, undefined, 'Set the fader level of the selected target'),
 		...FadeDurationChoice,
 	]
 }
 
-export function GetColorDropdown(id: string, label?: string): SomeCompanionActionInputField {
+export function GetFaderDeltaInputField(
+	id: string,
+	name?: string,
+): [CompanionInputFieldNumber, CompanionInputFieldNumber, CompanionInputFieldDropdown, CompanionInputFieldDropdown] {
+	return [GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0), ...FadeDurationChoice]
+}
+
+export function GetColorDropdown(id: string, label?: string): CompanionInputFieldDropdown {
 	return GetDropdown(
 		label ?? 'Color',
 		id,

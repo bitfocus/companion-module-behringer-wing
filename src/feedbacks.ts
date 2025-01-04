@@ -9,11 +9,12 @@ import {
 	CompanionFeedbackDefinitions,
 	CompanionFeedbackInfo,
 } from '@companion-module/base'
-import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
+// import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
+import { compareNumber, GetDropdown, GetNumberComparator, GetPanoramaSlider } from './choices/common.js'
 import { ChannelCommands } from './commands/channel.js'
 import { getNumberFromState, getNodeNumber } from './actions/utils.js'
 import { StateUtil } from './state/index.js'
-import { getIdLabelPair } from './utils.js'
+import { getIdLabelPair } from './choices/utils.js'
 import { StatusCommands } from './commands/status.js'
 
 type CompanionFeedbackWithCallback = SetRequired<
@@ -52,7 +53,7 @@ export function GetFeedbacksList(
 			name: 'AES Status',
 			description: 'Status of an AES Connection',
 			options: [
-				GetDropdownFeedback('Interface', 'aes', [
+				GetDropdown('Interface', 'aes', [
 					getIdLabelPair('A', 'AES A'),
 					getIdLabelPair('B', 'AES B'),
 					getIdLabelPair('C', 'AES C'),
@@ -81,9 +82,9 @@ export function GetFeedbacksList(
 			name: 'Channel Panorama',
 			description: "React to a change in a channel's Panorama",
 			options: [
-				GetDropdownFeedback('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
 				GetNumberComparator('comparator'),
-				...GetPanoramaSliderFeedback('pan'),
+				...GetPanoramaSlider('pan'),
 			],
 			defaultStyle: {
 				bgcolor: combineRgb(0, 255, 0),

@@ -1,5 +1,5 @@
 import { DropdownChoice, SomeCompanionActionInputField } from '@companion-module/base'
-import { getIdLabelPair } from '../utils.js'
+import { getIdLabelPair } from '../choices/utils.js'
 
 const EqTypes = {
 	Standard: { id: 'STD', label: 'Standard EQ' },

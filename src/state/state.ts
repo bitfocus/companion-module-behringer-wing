@@ -2,7 +2,7 @@ import osc from 'osc'
 import { FeedbackId } from '../feedbacks.js'
 import { DropdownChoice } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'
-import { getIdLabelPair } from '../utils.js'
+import { getIdLabelPair } from '../choices/utils.js'
 import * as Commands from '../commands/index.js'
 
 type Names = {
@@ -15,6 +15,7 @@ type Names = {
 export class WingState implements IStoredChannelSubject {
 	private readonly data: Map<string, osc.MetaArgument[]>
 	private readonly pressStorage: Map<string, number>
+	private readonly deltaStorage: Map<string, number>
 	private storedChannel: number
 	namedChoices: Names = {
 		channels: [],
@@ -27,6 +28,7 @@ export class WingState implements IStoredChannelSubject {
 	constructor(model: ModelSpec) {
 		this.data = new Map()
 		this.pressStorage = new Map()
+		this.deltaStorage = new Map()
 		this.storedChannel = 1
 		this.updateNames(model)
 	}
@@ -69,6 +71,16 @@ export class WingState implements IStoredChannelSubject {
 		const val = this.pressStorage.get(path)
 		if (val !== undefined) this.pressStorage.delete(path)
 		return val
+	}
+
+	public storeDelta(path: string, delta: number): void {
+		this.deltaStorage.set(path, delta)
+	}
+
+	public restoreDelta(path: string): number {
+		const delta = this.deltaStorage.get(path)
+		this.deltaStorage.delete(path)
+		return delta ?? 0
 	}
 
 	private getNameForChoice(index: number, id: string, nameKey: string, defaultName: string): DropdownChoice {

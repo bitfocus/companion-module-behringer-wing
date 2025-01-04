@@ -1,5 +1,5 @@
 import { DropdownChoice } from '@companion-module/base'
-import { getIdLabelPair } from '../utils.js'
+import { getIdLabelPair } from '../choices/utils.js'
 
 export function getFilterModelOptions(): DropdownChoice[] {
 	return [
