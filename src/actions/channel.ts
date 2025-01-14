@@ -46,6 +46,14 @@ export enum ChannelActions {
 	ChannelPanoramaRestore = 'channel-panorama-restore',
 	ChannelPanoramaDelta = 'channel-panorama-delta',
 	ChannelUndoPanoramaDelta = 'channel-undo-panorama-delta',
+	ChannelToSendFaderStore = 'channel-to-send-fader-store',
+	ChannelToSendFaderRestore = 'channel-to-send-fader-restore',
+	ChannelToSendFaderDelta = 'channel-to-send-fader-delta',
+	ChannelToSendUndoFaderDelta = 'channel-to-send-undo-fader-delta',
+	ChannelToSendPanoramaStore = 'channel-to-send-panorama-store',
+	ChannelToSendPanoramaRestore = 'channel-to-send-panorama-restore',
+	ChannelToSendPanoramaDelta = 'channel-to-send-panorama-delta',
+	ChannelToSendUndoPanoramaDelta = 'channel-to-send-undo-panorama-delta',
 }
 
 export function createChannelActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -106,14 +114,6 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			subscribe: (event) => {
 				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
 			},
-			// learn: (event) => {
-			// 	const cmd = ChannelCommands.Fader(getObjectNumberFromAction(event, 'channel'))
-			// 	const level = ActionUtil.getStringValueForCommand(cmd, state)
-			// 	return {
-			// 		...event.options,
-			// 		level: level ?? event.options.level
-			// 	}
-			// },
 		},
 		[ChannelActions.SetChannelPanorama]: {
 			name: 'Set Channel Panorama',
@@ -143,9 +143,6 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			options: [
 				GetDropdown('From Channel', 'channel', state.namedChoices.channels),
 				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
-				GetDropdown('aux', 'aux', state.namedChoices.auxes),
-				GetDropdown('matrices', 'mtx', state.namedChoices.matrices),
-				GetDropdown('mains', 'main', state.namedChoices.mains),
 				...GetFaderInputField('level'),
 			],
 			callback: async (event) => {
@@ -233,13 +230,15 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				send(cmd, ActionUtil.getNumber(event, 'icon'))
 			},
 		},
+		////////////////////////////////////////////////////////////
+		// Channel Fader
+		////////////////////////////////////////////////////////////
 		[ChannelActions.ChannelFaderStore]: {
 			name: 'Store Channel Level',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels)],
 			callback: async (event) => {
 				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
-				const currentVal = ActionUtil.getNumberFromState(cmd, state)
-				StateUtil.storeValueWithKey(cmd, state, currentVal)
+				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: (event) => {
 				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
@@ -262,7 +261,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			],
 			callback: async (event) => {
 				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
-				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = event.options.delta as number
 				state.storeDelta(cmd, delta)
 				if (targetValue) {
@@ -279,7 +278,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...FadeDurationChoice],
 			callback: async (event) => {
 				const cmd = Commands.Fader(ActionUtil.getNodeNumber(event, 'channel'))
-				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
 				if (targetValue) {
 					targetValue -= delta
@@ -290,13 +289,15 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
+		////////////////////////////////////////////////////////////
+		// Channel Panorama
+		////////////////////////////////////////////////////////////
 		[ChannelActions.ChannelPanoramaStore]: {
 			name: 'Store Channel Panorama',
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels)],
 			callback: async (event) => {
 				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
-				const currentVal = ActionUtil.getNumberFromState(cmd, state)
-				StateUtil.storeValueWithKey(cmd, state, currentVal)
+				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: (event) => {
 				ensureLoaded(Commands.Pan(ActionUtil.getNodeNumber(event, 'channel')))
@@ -319,7 +320,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			],
 			callback: async (event) => {
 				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
-				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = event.options.delta as number
 				state.storeDelta(cmd, delta)
 				if (targetValue) {
@@ -328,7 +329,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				}
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Pan(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 		},
 		[ChannelActions.ChannelUndoPanoramaDelta]: {
@@ -336,7 +337,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...FadeDurationChoice],
 			callback: async (event) => {
 				const cmd = Commands.Pan(ActionUtil.getNodeNumber(event, 'channel'))
-				let targetValue = ActionUtil.getNumberFromState(cmd, state)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd) ?? 0
 				if (targetValue) {
 					targetValue -= delta
@@ -344,7 +345,170 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				}
 			},
 			subscribe: (event) => {
-				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.Pan(ActionUtil.getNodeNumber(event, 'channel')))
+			},
+		},
+		////////////////////////////////////////////////////////////
+		// Channel to Bus Fader
+		////////////////////////////////////////////////////////////
+		[ChannelActions.ChannelToSendFaderStore]: {
+			name: 'Store Channel to Bus Level',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
+			],
+			callback: async (event) => {
+				const cmd = Commands.SendLevel(
+					ActionUtil.getNodeNumber(event, 'channel'),
+					ActionUtil.getNodeNumber(event, 'bus'),
+				)
+				StateUtil.storeValueForCommand(cmd, state)
+			},
+			subscribe: (event) => {
+				ensureLoaded(
+					Commands.SendLevel(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
+			},
+		},
+		[ChannelActions.ChannelToSendFaderRestore]: {
+			name: 'Restore Channel to Bus Level',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const cmd = Commands.SendLevel(
+					ActionUtil.getNodeNumber(event, 'channel'),
+					ActionUtil.getNodeNumber(event, 'bus'),
+				)
+				const restoreVal = StateUtil.getValueFromKey(cmd, state)
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
+			},
+		},
+		[ChannelActions.ChannelToSendFaderDelta]: {
+			name: 'Adjust Channel to Bus Level',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
+				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+			],
+			callback: async (event) => {
+				const cmd = Commands.SendLevel(
+					ActionUtil.getNodeNumber(event, 'channel'),
+					ActionUtil.getNodeNumber(event, 'bus'),
+				)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = event.options.delta as number
+				state.storeDelta(cmd, delta)
+				if (targetValue) {
+					targetValue += delta
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				ensureLoaded(
+					Commands.SendLevel(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
+			},
+		},
+		[ChannelActions.ChannelToSendUndoFaderDelta]: {
+			name: 'Undo Channel to Bus Level Adjust',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const cmd = Commands.SendLevel(
+					ActionUtil.getNodeNumber(event, 'channel'),
+					ActionUtil.getNodeNumber(event, 'bus'),
+				)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = state.restoreDelta(cmd)
+				if (targetValue) {
+					targetValue -= delta
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				ensureLoaded(
+					Commands.SendLevel(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
+			},
+		},
+		////////////////////////////////////////////////////////////
+		// Channel to Bus Panorama
+		////////////////////////////////////////////////////////////
+		[ChannelActions.ChannelToSendPanoramaStore]: {
+			name: 'Store Channel to Bus Panorama',
+			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels)],
+			callback: async (event) => {
+				const cmd = Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus'))
+				StateUtil.storeValueForCommand(cmd, state)
+			},
+			subscribe: (event) => {
+				ensureLoaded(
+					Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
+			},
+		},
+		[ChannelActions.ChannelToSendPanoramaRestore]: {
+			name: 'Restore Channel to Bus Panorama',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const cmd = Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus'))
+				const restoreVal = StateUtil.getValueFromKey(cmd, state)
+				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal)
+			},
+		},
+		[ChannelActions.ChannelToSendPanoramaDelta]: {
+			name: 'Adjust Channel to Bus Panorama',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
+				...GetPanoramaDeltaSlider('delta', 'Adjust'),
+			],
+			callback: async (event) => {
+				const cmd = Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus'))
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = event.options.delta as number
+				state.storeDelta(cmd, delta)
+				if (targetValue) {
+					targetValue += delta
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				ensureLoaded(
+					Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
+			},
+		},
+		[ChannelActions.ChannelToSendUndoPanoramaDelta]: {
+			name: 'Undo Channel to Bus Panorama Adjust',
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('To Bus', 'bus', state.namedChoices.busses),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const cmd = Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus'))
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = state.restoreDelta(cmd) ?? 0
+				if (targetValue) {
+					targetValue -= delta
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				ensureLoaded(
+					Commands.SendPan(ActionUtil.getNodeNumber(event, 'channel'), ActionUtil.getNodeNumber(event, 'bus')),
+				)
 			},
 		},
 	}
