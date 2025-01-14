@@ -3,11 +3,11 @@ export namespace BusCommands {
 	export function Node(bus: number): string {
 		return `/bus/${bus}`
 	}
-	
+
 	export function InputNode(bus: number): string {
 		return `${Node(bus)}/in`
 	}
-	
+
 	export function InputSetNode(bus: number): string {
 		return `${InputNode(bus)}/set`
 	}
@@ -86,5 +86,17 @@ export namespace BusCommands {
 
 	export function SendLevel(bus: number, send: number): string {
 		return `${SendNode(bus, send)}/lvl`
+	}
+
+	export function MatrixSendNode(bus: number, matrix: number): string {
+		return `${Node(bus)}/send/MX${matrix}`
+	}
+
+	export function MatrixSendOn(bus: number, matrix: number): string {
+		return `${MatrixSendNode(bus, matrix)}/on`
+	}
+
+	export function MatrixSendLevel(bus: number, matrix: number): string {
+		return `${MatrixSendNode(bus, matrix)}/lvl`
 	}
 }
