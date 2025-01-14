@@ -83,34 +83,51 @@ export class WingState implements IStoredChannelSubject {
 		return delta ?? 0
 	}
 
-	private getNameForChoice(index: number, id: string, nameKey: string, defaultName: string): DropdownChoice {
+	private getNameForChoice(
+		index: number,
+		id: string,
+		nameKey: string,
+		defaultName: string,
+		short_name: string,
+	): DropdownChoice {
 		const realName = this.get(nameKey)
-		const label = realName ? `${index} - ${realName}` : `${defaultName} ${index}`
+		const label = realName ? `${short_name}${index} - ${realName}` : `${defaultName} ${index}`
 		return getIdLabelPair(id, label)
 	}
 
 	public updateNames(model: ModelSpec): void {
+		this.namedChoices.channels = []
 		for (let ch = 1; ch <= model.channels; ch++) {
 			this.namedChoices.channels.push(
-				this.getNameForChoice(ch, Commands.Channel.Node(ch), Commands.Channel.RealName(ch), 'Channel'),
+				this.getNameForChoice(ch, Commands.Channel.Node(ch), Commands.Channel.RealName(ch), 'Channel', 'CH'),
 			)
 		}
+
+		this.namedChoices.auxes = []
 		for (let aux = 1; aux <= model.auxes; aux++) {
 			this.namedChoices.auxes.push(
-				this.getNameForChoice(aux, Commands.Aux.Node(aux), Commands.Aux.RealName(aux), 'Aux'),
+				this.getNameForChoice(aux, Commands.Aux.Node(aux), Commands.Aux.RealName(aux), 'Aux', 'A'),
 			)
 		}
+
+		this.namedChoices.busses = []
 		for (let bus = 1; bus <= model.busses; bus++) {
-			this.namedChoices.busses.push(this.getNameForChoice(bus, Commands.Bus.Node(bus), Commands.Bus.Name(bus), 'Bus'))
+			this.namedChoices.busses.push(
+				this.getNameForChoice(bus, Commands.Bus.Node(bus), Commands.Bus.Name(bus), 'Bus', 'B'),
+			)
 		}
+
+		this.namedChoices.matrices = []
 		for (let matrix = 1; matrix <= model.matrices; matrix++) {
 			this.namedChoices.matrices.push(
-				this.getNameForChoice(matrix, Commands.Matrix.Node(matrix), Commands.Matrix.RealName(matrix), 'Bus'),
+				this.getNameForChoice(matrix, Commands.Matrix.Node(matrix), Commands.Matrix.RealName(matrix), 'Matrix', 'MX'),
 			)
 		}
+
+		this.namedChoices.mains = []
 		for (let main = 1; main <= model.mains; main++) {
 			this.namedChoices.mains.push(
-				this.getNameForChoice(main, Commands.Main.Node(main), Commands.Main.RealName(main), 'Bus'),
+				this.getNameForChoice(main, Commands.Main.Node(main), Commands.Main.RealName(main), 'Main', 'M'),
 			)
 		}
 	}
