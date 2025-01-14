@@ -12,7 +12,7 @@ import {
 // import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
 import { compareNumber, GetDropdown, GetNumberComparator, GetPanoramaSlider } from './choices/common.js'
 import { ChannelCommands } from './commands/channel.js'
-import { getNumberFromState, getNodeNumber } from './actions/utils.js'
+import { getNodeNumber } from './actions/utils.js'
 import { StateUtil } from './state/index.js'
 import { getIdLabelPair } from './choices/utils.js'
 import { StatusCommands } from './commands/status.js'
@@ -91,7 +91,7 @@ export function GetFeedbacksList(
 			},
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = ChannelCommands.Pan(getNodeNumber(event, 'channel'))
-				const currentValue = getNumberFromState(cmd, state)
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return (
 					typeof currentValue === 'number' && compareNumber(event.options.pan, event.options.comparator, currentValue)
 				)

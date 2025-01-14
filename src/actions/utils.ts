@@ -2,6 +2,7 @@ import { WingTransitions } from '../transitions.js'
 import { WingState } from '../state/index.js'
 import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
 import { Easing } from '../easings.js'
+import * as StateUtils from '../state/utils.js'
 
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
 	return action.options[id]?.toString().split('/')[2] as unknown as number
@@ -52,7 +53,7 @@ export function runTransition(
 	transitions: WingTransitions,
 	targetValue?: number,
 ): void {
-	const current = getNumberFromState(cmd, state)
+	const current = StateUtils.getNumberFromState(cmd, state)
 	const target = targetValue ?? getNumber(action, valueId)
 	transitions.run(
 		cmd,
@@ -63,25 +64,4 @@ export function runTransition(
 		getCurve(action, 'fadeType'),
 	)
 	state.set(cmd, [{ type: 'f', value: target }])
-}
-
-export function getNumberFromState(cmd: string, state: WingState): number | undefined {
-	const currentState = state.get(cmd)
-
-	if (!currentState || currentState.length === 0) {
-		return undefined
-	}
-
-	const firstState = currentState[0]
-
-	if (firstState.type === 'f' || firstState.type === 'i') {
-		return firstState.value
-	}
-
-	if (firstState.type === 's') {
-		const numericValue = parseFloat(firstState.value)
-		return isNaN(numericValue) ? undefined : numericValue
-	}
-
-	return undefined
 }

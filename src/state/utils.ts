@@ -26,3 +26,33 @@ export function getValueFromKey(cmd: string, state: WingState): number | undefin
 	const value = state.popPressValue(key)
 	return value
 }
+
+export function getNumberFromState(cmd: string, state: WingState): number | undefined {
+	const currentState = state.get(cmd)
+
+	if (!currentState || currentState.length === 0) {
+		return undefined
+	}
+
+	const firstState = currentState[0]
+
+	if (firstState.type === 'f' || firstState.type === 'i') {
+		return firstState.value
+	}
+
+	if (firstState.type === 's') {
+		const numericValue = parseFloat(firstState.value)
+		return isNaN(numericValue) ? undefined : numericValue
+	}
+
+	return undefined
+}
+
+export function storeValueForCommand(cmd: string, state: WingState): void {
+	const value = getNumberFromState(cmd, state)
+	storeValueWithKey(cmd, state, value)
+}
+
+export function restoreValueForCommand(cmd: string, state: WingState): number | undefined {
+	return getValueFromKey(cmd, state)
+}
