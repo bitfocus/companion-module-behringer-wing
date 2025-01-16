@@ -3,6 +3,7 @@ import { WingDeviceDetectorInstance } from './device-detector.js'
 // import { ModelChoices, WingModel } from './models/types.js'
 
 export const fadeUpdateRateDefault = 50
+export const pollUpdateRateDefault = 500
 
 export const DeskTypes = [
 	{ id: 'wing', label: 'Wing' },
@@ -13,6 +14,7 @@ export interface WingConfig {
 	host?: string
 	port?: number
 	fadeUpdateRate?: number
+	statusPollUpdateRate?: number
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
@@ -42,11 +44,22 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			id: 'fadeUpdateRate',
 			label: 'Fader Update Rate',
 			tooltip:
-				'Update rate of the faders in milliseconds. A lower values makes the transition smoother but increases system load.',
+				'Update rate of the faders in milliseconds. A lower values makes the transitions smoother but increases system load.',
 			width: 5,
 			min: 20,
 			max: 60000,
 			default: fadeUpdateRateDefault,
+		},
+		{
+			type: 'number',
+			id: 'statusPollUpdateRate',
+			label: 'Status Poll Rate',
+			tooltip:
+				'Polling rate of the desk status requests.\nSome values need to be actively requested from the desk, this number sets the interval at which those requests occur.',
+			width: 5,
+			min: 20,
+			max: 60000,
+			default: pollUpdateRateDefault,
 		},
 	]
 }

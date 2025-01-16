@@ -162,9 +162,11 @@ export class WingState implements IStoredChannelSubject {
 
 export class WingSubscriptions {
 	private readonly data: Map<string, Map<string, FeedbackId>>
+	private readonly pollData: Set<string>
 
 	constructor() {
 		this.data = new Map()
+		this.pollData = new Set()
 	}
 
 	public getFeedbacks(path: string): FeedbackId[] {
@@ -188,6 +190,18 @@ export class WingSubscriptions {
 		if (entries) {
 			entries.delete(feedbackId)
 		}
+	}
+
+	public getPollPaths(): string[] {
+		return Array.from(this.pollData)
+	}
+	public subscribePoll(path: string, feedbackId: string, type: FeedbackId): void {
+		this.subscribe(path, feedbackId, type)
+		this.pollData.add(path)
+	}
+	public unsubscribePoll(path: string, feedbackId: string): void {
+		this.unsubscribe(path, feedbackId)
+		this.pollData.delete(path)
 	}
 }
 

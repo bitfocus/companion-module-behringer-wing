@@ -18,10 +18,11 @@ import { ChannelCommands as Commands } from '../commands/channel.js'
 import * as ActionUtil from './utils.js'
 import { FadeDurationChoice } from '../choices/fades.js'
 import { CompanionActionWithCallback } from './common.js'
-import { GetEqParameterChoice } from '../choices/eq.js'
+import { EqModelDropdown, EqParameterDropdown } from '../choices/eq.js'
 import { EqModelChoice } from '../choices/eq.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
+import { getStringFromState } from '../state/utils.js'
 
 export enum ChannelActions {
 	SetChannelMainConnection = 'set-channel-main-connection',
@@ -199,13 +200,23 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[ChannelActions.SetChannelEqParameter]: {
 			name: 'Set Channel EQ Parameter',
-			options: [GetDropdown('Channel', 'channel', state.namedChoices.channels), ...GetEqParameterChoice('STD', 'band')],
+			options: [
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				...EqModelDropdown('model'),
+				...EqParameterDropdown('band', 'model'),
+			],
 			callback: async (event) => {
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel'))
 				send(cmd, ActionUtil.getString(event, 'model'))
 			},
 			subscribe: (event) => {
 				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
+			},
+			learn: (event) => {
+				return {
+					...event.options,
+					model: getStringFromState(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')), state),
+				}
 			},
 		},
 		[ChannelActions.SetChannelProcessOrder]: {

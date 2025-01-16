@@ -32,6 +32,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	private reconnectTimer: NodeJS.Timeout | undefined
 	private syncInterval: NodeJS.Timeout | undefined
 	private subscribeInterval: NodeJS.Timeout | undefined
+	private statusUpdateInterval: NodeJS.Timeout | undefined
 
 	/**
 	 * Keeps track of sent requests for values that have been sent and not yet answered.
@@ -108,10 +109,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			clearInterval(this.syncInterval)
 			this.syncInterval = undefined
 		}
-
 		if (this.subscribeInterval) {
 			clearInterval(this.subscribeInterval)
 			this.subscribeInterval = undefined
+		}
+		if (this.statusUpdateInterval) {
+			clearInterval(this.statusUpdateInterval)
+			this.statusUpdateInterval = undefined
 		}
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
@@ -169,6 +173,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			clearInterval(this.syncInterval)
 			this.syncInterval = undefined
 		}
+		if (this.statusUpdateInterval) {
+			clearInterval(this.statusUpdateInterval)
+			this.statusUpdateInterval = undefined
+		}
 
 		if (this.osc) {
 			try {
@@ -198,10 +206,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				clearInterval(this.heartbeatTimer)
 				this.heartbeatTimer = undefined
 			}
-
 			if (this.subscribeInterval) {
 				clearInterval(this.subscribeInterval)
 				this.subscribeInterval = undefined
+			}
+			if (this.statusUpdateInterval) {
+				clearInterval(this.statusUpdateInterval)
+				this.statusUpdateInterval = undefined
 			}
 		})
 		this.osc.on('ready', () => {
@@ -214,6 +225,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.subscribeInterval = setInterval(() => {
 				this.subscribeForUpdates()
 			}, 9000)
+			this.statusUpdateInterval = setInterval(() => {
+				this.requestStatusUpdates()
+			}, this.config.statusPollUpdateRate ?? 5000)
+
 			this.state.requestNames(this.model, this.ensureLoaded)
 			this.requestQueue.clear()
 			this.inFlightRequests = {}
@@ -230,6 +245,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			if (this.subscribeInterval) {
 				clearInterval(this.subscribeInterval)
 				this.subscribeInterval = undefined
+			}
+			if (this.statusUpdateInterval) {
+				clearInterval(this.statusUpdateInterval)
+				this.statusUpdateInterval = undefined
 			}
 		})
 
@@ -268,6 +287,12 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				// Ignore
 			}
 		}
+	}
+
+	private requestStatusUpdates(): void {
+		this.WingSubscriptions.getPollPaths().forEach((c) => {
+			this.sendCommand(c)
+		})
 	}
 
 	private checkFeedbackChanges(msg: osc.OscMessage): void {
