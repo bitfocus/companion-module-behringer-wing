@@ -3,11 +3,11 @@ export namespace AuxCommands {
 	export function Node(aux: number): string {
 		return `/aux/${aux}`
 	}
-	
+
 	export function InputNode(aux: number): string {
 		return `${Node(aux)}/in`
 	}
-	
+
 	export function InputSetNode(aux: number): string {
 		return `${InputNode(aux)}/set`
 	}
@@ -114,5 +114,21 @@ export namespace AuxCommands {
 
 	export function MonitorMode(aux: number): string {
 		return `${Node(aux)}/mon`
+	}
+
+	export function SendNode(aux: number, send: number): string {
+		return `${Node(aux)}/send/${send}`
+	}
+
+	export function SendMute(aux: number, send: number): string {
+		return `${SendNode(aux, send)}/on`
+	}
+
+	export function SendLevel(aux: number, send: number): string {
+		return `${SendNode(aux, send)}/lvl`
+	}
+
+	export function SendPan(aux: number, send: number): string {
+		return `${SendNode(aux, send)}/pan`
 	}
 }
