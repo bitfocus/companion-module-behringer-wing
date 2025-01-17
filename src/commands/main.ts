@@ -3,11 +3,11 @@ export namespace MainCommands {
 	export function Node(main: number): string {
 		return `/main/${main}`
 	}
-	
+
 	export function InputNode(main: number): string {
 		return `${Node(main)}/in`
 	}
-	
+
 	export function InputSetNode(main: number): string {
 		return `${InputNode(main)}/set`
 	}
@@ -74,5 +74,17 @@ export namespace MainCommands {
 
 	export function MonitorMode(main: number): string {
 		return `${Node(main)}/mon`
+	}
+
+	export function MatrixSendNode(main: number, matrix: number): string {
+		return `${Node(main)}/MX${matrix}`
+	}
+
+	export function MatrixSendMute(main: number, matrix: number): string {
+		return `${MatrixSendNode(main, matrix)}/on`
+	}
+
+	export function MatrixSendLevel(main: number, matrix: number): string {
+		return `${MatrixSendNode(main, matrix)}/lvl`
 	}
 }
