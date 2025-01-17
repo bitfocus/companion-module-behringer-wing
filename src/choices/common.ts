@@ -80,7 +80,8 @@ export function GetMuteDropdown(id: string, label?: string): CompanionInputField
 	return GetDropdown(
 		label ?? 'Mute',
 		id,
-		[getIdLabelPair('0', 'Mute'), getIdLabelPair('1', 'Unmute'), getIdLabelPair('2', 'Toggle')],
+		// [getIdLabelPair('0', 'Mute'), getIdLabelPair('1', 'Unmute'), getIdLabelPair('2', 'Toggle')],
+		[getIdLabelPair('0', 'Mute'), getIdLabelPair('1', 'Unmute')],
 		'1',
 		'Select whether to Mute, Unmute or Toggle your selected target',
 	)
@@ -120,7 +121,7 @@ export function GetFaderInputField(
 	name?: string,
 ): [CompanionInputFieldNumber, CompanionInputFieldNumber, CompanionInputFieldDropdown, CompanionInputFieldDropdown] {
 	return [
-		GetNumberField(name ?? 'Level (dB)', id, -144, 10, 1, 0, undefined, 'Set the fader level of the selected target'),
+		GetNumberField(name ?? 'Level (dB)', id, -144, 10, 0.1, 0, true, 'Set the fader level of the selected target'),
 		...FadeDurationChoice,
 	]
 }

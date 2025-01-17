@@ -31,11 +31,11 @@ export enum BusActions {
 	BusFaderStore = 'bus-fader-store',
 	BusFaderRestore = 'bus-fader-restore',
 	BusFaderDelta = 'bus-fader-delta',
-	BusUndoFaderDelta = 'bus-undo-fader-delta',
+	BusFaderUndoDelta = 'bus-fader-undo-delta',
 	BusPanoramaStore = 'bus-panorama-store',
 	BusPanoramaRestore = 'bus-panorama-restore',
 	BusPanoramaDelta = 'bus-panorama-delta',
-	BusUndoPanoramaDelta = 'bus-undo-panorama-delta',
+	BusPanoramaUndoDelta = 'bus-undo-panorama-delta',
 }
 
 export function createBusActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -196,7 +196,7 @@ export function createBusActions(self: InstanceBaseExt<WingConfig>): CompanionAc
 				ensureLoaded(Commands.Fader(ActionUtil.getNodeNumber(event, 'bus')))
 			},
 		},
-		[BusActions.BusUndoFaderDelta]: {
+		[BusActions.BusFaderUndoDelta]: {
 			name: 'Undo Bus Level Adjust',
 			options: [GetDropdown('Bus', 'bus', state.namedChoices.busses), ...FadeDurationChoice],
 			callback: async (event) => {
@@ -258,7 +258,7 @@ export function createBusActions(self: InstanceBaseExt<WingConfig>): CompanionAc
 				ensureLoaded(Commands.Pan(ActionUtil.getNodeNumber(event, 'bus')))
 			},
 		},
-		[BusActions.BusUndoPanoramaDelta]: {
+		[BusActions.BusPanoramaUndoDelta]: {
 			name: 'Undo Bus Panorama Adjust',
 			options: [GetDropdown('Bus', 'bus', state.namedChoices.busses), ...FadeDurationChoice],
 			callback: async (event) => {
