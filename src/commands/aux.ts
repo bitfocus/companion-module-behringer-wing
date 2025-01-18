@@ -120,7 +120,7 @@ export namespace AuxCommands {
 		return `${Node(aux)}/send/${send}`
 	}
 
-	export function SendMute(aux: number, send: number): string {
+	export function SendOn(aux: number, send: number): string {
 		return `${SendNode(aux, send)}/on`
 	}
 

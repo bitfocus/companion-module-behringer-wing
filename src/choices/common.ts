@@ -76,15 +76,17 @@ export function GetDropdown(
 	}
 }
 
-export function GetMuteDropdown(id: string, label?: string): CompanionInputFieldDropdown {
-	return GetDropdown(
+export function GetMuteDropdown(id: string, label?: string, includeToggle?: boolean): CompanionInputFieldDropdown {
+	const dropdown = GetDropdown(
 		label ?? 'Mute',
 		id,
-		// [getIdLabelPair('0', 'Mute'), getIdLabelPair('1', 'Unmute'), getIdLabelPair('2', 'Toggle')],
-		[getIdLabelPair('0', 'Mute'), getIdLabelPair('1', 'Unmute')],
+		[getIdLabelPair('0', 'Unmute'), getIdLabelPair('1', 'Mute')],
 		'1',
 		'Select whether to Mute, Unmute or Toggle your selected target',
 	)
+	if (includeToggle == false) return dropdown
+
+	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('2', 'Toggle')] }
 }
 
 export function GetPanoramaSlider(
@@ -130,7 +132,7 @@ export function GetFaderDeltaInputField(
 	id: string,
 	name?: string,
 ): [CompanionInputFieldNumber, CompanionInputFieldNumber, CompanionInputFieldDropdown, CompanionInputFieldDropdown] {
-	return [GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0), ...FadeDurationChoice]
+	return [GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0, true), ...FadeDurationChoice]
 }
 
 export function GetColorDropdown(id: string, label?: string): CompanionInputFieldDropdown {

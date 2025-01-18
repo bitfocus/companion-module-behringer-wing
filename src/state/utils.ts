@@ -48,6 +48,13 @@ export function getNumberFromState(cmd: string, state: WingState): number | unde
 	return undefined
 }
 
+export function getBooleanFromState(cmd: string, state: WingState): boolean | undefined {
+	const val = getNumberFromState(cmd, state)
+
+	if (val) return val > 0
+	return undefined
+}
+
 export function storeValueForCommand(cmd: string, state: WingState): void {
 	const value = getNumberFromState(cmd, state)
 	storeValueWithKey(cmd, state, value)

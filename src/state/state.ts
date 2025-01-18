@@ -5,19 +5,35 @@ import { ModelSpec } from '../models/types.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import * as Commands from '../commands/index.js'
 
-type Names = {
+type NameChoices = {
 	channels: DropdownChoice[]
 	auxes: DropdownChoice[]
 	busses: DropdownChoice[]
 	matrices: DropdownChoice[]
 	mains: DropdownChoice[]
 }
+
+type Names = {
+	channels: string[]
+	auxes: string[]
+	busses: string[]
+	matrices: string[]
+	mains: string[]
+}
 export class WingState implements IStoredChannelSubject {
 	private readonly data: Map<string, osc.MetaArgument[]>
 	private readonly pressStorage: Map<string, number>
 	private readonly deltaStorage: Map<string, number>
 	private storedChannel: number
-	namedChoices: Names = {
+	namedChoices: NameChoices = {
+		channels: [],
+		auxes: [],
+		busses: [],
+		matrices: [],
+		mains: [],
+	}
+
+	names: Names = {
 		channels: [],
 		auxes: [],
 		busses: [],
@@ -60,6 +76,15 @@ export class WingState implements IStoredChannelSubject {
 	}
 	public set(path: string, data: osc.MetaArgument[]): void {
 		const key = path
+		if (data[0].value == '-oo') {
+			data[0] = { type: 'f', value: -140 }
+		}
+		// if (data[0].type == 's') {
+		// 	const strAsNum = Number(data[0].value)
+		// 	console.log(`Setting ${key} to ${strAsNum}`)
+		// 	if (strAsNum != undefined) data[0] = { type: 'f', value: strAsNum }
+		// }
+
 		this.data.set(key, data)
 		// console.log(`Setting ${key}`)
 	}
@@ -83,6 +108,11 @@ export class WingState implements IStoredChannelSubject {
 		return delta ?? 0
 	}
 
+	private getRealName(key: string): string | undefined {
+		const name = this.get(key)?.[0]?.value as string
+		return name
+	}
+
 	private getNameForChoice(
 		index: number,
 		id: string,
@@ -90,7 +120,7 @@ export class WingState implements IStoredChannelSubject {
 		defaultName: string,
 		short_name: string,
 	): DropdownChoice {
-		const realName = this.get(nameKey)
+		const realName = this.getRealName(nameKey)
 		const label = realName ? `${short_name}${index} - ${realName}` : `${defaultName} ${index}`
 		return getIdLabelPair(id, label)
 	}
@@ -98,6 +128,7 @@ export class WingState implements IStoredChannelSubject {
 	public updateNames(model: ModelSpec): void {
 		this.namedChoices.channels = []
 		for (let ch = 1; ch <= model.channels; ch++) {
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(ch)) ?? `Channel ${ch}`)
 			this.namedChoices.channels.push(
 				this.getNameForChoice(ch, Commands.Channel.Node(ch), Commands.Channel.RealName(ch), 'Channel', 'CH'),
 			)
@@ -105,6 +136,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.auxes = []
 		for (let aux = 1; aux <= model.auxes; aux++) {
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(aux)) ?? `Aux ${aux}`)
 			this.namedChoices.auxes.push(
 				this.getNameForChoice(aux, Commands.Aux.Node(aux), Commands.Aux.RealName(aux), 'Aux', 'A'),
 			)
@@ -112,6 +144,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.busses = []
 		for (let bus = 1; bus <= model.busses; bus++) {
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(bus)) ?? `Bus ${bus}`)
 			this.namedChoices.busses.push(
 				this.getNameForChoice(bus, Commands.Bus.Node(bus), Commands.Bus.Name(bus), 'Bus', 'B'),
 			)
@@ -119,6 +152,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.matrices = []
 		for (let matrix = 1; matrix <= model.matrices; matrix++) {
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(matrix)) ?? `Matrix ${matrix}`)
 			this.namedChoices.matrices.push(
 				this.getNameForChoice(matrix, Commands.Matrix.Node(matrix), Commands.Matrix.RealName(matrix), 'Matrix', 'MX'),
 			)
@@ -126,6 +160,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.mains = []
 		for (let main = 1; main <= model.mains; main++) {
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(main)) ?? `Main ${main}`)
 			this.namedChoices.mains.push(
 				this.getNameForChoice(main, Commands.Main.Node(main), Commands.Main.RealName(main), 'Main', 'M'),
 			)

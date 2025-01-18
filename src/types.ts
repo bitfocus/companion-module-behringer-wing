@@ -8,6 +8,6 @@ export interface InstanceBaseExt<TConfig> extends InstanceBase<TConfig> {
 	osc: osc.UDPPort
 	transitions: WingTransitions
 	state: WingState
-	sendCommand: (cmd: string, argument?: number | string) => void
+	sendCommand: (cmd: string, argument?: number | string, preferFloat?: boolean) => void
 	ensureLoaded: (path: string) => void
 }

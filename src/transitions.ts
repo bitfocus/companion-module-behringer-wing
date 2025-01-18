@@ -25,7 +25,7 @@ export class WingTransitions {
 
 	private sendOsc(cmd: string, arg?: string | number): void {
 		if (this.instance.config.host) {
-			this.instance.sendCommand(cmd, arg)
+			this.instance.sendCommand(cmd, arg, true)
 		}
 	}
 

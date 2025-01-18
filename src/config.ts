@@ -15,6 +15,7 @@ export interface WingConfig {
 	port?: number
 	fadeUpdateRate?: number
 	statusPollUpdateRate?: number
+	variableUpdateRate?: number
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
@@ -60,6 +61,17 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			min: 20,
 			max: 60000,
 			default: pollUpdateRateDefault,
+		},
+		{
+			type: 'number',
+			id: 'variableUpdateRate',
+			label:
+				'Rate with which variables are updated.\nDefines how many milliseconds elapse between variable updates. A lower number makes the variables more responsive but may decrease system performance.',
+			tooltip: 'Update Rate of the Variables',
+			width: 5,
+			min: 20,
+			max: 60000,
+			default: 100,
 		},
 	]
 }

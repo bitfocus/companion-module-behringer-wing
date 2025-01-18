@@ -8,17 +8,18 @@ import {
 import PQueue from 'p-queue'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
-import { UpdateVariableDefinitions } from './variables.js'
+import { UpdateVariables as UpdateAllVariables, UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
 import { FeedbackId, GetFeedbacksList } from './feedbacks.js'
 import { WingState, WingSubscriptions } from './state/index.js'
-import osc from 'osc'
+import osc, { OscMessage } from 'osc'
 import debounceFn from 'debounce-fn'
 import { WingTransitions } from './transitions.js'
 import { WingDeviceDetectorInstance } from './device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
+import { GetPresets } from './presets.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
@@ -33,6 +34,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	private syncInterval: NodeJS.Timeout | undefined
 	private subscribeInterval: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
+	private variableUpdateInterval: NodeJS.Timeout | undefined
 
 	/**
 	 * Keeps track of sent requests for values that have been sent and not yet answered.
@@ -49,6 +51,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	private readonly messageFeedbacks = new Set<FeedbackId>()
 	private readonly debounceMessageFeedbacks: () => void
+
+	private variableMessages: { [path: string]: OscMessage } = {}
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -95,6 +99,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.setupOscSocket()
 		}
 
+		this.variableUpdateInterval = setInterval(() => {
+			this.UpdateVariables()
+		}, this.config.variableUpdateRate)
+
 		WingDeviceDetectorInstance.subscribe(this.id)
 
 		this.updateCompanionWithState()
@@ -116,6 +124,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		if (this.statusUpdateInterval) {
 			clearInterval(this.statusUpdateInterval)
 			this.statusUpdateInterval = undefined
+		}
+		if (this.variableUpdateInterval) {
+			clearInterval(this.variableUpdateInterval)
+			this.variableUpdateInterval = undefined
 		}
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
@@ -144,6 +156,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.setupOscSocket()
 			this.updateCompanionWithState()
 		}
+
+		this.variableUpdateInterval = setInterval(() => {
+			this.UpdateVariables()
+		}, this.config.variableUpdateRate)
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
@@ -227,7 +243,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			}, 9000)
 			this.statusUpdateInterval = setInterval(() => {
 				this.requestStatusUpdates()
-			}, this.config.statusPollUpdateRate ?? 5000)
+			}, this.config.statusPollUpdateRate ?? 250)
 
 			this.state.requestNames(this.model, this.ensureLoaded)
 			this.requestQueue.clear()
@@ -255,7 +271,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.osc.on('message', (message): void => {
 			this.updateStatus(InstanceStatus.Ok)
 			const args = message.args as osc.MetaArgument[]
-			this.log('debug', `Received ${message.address} ${args[0].value}`)
+			// this.log('debug', `Received ${JSON.stringify(message)}`)
 			this.state.set(message.address, args)
 
 			if (this.inFlightRequests[message.address]) {
@@ -266,6 +282,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 			// setImmediate(() => {
 			this.checkFeedbackChanges(message)
+
+			this.variableMessages[message.address] = message
+			// this.debounceUpdateVariables()
+
 			// })
 		})
 
@@ -322,27 +342,45 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	private updateCompanionWithState(): void {
 		this.state.updateNames(this.model)
+
+		this.setPresetDefinitions(GetPresets(this))
 		this.setActionDefinitions(createActions(this))
 		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.WingSubscriptions, this.ensureLoaded))
 		this.checkFeedbacks()
 	}
 
-	sendCommand = (cmd: string, argument?: number | string): void => {
+	private UpdateVariables(): void {
+		const messages: OscMessage[] = Object.values(this.variableMessages)
+		if (messages.length === 0) {
+			return
+		}
+		UpdateAllVariables(this, messages)
+		this.variableMessages = {}
+	}
+
+	sendCommand = (cmd: string, argument?: number | string, preferFloat?: boolean): void => {
 		if (!this.config.host) {
 			return
 		}
 
 		let args: OSCSomeArguments = []
 		if (typeof argument === 'number') {
-			if (Number.isInteger(argument)) {
-				args = {
-					type: 'i',
-					value: argument,
-				}
-			} else {
+			if (preferFloat) {
 				args = {
 					type: 'f',
 					value: argument,
+				}
+			} else {
+				if (Number.isInteger(argument)) {
+					args = {
+						type: 'i',
+						value: argument,
+					}
+				} else {
+					args = {
+						type: 'f',
+						value: argument,
+					}
 				}
 			}
 		} else if (typeof argument === 'string') {
@@ -355,11 +393,12 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		} else {
 			console.error('Unsupported argument type. Command aborted.')
 		}
-		// this.log('debug', 'Sending ' + cmd + ' ' + JSON.stringify(args))
-		this.osc.send({
+		const command = {
 			address: cmd,
 			args: args,
-		})
+		}
+		this.osc.send(command)
+		this.osc.send({ address: cmd, args: [] })
 	}
 
 	ensureLoaded = (path: string): void => {
@@ -385,7 +424,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			})
 			.catch((_e: unknown) => {
 				delete this.inFlightRequests[path]
-				this.log('error', `Request failed for ${path}`)
+				// this.log('error', `Request failed for ${path}`)
 			})
 	}
 }

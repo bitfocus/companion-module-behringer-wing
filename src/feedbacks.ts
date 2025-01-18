@@ -12,20 +12,18 @@ import {
 } from '@companion-module/base'
 // import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
 import {
-	compareNumber,
 	GetDropdown,
-	GetNumberComparator,
-	GetPanoramaSlider,
+	GetMuteDropdown,
 	getTimeFormatChoices,
 	getTriStateColor,
 	getTriStateTextColor,
 } from './choices/common.js'
-import { ChannelCommands } from './commands/channel.js'
 import { getNodeNumber } from './actions/utils.js'
 import { StateUtil } from './state/index.js'
+import { UsbPlayerCommands } from './commands/usbplayer.js'
+import * as ActionUtil from './actions/utils.js'
 import { getIdLabelPair } from './choices/utils.js'
 import { StatusCommands } from './commands/status.js'
-import { UsbPlayerCommands } from './commands/usbplayer.js'
 
 type CompanionFeedbackWithCallback = SetRequired<
 	CompanionBooleanFeedbackDefinition | CompanionAdvancedFeedbackDefinition,
@@ -33,8 +31,9 @@ type CompanionFeedbackWithCallback = SetRequired<
 >
 
 export enum FeedbackId {
+	Mute = 'mute',
+	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
-	ChannelPanning = 'channel-panning',
 	RecorderTime = 'recorder-time',
 	RecorderState = 'recorder-state',
 	PlayerTime = 'player-time',
@@ -60,6 +59,77 @@ export function GetFeedbacksList(
 	ensureLoaded: (path: string) => void,
 ): CompanionFeedbackDefinitions {
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
+		[FeedbackId.Mute]: {
+			type: 'boolean',
+			name: 'Mute',
+			description: "React to a change in a channel's mute state",
+			options: [
+				GetDropdown('Selection', 'sel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+					...state.namedChoices.busses,
+					...state.namedChoices.matrices,
+					...state.namedChoices.mains,
+				]),
+				GetMuteDropdown('mute', 'State', false),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.mute
+			},
+			subscribe: (event): void => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.SendMute]: {
+			type: 'boolean',
+			name: 'Send Mute',
+			description: "React to a change in a channel's send mute state",
+			options: [
+				GetDropdown('From', 'src', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+					...state.namedChoices.busses,
+					...state.namedChoices.matrices,
+					...state.namedChoices.mains,
+				]),
+				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
+				GetMuteDropdown('mute', 'State', false),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const sel = event.options.src as string
+				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.mute
+			},
+			subscribe: (event): void => {
+				const sel = event.options.src as string
+				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const sel = event.options.src as string
+				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
 		[FeedbackId.AesStatus]: {
 			type: 'advanced',
 			name: 'AES Status',
@@ -88,35 +158,6 @@ export function GetFeedbacksList(
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
-		[FeedbackId.ChannelPanning]: {
-			type: 'boolean',
-			name: 'Channel Panorama',
-			description: "React to a change in a channel's Panorama",
-			options: [
-				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				GetNumberComparator('comparator'),
-				...GetPanoramaSlider('pan'),
-			],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
-			callback: (event: CompanionFeedbackInfo): boolean => {
-				const cmd = ChannelCommands.Pan(getNodeNumber(event, 'channel'))
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return (
-					typeof currentValue === 'number' && compareNumber(event.options.pan, event.options.comparator, currentValue)
-				)
-			},
-			subscribe: (event): void => {
-				const cmd = ChannelCommands.Pan(getNodeNumber(event, 'channel'))
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
-			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const cmd = ChannelCommands.Pan(getNodeNumber(event, 'channel'))
-				unsubscribeFeedback(subs, cmd, event)
-			},
-		},
 		[FeedbackId.RecorderTime]: {
 			type: 'advanced',
 			name: 'USB Recorder Time',
@@ -124,9 +165,14 @@ export function GetFeedbacksList(
 			options: [GetDropdown('Format', 'format', getTimeFormatChoices())],
 			callback: (): CompanionAdvancedFeedbackResult => {
 				const cmd = UsbPlayerCommands.RecorderTime()
-				return {
-					text: `${StateUtil.getNumberFromState(cmd, state) ?? 'N/A'}`,
-				}
+				const time = StateUtil.getNumberFromState(cmd, state) ?? 'N/A'
+				if (time) {
+					if (isNaN(Number(time))) {
+						return {
+							text: time as string,
+						}
+					} else return {}
+				} else return {}
 			},
 			subscribe: (event): void => {
 				const cmd = UsbPlayerCommands.RecorderTime()
