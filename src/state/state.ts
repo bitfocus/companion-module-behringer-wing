@@ -11,6 +11,8 @@ type NameChoices = {
 	busses: DropdownChoice[]
 	matrices: DropdownChoice[]
 	mains: DropdownChoice[]
+	dcas: DropdownChoice[]
+	mutegroups: DropdownChoice[]
 }
 
 type Names = {
@@ -19,6 +21,8 @@ type Names = {
 	busses: string[]
 	matrices: string[]
 	mains: string[]
+	dcas: string[]
+	mutegroups: string[]
 }
 export class WingState implements IStoredChannelSubject {
 	private readonly data: Map<string, osc.MetaArgument[]>
@@ -31,6 +35,8 @@ export class WingState implements IStoredChannelSubject {
 		busses: [],
 		matrices: [],
 		mains: [],
+		dcas: [],
+		mutegroups: [],
 	}
 
 	names: Names = {
@@ -39,6 +45,8 @@ export class WingState implements IStoredChannelSubject {
 		busses: [],
 		matrices: [],
 		mains: [],
+		dcas: [],
+		mutegroups: [],
 	}
 
 	constructor(model: ModelSpec) {
@@ -165,6 +173,22 @@ export class WingState implements IStoredChannelSubject {
 				this.getNameForChoice(main, Commands.Main.Node(main), Commands.Main.RealName(main), 'Main', 'M'),
 			)
 		}
+
+		this.namedChoices.dcas = []
+		for (let dca = 1; dca <= model.dcas; dca++) {
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(dca)) ?? `DCA ${dca}`)
+			this.namedChoices.dcas.push(
+				this.getNameForChoice(dca, Commands.Dca.Node(dca), Commands.Dca.Name(dca), 'DCA', 'DCA'),
+			)
+		}
+
+		this.namedChoices.mutegroups = []
+		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(mgrp)) ?? `Mute ${mgrp}`)
+			this.namedChoices.mutegroups.push(
+				this.getNameForChoice(mgrp, Commands.MuteGroup.Node(mgrp), Commands.MuteGroup.Name(mgrp), 'MuteGroup', 'MGRP'),
+			)
+		}
 	}
 
 	public requestNames(model: ModelSpec, ensureLoaded: (path: string) => void): void {
@@ -182,6 +206,12 @@ export class WingState implements IStoredChannelSubject {
 		}
 		for (let main = 1; main <= model.mains; main++) {
 			ensureLoaded(Commands.Main.RealName(main))
+		}
+		for (let dca = 1; dca <= model.dcas; dca++) {
+			ensureLoaded(Commands.Dca.Name(dca))
+		}
+		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
+			ensureLoaded(Commands.MuteGroup.Name(mgrp))
 		}
 	}
 

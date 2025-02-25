@@ -51,7 +51,7 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 
 	for (let aux = 1; aux <= model.auxes; aux++) {
 		variables.push({
-			variableId: `ch${aux}_name`,
+			variableId: `aux${aux}_name`,
 			name: `Aux ${aux} Name`,
 		})
 		variables.push({
@@ -80,7 +80,7 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 
 	for (let bus = 1; bus <= model.busses; bus++) {
 		variables.push({
-			variableId: `ch${bus}_name`,
+			variableId: `bus${bus}_name`,
 			name: `Bus ${bus} Name`,
 		})
 		variables.push({
@@ -108,7 +108,7 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 
 	for (let mtx = 1; mtx <= model.matrices; mtx++) {
 		variables.push({
-			variableId: `ch${mtx}_name`,
+			variableId: `mtx${mtx}_name`,
 			name: `Matrix ${mtx} Name`,
 		})
 		variables.push({
@@ -123,7 +123,7 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 
 	for (let main = 1; main <= model.mains; main++) {
 		variables.push({
-			variableId: `ch${main}_name`,
+			variableId: `main${main}_name`,
 			name: `Main ${main} Name`,
 		})
 		variables.push({
@@ -136,6 +136,24 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		})
 	}
 
+	for (let dca = 1; dca <= model.dcas; dca++) {
+		variables.push({
+			variableId: `dca${dca}_name`,
+			name: `DCA ${dca} Name`,
+		})
+		variables.push({
+			variableId: `dca${dca}_level`,
+			name: `DCA ${dca} Level`,
+		})
+	}
+
+	for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
+		variables.push({
+			variableId: `mgrp${mgrp}_name`,
+			name: `Mute ${mgrp} Name`,
+		})
+	}
+
 	self.setVariableDefinitions(variables)
 }
 
@@ -144,7 +162,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		const path = msg.address
 		const args = msg.args as OSCMetaArgument[]
 
-		// console.log('Updating variable:', path, args);
+		// console.log('Updating variable:', path, args)
 
 		UpdateNameVariables(self, path, args[0]?.value as string)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
@@ -153,7 +171,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 }
 
 function UpdateNameVariables(self: WingInstance, path: string, value: string): void {
-	const match = path.match(/\/(\w+)\/(\d+)\/\$name/)
+	const match = path.match(/\/(\w+)\/(\d+)\/\$?name/)
 	if (!match) {
 		return
 	}

@@ -70,6 +70,8 @@ export function GetFeedbacksList(
 					...state.namedChoices.busses,
 					...state.namedChoices.matrices,
 					...state.namedChoices.mains,
+					...state.namedChoices.dcas,
+					...state.namedChoices.mutegroups,
 				]),
 				GetMuteDropdown('mute', 'State', false),
 			],
