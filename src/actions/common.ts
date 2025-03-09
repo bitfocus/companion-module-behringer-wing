@@ -22,10 +22,14 @@ import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
 import { StateUtil } from '../state/index.js'
 import { FadeDurationChoice } from '../choices/fades.js'
+import { getIdLabelPair } from '../choices/utils.js'
 
 export enum CommonActions {
-	SetColor = 'set-color',
+	SetScribbleLight = 'set-scribble-light',
+	SetScribbleLightColor = 'set-scribble-light-color',
 	SetName = 'set-name',
+	SetSolo = 'set-solo',
+	ClearSolo = 'clear-solo',
 	// Gain
 	SetGain = 'set-gain',
 	StoreGain = 'store-gain',
@@ -46,9 +50,7 @@ export enum CommonActions {
 	RestorePanorama = 'restore-panorama',
 	DeltaPanorama = 'panorama-delta',
 	UndoDeltaPanorama = 'undo-panorama',
-	// Solo
-	SetSolo = 'set-solo',
-	ClearSolo = 'clear-solo',
+
 	//////////// SEND
 	SetSendMute = 'set-send-mute',
 	// Send Fader
@@ -89,9 +91,40 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 	const allSendSources = [...state.namedChoices.channels, ...state.namedChoices.auxes, ...state.namedChoices.busses]
 
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
-		[CommonActions.SetColor]: {
-			name: 'Set Color',
-			description: 'Set the scribble strip color of a channel, aux, bus, matrix or main.',
+		// TODO: add DCAs once merged
+		[CommonActions.SetScribbleLight]: {
+			name: 'Set Scribble Light',
+			description: 'Set or toggle the scribble light state of a channel, aux, bus, matrix or main.',
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels]),
+				GetDropdown(
+					'Scribble Light',
+					'led',
+					[getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off'), getIdLabelPair('2', 'Toggle')],
+					'1',
+				),
+			],
+			callback: async (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
+				const val = ActionUtil.getNumber(event, 'led')
+				const currentVal = StateUtil.getBooleanFromState(cmd, state)
+				if (val < 2) {
+					send(cmd, val)
+				} else {
+					send(cmd, Number(!currentVal))
+				}
+			},
+			subscribe: (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
+				ensureLoaded(cmd)
+			},
+		},
+		// TODO: add dca's
+		[CommonActions.SetScribbleLightColor]: {
+			name: 'Set Scribble Light Color',
+			description: 'Set the scribble light color of a channel, aux, bus, matrix or main.',
 			options: [GetDropdown('Selection', 'sel', allChannels), GetColorDropdown('color', 'Color')],
 			callback: async (event) => {
 				const sel = event.options.sel as string

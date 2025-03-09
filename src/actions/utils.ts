@@ -234,3 +234,19 @@ export function getMainSendMuteCommand(sel: string, src: number, dest: number): 
 	}
 	return cmd
 }
+
+export function getScribblelightCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.ScribbleLight(val)
+	}
+	return cmd
+}
