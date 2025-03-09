@@ -271,11 +271,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.osc.on('message', (message): void => {
 			this.updateStatus(InstanceStatus.Ok)
 			const args = message.args as osc.MetaArgument[]
-			// this.log('debug', `Received ${JSON.stringify(message)}`)
+			this.log('debug', `Received ${JSON.stringify(message)}`)
 			this.state.set(message.address, args)
 
 			if (this.inFlightRequests[message.address]) {
-				this.log('debug', `Received answer for request ${message.address}`)
+				// this.log('debug', `Received answer for request ${message.address}`)
 				this.inFlightRequests[message.address]()
 				delete this.inFlightRequests[message.address]
 			}
@@ -327,12 +327,14 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		const busNameRe = /\/bus\/\d+\/\$name/
 		const mtxNameRe = /\/mtx\/\d+\/\$name/
 		const mainNameRe = /\/main\/\d+\/\$name/
+		const libRe = /\/$ctl\/lib/
 		if (
 			channelNameRe.test(msg.address) ||
 			busNameRe.test(msg.address) ||
 			auxNameRe.test(msg.address) ||
 			mtxNameRe.test(msg.address) ||
-			mainNameRe.test(msg.address)
+			mainNameRe.test(msg.address) ||
+			libRe.test(msg.address)
 		) {
 			// this.log('info', 'Would update now')
 
@@ -398,10 +400,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			args: args,
 		}
 		this.osc.send(command)
-		this.osc.send({ address: cmd, args: [] })
+		// this.osc.send({ address: cmd, args: [] })
 	}
 
-	ensureLoaded = (path: string): void => {
+	ensureLoaded = (path: string, arg?: string | number): void => {
 		this.requestQueue
 			.add(async () => {
 				if (this.inFlightRequests[path]) {
@@ -418,7 +420,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 					this.inFlightRequests[path] = resolve
 				})
 
-				this.sendCommand(path, undefined)
+				this.sendCommand(path, arg ?? undefined)
 
 				await p
 			})
