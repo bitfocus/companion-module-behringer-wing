@@ -80,7 +80,20 @@ export function GetMuteDropdown(id: string, label?: string, includeToggle?: bool
 	const dropdown = GetDropdown(
 		label ?? 'Mute',
 		id,
-		[getIdLabelPair('0', 'Unmute'), getIdLabelPair('1', 'Mute')],
+		[getIdLabelPair('1', 'Mute'), getIdLabelPair('0', 'Unmute')],
+		'1',
+		'Select whether to Mute, Unmute or Toggle your selected target',
+	)
+	if (includeToggle == false) return dropdown
+
+	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('2', 'Toggle')] }
+}
+
+export function GetSoloDropdown(id: string, label?: string, includeToggle?: boolean): CompanionInputFieldDropdown {
+	const dropdown = GetDropdown(
+		label ?? 'Solo',
+		id,
+		[getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')],
 		'1',
 		'Select whether to Mute, Unmute or Toggle your selected target',
 	)

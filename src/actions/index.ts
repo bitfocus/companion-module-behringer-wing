@@ -1,5 +1,6 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
 import { createChannelActions } from '../actions/channel.js'
+import { createConfigurationActions } from '../actions/config.js'
 import { GetOtherActions as createOtherActions } from './other.js'
 import { createBusActions as createBusActions } from './bus.js'
 import { InstanceBaseExt } from '../types.js'
@@ -16,6 +17,7 @@ export function createActions(self: InstanceBaseExt<WingConfig>): CompanionActio
 		...createBusActions(self),
 		...createAuxActions(self),
 		...createMainActions(self),
+		...createConfigurationActions(self),
 	}
 
 	return actions
