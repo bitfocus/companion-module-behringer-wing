@@ -129,6 +129,22 @@ export function getMuteCommand(sel: string, val: number): string {
 	return cmd
 }
 
+export function getSoloCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.Solo(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.Solo(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.Solo(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.Solo(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.Solo(val)
+	}
+	return cmd
+}
+
 export function getFaderCommand(sel: string, val: number): string {
 	let cmd = ''
 	if (sel.startsWith('/ch')) {

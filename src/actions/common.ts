@@ -14,6 +14,7 @@ import {
 	GetPanoramaDeltaSlider,
 	GetColorDropdown,
 	GetNumberField,
+	GetSoloDropdown,
 } from '../choices/common.js'
 import { getNodeNumber, getNumber, runTransition } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
@@ -45,6 +46,9 @@ export enum CommonActions {
 	RestorePanorama = 'restore-panorama',
 	DeltaPanorama = 'panorama-delta',
 	UndoDeltaPanorama = 'undo-panorama',
+	// Solo
+	SetSolo = 'set-solo',
+	ClearSolo = 'clear-solo',
 	//////////// SEND
 	SetSendMute = 'set-send-mute',
 	// Send Fader
@@ -407,6 +411,50 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
 				ensureLoaded(cmd)
+			},
+		},
+		////////////////////////////////////////////////////////////////
+		// Solo
+		////////////////////////////////////////////////////////////////
+		[CommonActions.SetSolo]: {
+			name: 'Set Solo',
+			description: 'Set the solo state for a channel, aux, bux, matrix or main',
+			options: [GetDropdown('Selection', 'sel', allChannels), GetSoloDropdown('solo')],
+			callback: async (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+				const val = ActionUtil.getNumber(event, 'solo')
+				const currentVal = StateUtil.getBooleanFromState(cmd, state)
+				if (val < 2) {
+					send(cmd, val)
+				} else {
+					send(cmd, Number(!currentVal))
+				}
+			},
+			subscribe: (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.ClearSolo]: {
+			name: 'Clear Solo',
+			description: 'Clear the Solo from all channels, auxes, busses, matrices and mains.',
+			options: [],
+			callback: async (_) => {
+				const extractNumber = (id: string): number | null => {
+					const match = id.match(/\/(\d+)$/)
+					return match ? parseInt(match[1], 10) : null
+				}
+
+				for (const channel of allChannels) {
+					const id = channel.id as string
+					const number = extractNumber(id)
+					if (number !== null) {
+						const cmd = ActionUtil.getSoloCommand(id, number)
+						send(cmd, 0)
+					}
+				}
 			},
 		},
 
