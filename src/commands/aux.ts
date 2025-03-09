@@ -116,6 +116,18 @@ export namespace AuxCommands {
 		return `${Node(aux)}/mon`
 	}
 
+	export function MainNode(aux: number, main: number): string {
+		return `${Node(aux)}/main/${main}`
+	}
+
+	export function MainSendOn(aux: number, main: number): string {
+		return `${MainNode(aux, main)}/on`
+	}
+
+	export function MainSendLevel(aux: number, main: number): string {
+		return `${MainNode(aux, main)}/lvl`
+	}
+
 	export function SendNode(aux: number, send: number): string {
 		return `${Node(aux)}/send/${send}`
 	}

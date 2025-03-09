@@ -194,3 +194,27 @@ export function getSendPanoramaCommand(sel: string, src: number, dest: number): 
 	}
 	return cmd
 }
+
+export function getMainSendLevelCommand(sel: string, src: number, dest: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainSendLevel(src, dest)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainSendLevel(src, dest)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.MainSendLevel(src, dest)
+	}
+	return cmd
+}
+
+export function getMainSendMuteCommand(sel: string, src: number, dest: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainSendOn(src, dest)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainSendOn(src, dest)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.MainSendOn(src, dest)
+	}
+	return cmd
+}
