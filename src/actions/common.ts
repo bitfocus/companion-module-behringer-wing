@@ -59,6 +59,13 @@ export enum CommonActions {
 	RestoreSendPanorama = 'restore-send-panorama',
 	DeltaSendPanorama = 'delta-send-panorama',
 	UndoDeltaSendPanorama = 'undo-send-panorama',
+	// Main Send
+	SetMainSendMute = 'set-main-send-mute',
+	SetMainSendFader = 'set-main-send-fader',
+	StoreMainSendFader = 'store-main-send-fader',
+	RestoreMainSendFader = 'restore-main-send-fader',
+	DeltaMainSendFader = 'delta-main-send-fader',
+	UndoDeltaMainSendFader = 'undo-main-send-fader',
 }
 
 export function createCommonActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -431,7 +438,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [
 				GetDropdown('From', 'src', allSendSources),
 				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
-				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+				...FadeDurationChoice,
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
@@ -450,7 +457,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [
 				GetDropdown('From', 'src', allSendSources),
 				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
-				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+				...FadeDurationChoice,
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
@@ -567,7 +574,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [
 				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
 				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
-				...GetPanoramaDeltaSlider('delta', 'Panorama'),
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
@@ -586,7 +592,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [
 				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
 				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
-				...GetPanoramaDeltaSlider('delta', 'Panorama'),
+				...FadeDurationChoice,
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
@@ -642,6 +648,140 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: (event) => {
 				const src = event.options.src as string
 				const cmd = ActionUtil.getSendPanoramaCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+
+		////////////////////////////////////////////////////////////////
+		// Main Send Fader
+		////////////////////////////////////////////////////////////////
+		[CommonActions.SetMainSendMute]: {
+			name: 'Set Main Send Mute',
+			description: 'Set or toggle the mute state of a main send from a channel, aux or bus to a main.',
+			options: [
+				GetDropdown('Selection', 'src', allSendSources),
+				GetDropdown('To Main', 'dest', state.namedChoices.mains),
+				GetMuteDropdown('mute'),
+			],
+			callback: async (event) => {
+				const sel = event.options.src as string
+				const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				const val = ActionUtil.getNumber(event, 'mute')
+				const currentVal = StateUtil.getBooleanFromState(cmd, state)
+				// The Main Send mutes need to be sent inverted becauxe it is an 'on' command
+				if (val >= 2) {
+					send(cmd, Number(!currentVal))
+				} else {
+					if (val < 1) {
+						send(cmd, 1)
+					} else {
+						send(cmd, 0)
+					}
+				}
+			},
+			subscribe: (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.SetMainSendFader]: {
+			name: 'Set Main Send Level',
+			description: 'Set the send level from a channel, aux or bus to a main.',
+			options: [
+				GetDropdown('From', 'src', allSendSources),
+				GetDropdown('To Main', 'dest', state.namedChoices.mains),
+				...GetFaderInputField('level'),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				runTransition(cmd, 'level', event, state, transitions)
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.StoreMainSendFader]: {
+			name: 'Store Main Send Level',
+			description: 'Store the Main send level from a channel, aux or bus to a main.',
+			options: [GetDropdown('From', 'src', allSendSources), GetDropdown('To Main', 'dest', state.namedChoices.mains)],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				StateUtil.storeValueForCommand(cmd, state)
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.RestoreMainSendFader]: {
+			name: 'Restore Main Send Level',
+			description: 'Restore the Main send level from a channel, aux or bus to a main.',
+			options: [
+				GetDropdown('From', 'src', allSendSources),
+				GetDropdown('To Main', 'dest', state.namedChoices.mains),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				const restoreVal = StateUtil.getValueFromKey(cmd, state)
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
+			},
+		},
+		[CommonActions.DeltaMainSendFader]: {
+			name: 'Adjust Main Send Level',
+			description: 'Adjust the Main send level from a channel, aux or bus to a main.',
+			options: [
+				GetDropdown('From', 'src', allSendSources),
+				GetDropdown('To Main', 'dest', state.namedChoices.mains),
+				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = event.options.delta as number
+				state.storeDelta(cmd, delta)
+				if (targetValue != undefined) {
+					targetValue += delta
+					console.log('targetValue', targetValue)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.UndoDeltaMainSendFader]: {
+			name: 'Undo Main Send Level Adjust',
+			description: 'Undo the previous Main send level adjustment from a channel, aux or bus to a main.',
+			options: [
+				GetDropdown('From', 'src', allSendSources),
+				GetDropdown('To Main', 'dest', state.namedChoices.mains),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				console.log(targetValue)
+				const delta = state.restoreDelta(cmd)
+				if (targetValue != undefined) {
+					targetValue -= delta
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
 				ensureLoaded(cmd)
 			},
 		},
