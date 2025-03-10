@@ -11,9 +11,6 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	variables.push({ variableId: 'desk_ip', name: 'Desk IP Address' })
 	variables.push({ variableId: 'desk_name', name: 'Desk Name' })
 
-	variables.push({ variableId: 'player_time', name: 'USB Player Time' })
-	variables.push({ variableId: 'recorder_time', name: 'USB Recorder Time' })
-
 	for (let ch = 1; ch <= model.channels; ch++) {
 		variables.push({
 			variableId: `ch${ch}_name`,
@@ -154,6 +151,39 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		})
 	}
 
+	variables.push({ variableId: 'usb_record_time_ss', name: 'USB Record Time (ss)' })
+	variables.push({ variableId: 'usb_record_time_mm_ss', name: 'USB Record Time (mm:ss)' })
+	variables.push({ variableId: 'usb_record_time_hh_mm_ss', name: 'USB Record Time (hh:mm:ss)' })
+	variables.push({ variableId: 'usb_record_path', name: 'USB Record File Path' })
+	variables.push({ variableId: 'usb_record_state', name: 'USB Record State' })
+
+	variables.push({ variableId: 'usb_play_pos_ss', name: 'USB Player Position (ss)' })
+	variables.push({ variableId: 'usb_play_pos_mm_ss', name: 'USB Player Position (mm:ss)' })
+	variables.push({ variableId: 'usb_play_pos_hh_mm_ss', name: 'USB Player Position (hh:mm:ss)' })
+	variables.push({ variableId: 'usb_play_total_ss', name: 'USB Player File Length (ss)' })
+	variables.push({ variableId: 'usb_play_total_mm_ss', name: 'USB Player File Length (mm:ss)' })
+	variables.push({ variableId: 'usb_play_total_hh_mm_ss', name: 'USB Player File Length (hh:mm:ss)' })
+	variables.push({ variableId: 'usb_play_path', name: 'USB Player File Path' })
+	variables.push({ variableId: 'usb_play_state', name: 'USB Player State' })
+	variables.push({ variableId: 'usb_play_name', name: 'USB Player File Name' })
+	variables.push({ variableId: 'usb_play_directory', name: 'USB Player File Directory' })
+	variables.push({ variableId: 'usb_play_playlist', name: 'USB Player Active Playlist' })
+	variables.push({ variableId: 'usb_play_playlist_index', name: 'USB Player Playlist Index' })
+	variables.push({ variableId: 'usb_play_repeat', name: 'USB Player Repeat Playlist' })
+
+	for (let card = 1; card <= 2; card++) {
+		variables.push({ variableId: `wlive_${card}_state`, name: `Wing Live Card ${card} State` })
+		variables.push({ variableId: `wlive_${card}_pos_ss`, name: `Wing Live Card ${card} Position (ss)` })
+		variables.push({ variableId: `wlive_${card}_pos_mm_ss`, name: `Wing Live Card ${card} Position (mm:ss)` })
+		variables.push({ variableId: `wlive_${card}_pos_hh_mm_ss`, name: `Wing Live Card ${card} Position (hh:mm:ss)` })
+		variables.push({ variableId: `wlive_${card}_sdfree_ss`, name: `Wing Live Card ${card} Free Space (ss)` })
+		variables.push({ variableId: `wlive_${card}_sdfree_mm_ss`, name: `Wing Live Card ${card} Free Space (mm:ss)` })
+		variables.push({
+			variableId: `wlive_${card}_sdfree_hh_mm_ss`,
+			name: `Wing Live Card ${card} Free Space (hh:mm:ss)`,
+		})
+	}
+
 	self.setVariableDefinitions(variables)
 }
 
@@ -167,6 +197,8 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		UpdateNameVariables(self, path, args[0]?.value as string)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
 		UpdatePanoramaVariables(self, path, args[0]?.value as number)
+		UpdateUsbVariables(self, path, args[0])
+		UpdateSdVariables(self, path, args[0])
 	}
 }
 
@@ -242,4 +274,97 @@ function UpdatePanoramaVariables(self: WingInstance, path: string, value: number
 		varName = `${source}_pan`
 	}
 	self.setVariableValues({ [varName]: Math.round(value) })
+}
+
+function UpdateUsbVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
+	const match = path.match(/^\/(rec|play)\/(\$?\w+)$/)
+	if (!match) {
+		return
+	}
+	const direction = match[1]
+	const command = match[2]
+	if (direction == 'rec') {
+		if (command == '$time') {
+			const seconds = args.value as number
+			self.setVariableValues({
+				usb_record_time_ss: seconds,
+				usb_record_time_mm_ss: `${Math.floor(seconds / 60)}:${seconds % 60}`,
+				usb_record_time_hh_mm_ss: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+			})
+		} else if (command == '$actfile') {
+			const filename = args.value as string
+			self.setVariableValues({ usb_record_path: filename })
+		} else if (command == '$actstate') {
+			const state = args.value as string
+			self.setVariableValues({ usb_record_state: state })
+		}
+	} else if (direction == 'play') {
+		if (command == '$pos') {
+			const seconds = args.value as number
+			self.setVariableValues({
+				usb_play_pos_ss: seconds,
+				usb_play_pos_mm_ss: `${Math.floor(seconds / 60)}:${seconds % 60}`,
+				usb_play_pos_hh_mm_ss: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+			})
+		} else if (command == '$total') {
+			const seconds = args.value as number
+			self.setVariableValues({
+				usb_play_total_ss: seconds,
+				usb_play_total_mm_ss: `${Math.floor(seconds / 60)}:${seconds % 60}`,
+				usb_play_total_hh_mm_ss: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+			})
+		} else if (command == '$actfile') {
+			const filename = args.value as string
+			self.setVariableValues({ usb_play_path: filename })
+		} else if (command == '$actstate') {
+			const state = args.value as string
+			self.setVariableValues({ usb_play_state: state })
+		} else if (command == '$song') {
+			const song = args.value as string
+			self.setVariableValues({ usb_play_name: song })
+		} else if (command == '$album') {
+			const album = args.value as string
+			self.setVariableValues({ usb_play_directory: album })
+		} else if (command == '$actlist') {
+			const playlist = args.value as string
+			self.setVariableValues({ usb_play_playlist: playlist })
+		} else if (command == '$actidx') {
+			const index = args.value as number
+			self.setVariableValues({ usb_play_playlist_index: index })
+		} else if (command == 'repeat') {
+			const repeat = args.value as number
+			self.setVariableValues({ usb_play_repeat: repeat })
+		}
+	}
+}
+
+function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
+	const match = path.match(/^\/cards\/wlive\/(\d)\/(\$?\w+)\/(\$?\w+)$/)
+	if (!match) {
+		return
+	}
+	const card = match[1]
+	const command = match[2]
+	const subcommand = match[3]
+
+	if (command == '$stat') {
+		if (subcommand == 'state') {
+			const state = args.value as string
+			self.setVariableValues({ [`wlive_${card}_state`]: state })
+		} else if (subcommand == 'etime') {
+			const seconds = Math.floor((args.value as number) / 1000)
+			self.setVariableValues({
+				[`wlive_${card}_pos_ss`]: seconds,
+				[`wlive_${card}_pos_mm_ss`]: `${Math.floor(seconds / 60)}:${seconds % 60}`,
+				[`wlive_${card}_pos_hh_mm_ss`]: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+			})
+		} else if (subcommand == 'sdfree') {
+			const seconds = Math.floor((args.value as number) / 1000)
+			self.setVariableValues({
+				[`wlive_${card}_sdfree_ss`]: seconds,
+				[`wlive_${card}_sdfree_mm_ss`]: `${Math.floor(seconds / 60)}:${seconds % 60}`,
+				[`wlive_${card}_sdfree_hh_mm_ss`]: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+			})
+		}
+	}
 }

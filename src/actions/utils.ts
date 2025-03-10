@@ -261,6 +261,8 @@ export function getScribblelightCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.ScribbleLight(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.ScribbleLight(val)
 	}
 	return cmd
 }

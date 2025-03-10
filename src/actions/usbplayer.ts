@@ -27,7 +27,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 
 	const actions: { [id in UsbPlayerActionId]: CompanionActionWithCallback | undefined } = {
 		[UsbPlayerActionId.PlaybackAction]: {
-			name: 'Playback Action',
+			name: 'USB Playback Action',
 			options: [GetDropdown('Action', 'action', getUsbPlayerActionChoices())],
 			callback: async (event) => {
 				const cmd = Commands.PlayerAction()
@@ -35,7 +35,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 			},
 		},
 		[UsbPlayerActionId.RecordAction]: {
-			name: 'Record Action',
+			name: 'USB Record Action',
 			options: [GetDropdown('Action', 'action', getUsbRecorderActionChoices())],
 			callback: async (event) => {
 				const cmd = Commands.RecorderAction()
