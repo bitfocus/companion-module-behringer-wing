@@ -123,7 +123,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetScribbleLightColor]: {
 			name: 'Set Scribble Light Color',
 			description: 'Set the scribble light color of a channel, aux, bus, matrix, main, or dca.',
-			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), GetColorDropdown('color', 'Color')],
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetColorDropdown('color', 'Color'),
+			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getColorCommand(sel, getNodeNumber(event, 'sel'))
