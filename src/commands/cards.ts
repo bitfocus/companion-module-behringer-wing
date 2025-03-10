@@ -17,7 +17,7 @@ export namespace CardsCommands {
 	}
 
 	export function WLiveSDLink(): string {
-		return `${WLiveNode()}/$sdlink`
+		return `${WLiveNode()}/sdlink`
 	}
 
 	export function WLiveActLink(): string {
@@ -34,6 +34,18 @@ export namespace CardsCommands {
 
 	export function ShowMeters(): string {
 		return `${WLiveNode()}/meters`
+	}
+
+	export function WLiveAutoStop(): string {
+		return `${WLiveNode()}/auto_stop`
+	}
+
+	export function WLiveAutoPlay(): string {
+		return `${WLiveNode()}/auto_play`
+	}
+
+	export function WLiveAutoRecord(): string {
+		return `${WLiveNode()}/auto_rec`
 	}
 
 	export function WLiveCardNode(card: number): string {
@@ -80,7 +92,7 @@ export namespace CardsCommands {
 		return `${WLiveCardControlNode(card)}/setmarker`
 	}
 
-	export function WLiveCardFormatSDCard(card: number): string {
+	export function WLiveCardFormat(card: number): string {
 		return `${WLiveCardControlNode(card)}/formatsdcard`
 	}
 

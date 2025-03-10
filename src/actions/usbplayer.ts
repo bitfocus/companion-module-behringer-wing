@@ -7,19 +7,9 @@ import { getUsbPlayerActionChoices, getUsbRecorderActionChoices } from '../choic
 import { GetDropdown } from '../choices/common.js'
 
 export enum UsbPlayerActionId {
-	// SetPosition = 'set-position',
-	// SetDirectory = 'set-directory',
-	// SetDirectoryMode = 'set-directory-mode',
 	PlaybackAction = 'playback-action',
-	// SetPlayAll = 'set-play-all',
-	// SetRepeat = 'set-repeat',
-	// SetPlaylistPosition = 'set-playlist-position',
-	// SetPlaylistSong = 'set-playlist-song',
-	// SetRecordFilename = 'set-record-filename',
+	SetRepeat = 'set-repeat',
 	RecordAction = 'record-action',
-	// SetRecordFilePath = 'set-record-file-path',
-	// SetRecordResolution = 'set-record-resolution',
-	// SetRecordChannels = 'set-record-channels',
 }
 
 export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -27,15 +17,31 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 
 	const actions: { [id in UsbPlayerActionId]: CompanionActionWithCallback | undefined } = {
 		[UsbPlayerActionId.PlaybackAction]: {
-			name: 'USB Playback Action',
+			name: 'USB: Playback Action',
 			options: [GetDropdown('Action', 'action', getUsbPlayerActionChoices())],
 			callback: async (event) => {
 				const cmd = Commands.PlayerAction()
 				send(cmd, event.options.action as string)
 			},
 		},
+		[UsbPlayerActionId.SetRepeat]: {
+			name: 'USB: Set Repeat',
+			options: [
+				{
+					type: 'checkbox',
+					id: 'repeat',
+					label: 'Repeat',
+					default: false,
+				},
+			],
+			callback: async (event) => {
+				const cmd = Commands.PlayerRepeat()
+				const repeat = event.options.repeat ? 1 : 0
+				send(cmd, repeat)
+			},
+		},
 		[UsbPlayerActionId.RecordAction]: {
-			name: 'USB Record Action',
+			name: 'USB: Record Action',
 			options: [GetDropdown('Action', 'action', getUsbRecorderActionChoices())],
 			callback: async (event) => {
 				const cmd = Commands.RecorderAction()
