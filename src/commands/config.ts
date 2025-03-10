@@ -102,91 +102,115 @@ export namespace ConfigurationCommands {
 	// Commands
 	////////////////////////////////////////////////
 
+	export function ConfigNode(): string {
+		return `/cfg`
+	}
+
 	export function ClockRate(): string {
-		return '/cfg/clkrate'
+		return `${ConfigNode}/clkrate`
 	}
 
 	export function ClockSource(): string {
-		return '/cfg/clksrc'
+		return `${ConfigNode}/clksrc`
 	}
 
 	export function MainLink(): string {
-		return '/cfg/mainlink'
+		return `${ConfigNode}/mainlink`
 	}
 
 	export function DcaGroup(): string {
-		return '/cfg/dcamgrp'
+		return `${ConfigNode}/dcamgrp`
 	}
 
 	export function MuteOverride(): string {
-		return '/cfg/muteovr'
+		return `${ConfigNode}/muteovr`
 	}
 
 	export function StartMute(): string {
-		return '/cfg/startmute'
+		return `${ConfigNode}/startmute`
 	}
 
 	export function UsbConfig(): string {
-		return '/cfg/usbacfg'
+		return `${ConfigNode}/usbacfg`
 	}
 
 	export function ScConfig(): string {
-		return '/cfg/sccfg'
+		return `${ConfigNode}/sccfg`
 	}
 
 	export function MonitorEqGain(node: MonitorNode, band: MonitorEqBand): string {
-		return `/cfg/mon/${node}/eq/${band}g`
+		return `${ConfigNode}/mon/${node}/eq/${band}g`
 	}
 
 	export function MonitorEqFrequency(node: MonitorNode, band: MonitorEqBand): string {
-		return `/cfg/mon/${node}/eq/${band}f`
+		return `${ConfigNode}/mon/${node}/eq/${band}f`
 	}
 
 	export function MonitorEqQ(node: MonitorNode, band: MonitorEqBand): string {
-		return `/cfg/mon/${node}/eq/${band}q`
+		return `${ConfigNode}/mon/${node}/eq/${band}q`
 	}
 
 	export function MonitorEqHighShelfGain(node: MonitorNode): string {
-		return `/cfg/mon/${node}/eq/hsg`
+		return `${ConfigNode}/mon/${node}/eq/hsg`
 	}
 
 	export function MonitorEqHighShelfFrequency(node: MonitorNode): string {
-		return `/cfg/mon/${node}/eq/hsf`
+		return `${ConfigNode}/mon/${node}/eq/hsf`
 	}
 
 	export function MonitorLimiterLevel(node: MonitorNode): string {
-		return `/cfg/mon/${node}/lim`
+		return `${ConfigNode}/mon/${node}/lim`
 	}
 
 	export function MonitorDelayOn(node: MonitorNode): string {
-		return `/cfg/mon/${node}/dly/on`
+		return `${ConfigNode}/mon/${node}/dly/on`
 	}
 
 	export function MonitorDelayMeters(node: MonitorNode): string {
-		return `/cfg/mon/${node}/dly/m`
+		return `${ConfigNode}/mon/${node}/dly/m`
 	}
 
 	export function MonitorDelayDimLevel(node: MonitorNode): string {
-		return `/cfg/mon/${node}/dim`
+		return `${ConfigNode}/mon/${node}/dim`
 	}
 
 	export function MonitorPflDim(node: MonitorNode): string {
-		return `/cfg/mon/${node}/pfldim`
+		return `${ConfigNode}/mon/${node}/pfldim`
 	}
 
 	export function MonitorEqBandSoloTrim(node: MonitorNode): string {
-		return `/cfg/mon/${node}/eqbdtrim`
+		return `${ConfigNode}/mon/${node}/eqbdtrim`
 	}
 
 	export function MonitorSourceLevel(node: MonitorNode): string {
-		return `/cfg/mon/${node}/srclvl`
+		return `${ConfigNode}/mon/${node}/srclvl`
 	}
 
 	export function MonitorSourceMix(node: MonitorNode): string {
-		return `/cfg/mon/${node}/srcmix`
+		return `${ConfigNode}/mon/${node}/srcmix`
 	}
 
 	export function MonitorSource(node: MonitorNode): string {
-		return `/cfg/mon/${node}/src`
+		return `${ConfigNode}/mon/${node}/src`
+	}
+
+	export function SoloNode(): string {
+		return `${ConfigNode()}/solo`
+	}
+
+	export function SoloMute(): string {
+		return `${SoloNode()}/mute`
+	}
+
+	export function SoloDim(): string {
+		return `${SoloNode()}/$dim`
+	}
+
+	export function SoloMono(): string {
+		return `${SoloNode()}/$mono`
+	}
+
+	export function SoloLRSwap(): string {
+		return `${SoloNode()}/$flip`
 	}
 }

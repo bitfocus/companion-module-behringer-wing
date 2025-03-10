@@ -141,6 +141,22 @@ export function getMuteCommand(sel: string, val: number): string {
 	return cmd
 }
 
+export function getSoloCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.Solo(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.Solo(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.Solo(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.Solo(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.Solo(val)
+	}
+	return cmd
+}
+
 export function getFaderCommand(sel: string, val: number): string {
 	let cmd = ''
 	if (sel.startsWith('/ch')) {
@@ -205,6 +221,46 @@ export function getSendPanoramaCommand(sel: string, src: number, dest: number): 
 		cmd = ChannelCommands.SendPan(src, dest)
 	} else if (sel.startsWith('/aux')) {
 		cmd = AuxCommands.SendPan(src, dest)
+	}
+	return cmd
+}
+
+export function getMainSendLevelCommand(sel: string, src: number, dest: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainSendLevel(src, dest)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainSendLevel(src, dest)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.MainSendLevel(src, dest)
+	}
+	return cmd
+}
+
+export function getMainSendMuteCommand(sel: string, src: number, dest: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainSendOn(src, dest)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainSendOn(src, dest)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.MainSendOn(src, dest)
+	}
+	return cmd
+}
+
+export function getScribblelightCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.ScribbleLight(val)
 	}
 	return cmd
 }

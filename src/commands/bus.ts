@@ -76,6 +76,18 @@ export namespace BusCommands {
 		return `${Node(bus)}/busmode`
 	}
 
+	export function MainNode(bus: number, main: number): string {
+		return `${Node(bus)}/main/${main}`
+	}
+
+	export function MainSendOn(bus: number, main: number): string {
+		return `${MainNode(bus, main)}/on`
+	}
+
+	export function MainSendLevel(bus: number, main: number): string {
+		return `${MainNode(bus, main)}/lvl`
+	}
+
 	export function SendNode(bus: number, send: number): string {
 		return `${Node(bus)}/send/${send}`
 	}

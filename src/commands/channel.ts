@@ -3,11 +3,11 @@ export namespace ChannelCommands {
 	export function Node(channel: number): string {
 		return `/ch/${channel}`
 	}
-	
+
 	export function InputNode(channel: number): string {
 		return `${Node(channel)}/in`
 	}
-	
+
 	export function InputSetNode(channel: number): string {
 		return `${InputNode(channel)}/set`
 	}
@@ -51,7 +51,7 @@ export namespace ChannelCommands {
 	export function InputDelayOn(channel: number): string {
 		return `${InputSetNode(channel)}/dlyon`
 	}
-	
+
 	export function InputConnectionNode(channel: number): string {
 		return `${InputNode(channel)}/conn`
 	}
@@ -176,11 +176,11 @@ export namespace ChannelCommands {
 		return `${Node(channel)}/main/${main}`
 	}
 
-	export function MainOn(channel: number, main: number): string {
+	export function MainSendOn(channel: number, main: number): string {
 		return `${MainNode(channel, main)}/on`
 	}
 
-	export function MainLevel(channel: number, main: number): string {
+	export function MainSendLevel(channel: number, main: number): string {
 		return `${MainNode(channel, main)}/lvl`
 	}
 
