@@ -14,6 +14,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.SendCommand]: {
 			name: 'Send Command',
+			description: 'Send an OSC command with no argument to the console.',
 			options: [
 				{
 					type: 'textinput',
@@ -27,6 +28,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 		},
 		[OtherActionId.SendCommandWithNumber]: {
 			name: 'Send Command with Number',
+			description: 'Send an OSC command with a number as an argument to the console.',
 			options: [
 				{
 					type: 'textinput',

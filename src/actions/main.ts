@@ -24,6 +24,7 @@ export function createMainActions(self: InstanceBaseExt<WingConfig>): CompanionA
 	const actions: { [id in MainActions]: CompanionActionWithCallback | undefined } = {
 		[MainActions.MainToMatrixLevel]: {
 			name: 'Set Main to Matrix Level',
+			description: 'Set the level of a main to matrix send.',
 			options: [
 				GetDropdown('From Main', 'bus', state.namedChoices.mains),
 				GetDropdown('To Matrix', 'matrix', state.namedChoices.matrices),
@@ -39,6 +40,7 @@ export function createMainActions(self: InstanceBaseExt<WingConfig>): CompanionA
 		},
 		[MainActions.MainToMatrixLevelStore]: {
 			name: 'Store Main to Matrix Level',
+			description: 'Store the level of a main to matrix send.',
 			options: [GetDropdown('Main', 'main', state.namedChoices.mains)],
 			callback: async (event) => {
 				const cmd = Commands.MatrixSendLevel(getNodeNumber(event, 'main'), getNodeNumber(event, 'matrix'))
@@ -50,6 +52,7 @@ export function createMainActions(self: InstanceBaseExt<WingConfig>): CompanionA
 		},
 		[MainActions.MainToMatrixLevelRestore]: {
 			name: 'Restore Main to Matrix Level',
+			description: 'Restore the level of a main to matrix send.',
 			options: [GetDropdown('Main', 'main', state.namedChoices.mains), ...FadeDurationChoice],
 			callback: async (event) => {
 				const cmd = Commands.MatrixSendLevel(getNodeNumber(event, 'main'), getNodeNumber(event, 'matrix'))
@@ -62,6 +65,7 @@ export function createMainActions(self: InstanceBaseExt<WingConfig>): CompanionA
 		},
 		[MainActions.MainToMatrixLevelDelta]: {
 			name: 'Adjust Main to Matrix Level',
+			description: 'Adjust the level of a main to matrix send.',
 			options: [GetDropdown('Main', 'main', state.namedChoices.mains), ...GetPanoramaDeltaSlider('pan', 'Panorama')],
 			callback: async (event) => {
 				const cmd = Commands.MatrixSendLevel(getNodeNumber(event, 'main'), getNodeNumber(event, 'matrix'))
@@ -79,6 +83,7 @@ export function createMainActions(self: InstanceBaseExt<WingConfig>): CompanionA
 		},
 		[MainActions.MainToMatrixLevelUndoDelta]: {
 			name: 'Undo Main to Matrix Level Adjust',
+			description: 'Undo the previous adjustment of the main to matrix send level.',
 			options: [GetDropdown('Main', 'main', state.namedChoices.mains), ...FadeDurationChoice],
 			callback: async (event) => {
 				const cmd = Commands.MatrixSendLevel(getNodeNumber(event, 'main'), getNodeNumber(event, 'matrix'))

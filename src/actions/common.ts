@@ -93,7 +93,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
 		[CommonActions.SetScribbleLight]: {
 			name: 'Set Scribble Light',
-			description: 'Set or toggle the scribble light state of a channel, aux, bus, matrix, main, or dca.',
+			description: 'Set or toggle the scribble light state of a channel, aux, bus, dca, matrix, or main.',
 			options: [
 				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				GetDropdown(
@@ -122,7 +122,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.SetScribbleLightColor]: {
 			name: 'Set Scribble Light Color',
-			description: 'Set the scribble light color of a channel, aux, bus, matrix, main, or dca.',
+			description: 'Set the scribble light color of a channel, aux, bus, dca, matrix, or main.',
 			options: [
 				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				GetColorDropdown('color', 'Color'),
@@ -135,6 +135,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.SetName]: {
 			name: 'Set Name',
+			description: 'Set the name of a channel, aux, bus, dca, matrix, main, or a mutegroup.',
 			options: [
 				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
 				GetTextField('Name', 'name'),
@@ -150,7 +151,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		////////////////////////////////////////////////////////////////
 		[CommonActions.SetGain]: {
 			name: 'Set Gain',
-			description: 'Set the gain of a channel or aux.',
+			description: 'Set the input gain of a channel or aux.',
 			options: [
 				GetDropdown('Channel', 'channel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
 				GetNumberField('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0, true),
@@ -200,7 +201,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.DeltaGain]: {
 			name: 'Adjust Gain',
-			description: 'Adjust the gain of a channel or aux.',
+			description: 'Adjust the input gain of a channel or aux.',
 			options: [
 				GetDropdown('Selection', 'sel', allChannels),
 				GetNumberField('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0, true),
@@ -225,7 +226,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.UndoDeltaGain]: {
 			name: 'Undo Gain Adjust',
-			description: 'Undo the previous gain adjustment on a channel or aux.',
+			description: 'Undo the previous input gain adjustment on a channel or aux.',
 			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string
@@ -248,7 +249,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		////////////////////////////////////////////////////////////////
 		[CommonActions.SetMute]: {
 			name: 'Set Mute',
-			description: 'Set or toggle the mute state of a channel, aux, bus, matrix or main.',
+			description: 'Set or toggle the mute state of a channel, aux, bus, dca, matrix or main.',
 			options: [
 				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
 				GetMuteDropdown('mute'),
@@ -275,7 +276,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		////////////////////////////////////////////////////////////////
 		[CommonActions.SetFader]: {
 			name: 'Set Level',
-			description: 'Set the fader level of a channel, aux, bus, matrix or main to a value.',
+			description: 'Set the fader level of a channel, aux, bus, dca, matrix or main to a value.',
 			options: [
 				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				...GetFaderInputField('level'),
@@ -298,7 +299,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.StoreFader]: {
 			name: 'Store Level',
-			description: 'Store the fader level of a channel, aux, bus, matrix or main.',
+			description: 'Store the fader level of a hannel, aux, bus, dca, matrix or main.',
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
 			callback: async (event) => {
 				const sel = event.options.sel as string
@@ -313,7 +314,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.RestoreFader]: {
 			name: 'Restore Level',
-			description: 'Restore the fader level of a channel, aux, bus, matrix or main.',
+			description: 'Restore the fader level of a channel, aux, bus, dca, matrix or main.',
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string
@@ -323,8 +324,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 		},
 		[CommonActions.DeltaFader]: {
-			name: 'Adjust Level',
-			description: 'Adjust the level of a channel, aux, bus, matrix or main.',
+			name: 'Adjust Fader Level',
+			description: 'Adjust the level of a channel, aux, bus, dca, matrix or main.',
 			options: [
 				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
@@ -349,7 +350,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.UndoDeltaFader]: {
 			name: 'Undo Level Adjust',
-			description: 'Undo the previous level adjustment on a channel, aux, bus, matrix or main.',
+			description: 'Undo the previous level adjustment on a hannel, aux, bus, dca, matrix or main.',
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string
