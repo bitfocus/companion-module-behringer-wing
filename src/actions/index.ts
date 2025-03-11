@@ -7,6 +7,8 @@ import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { createAuxActions } from './aux.js'
 import { createMainActions } from './main.js'
+import { createUsbPlayerActions } from './usbplayer.js'
+import { createCardsActions } from './cards.js'
 import { createCommonActions } from './common.js'
 
 export function createActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -17,6 +19,8 @@ export function createActions(self: InstanceBaseExt<WingConfig>): CompanionActio
 		...createBusActions(self),
 		...createAuxActions(self),
 		...createMainActions(self),
+		...createUsbPlayerActions(self),
+		...createCardsActions(self),
 		...createConfigurationActions(self),
 	}
 

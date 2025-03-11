@@ -15,6 +15,8 @@ export interface ModelSpec {
 	busses: number
 	matrices: number
 	mains: number
+	dcas: number
+	mutegroups: number
 
 	localInputs: number
 	localOutputs: number

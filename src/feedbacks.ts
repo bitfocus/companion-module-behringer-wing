@@ -70,6 +70,8 @@ export function GetFeedbacksList(
 					...state.namedChoices.busses,
 					...state.namedChoices.matrices,
 					...state.namedChoices.mains,
+					...state.namedChoices.dcas,
+					...state.namedChoices.mutegroups,
 				]),
 				GetMuteDropdown('mute', 'State', false),
 			],
@@ -117,7 +119,7 @@ export function GetFeedbacksList(
 				const sel = event.options.src as string
 				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == event.options.mute
+				return typeof currentValue === 'number' && currentValue != event.options.mute
 			},
 			subscribe: (event): void => {
 				const sel = event.options.src as string

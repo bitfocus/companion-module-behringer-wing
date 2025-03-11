@@ -91,12 +91,11 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 	const allSendSources = [...state.namedChoices.channels, ...state.namedChoices.auxes, ...state.namedChoices.busses]
 
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
-		// TODO: add DCAs once merged
 		[CommonActions.SetScribbleLight]: {
 			name: 'Set Scribble Light',
-			description: 'Set or toggle the scribble light state of a channel, aux, bus, matrix or main.',
+			description: 'Set or toggle the scribble light state of a channel, aux, bus, matrix, main, or dca.',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels]),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				GetDropdown(
 					'Scribble Light',
 					'led',
@@ -121,11 +120,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				ensureLoaded(cmd)
 			},
 		},
-		// TODO: add dca's
 		[CommonActions.SetScribbleLightColor]: {
 			name: 'Set Scribble Light Color',
-			description: 'Set the scribble light color of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), GetColorDropdown('color', 'Color')],
+			description: 'Set the scribble light color of a channel, aux, bus, matrix, main, or dca.',
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetColorDropdown('color', 'Color'),
+			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getColorCommand(sel, getNodeNumber(event, 'sel'))
@@ -134,7 +135,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.SetName]: {
 			name: 'Set Name',
-			options: [GetDropdown('Selection', 'sel', allChannels), GetTextField('Name', 'name')],
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
+				GetTextField('Name', 'name'),
+			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getNameCommand(sel, getNodeNumber(event, 'sel'))
@@ -245,7 +249,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetMute]: {
 			name: 'Set Mute',
 			description: 'Set or toggle the mute state of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), GetMuteDropdown('mute')],
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
+				GetMuteDropdown('mute'),
+			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
@@ -269,7 +276,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetFader]: {
 			name: 'Set Level',
 			description: 'Set the fader level of a channel, aux, bus, matrix or main to a value.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...GetFaderInputField('level')],
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetFaderInputField('level'),
+			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
@@ -289,7 +299,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.StoreFader]: {
 			name: 'Store Level',
 			description: 'Store the fader level of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels)],
+			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
@@ -304,7 +314,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.RestoreFader]: {
 			name: 'Restore Level',
 			description: 'Restore the fader level of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
@@ -315,7 +325,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.DeltaFader]: {
 			name: 'Adjust Level',
 			description: 'Adjust the level of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...GetFaderDeltaInputField('delta', 'Adjust (dB)')],
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
@@ -337,7 +350,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.UndoDeltaFader]: {
 			name: 'Undo Level Adjust',
 			description: 'Undo the previous level adjustment on a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))

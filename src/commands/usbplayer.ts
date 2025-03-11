@@ -4,6 +4,10 @@ export namespace UsbPlayerCommands {
 		return `/play`
 	}
 
+	export function PlayerAction(): string {
+		return `${PlayerNode()}/$action`
+	}
+
 	export function PlayerActiveState(): string {
 		return `${PlayerNode()}/$actstate`
 	}
@@ -48,40 +52,8 @@ export namespace UsbPlayerCommands {
 		return `${PlayerNode()}/$format`
 	}
 
-	export function PlayerDirectory(): string {
-		return `${PlayerNode()}/$dirfile`
-	}
-
-	export function PlayerDirMode(): string {
-		return `${PlayerNode()}/$dirmode`
-	}
-
-	export function PlayerAction(): string {
-		return `${PlayerNode()}/$action`
-	}
-
-	export function PlayerPlayAll(): string {
-		return `${PlayerNode()}/playall`
-	}
-
 	export function PlayerRepeat(): string {
 		return `${PlayerNode()}/repeat`
-	}
-
-	export function PlayerListPosition(): string {
-		return `${PlayerNode()}/$listpos`
-	}
-
-	export function PlayerListTotal(): string {
-		return `${PlayerNode()}/$listlen`
-	}
-
-	export function PlayerPlaylistNode(): string {
-		return `${PlayerNode()}/$playlist`
-	}
-
-	export function PlayerPlaylistItem(index: number): string {
-		return `${PlayerNode()}/$playlist/${index}`
 	}
 
 	export function RecorderNode(): string {

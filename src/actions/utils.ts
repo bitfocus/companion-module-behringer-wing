@@ -8,6 +8,8 @@ import { AuxCommands } from '../commands/aux.js'
 import { BusCommands } from '../commands/bus.js'
 import { MatrixCommands } from '../commands/matrix.js'
 import { MainCommands } from '../commands/main.js'
+import { DcaCommands } from '../commands/dca.js'
+import { MuteGroupCommands } from '../commands/mutegroup.js'
 
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
 	return action.options[id]?.toString().split('/')[2] as unknown as number
@@ -83,6 +85,8 @@ export function getColorCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.Color(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.Color(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.Color(val)
 	}
 	return cmd
 }
@@ -99,6 +103,10 @@ export function getNameCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.Name(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.Name(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.Name(val)
+	} else if (sel.startsWith('/mute')) {
+		cmd = MuteGroupCommands.Name(val)
 	}
 	return cmd
 }
@@ -125,6 +133,10 @@ export function getMuteCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.Mute(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.Mute(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.Mute(val)
+	} else if (sel.startsWith('/mute')) {
+		cmd = MuteGroupCommands.Mute(val)
 	}
 	return cmd
 }
@@ -157,6 +169,8 @@ export function getFaderCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.Fader(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.Fader(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.Fader(val)
 	}
 	return cmd
 }
@@ -247,6 +261,8 @@ export function getScribblelightCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.ScribbleLight(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.ScribbleLight(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.ScribbleLight(val)
 	}
 	return cmd
 }
