@@ -18,6 +18,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 	const actions: { [id in UsbPlayerActionId]: CompanionActionWithCallback | undefined } = {
 		[UsbPlayerActionId.PlaybackAction]: {
 			name: 'USB: Playback Action',
+			description: 'Start, stop, pause, jump to previous or next in the USB player.',
 			options: [GetDropdown('Action', 'action', getUsbPlayerActionChoices())],
 			callback: async (event) => {
 				const cmd = Commands.PlayerAction()
@@ -26,6 +27,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 		},
 		[UsbPlayerActionId.SetRepeat]: {
 			name: 'USB: Set Repeat',
+			description: 'Enable the repeat functionality of the USB player',
 			options: [
 				{
 					type: 'checkbox',
@@ -42,6 +44,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 		},
 		[UsbPlayerActionId.RecordAction]: {
 			name: 'USB: Record Action',
+			description: 'Start, stop, pause or create a new file in the USB recorder.',
 			options: [GetDropdown('Action', 'action', getUsbRecorderActionChoices())],
 			callback: async (event) => {
 				const cmd = Commands.RecorderAction()
