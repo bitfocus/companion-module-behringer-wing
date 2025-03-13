@@ -384,7 +384,7 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 }
 
 function UpdateTalkbackVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
-	const match = path.match(/^\/cfg\/(A|B)\/(B|MX|M)(\d+)$/)
+	const match = path.match(/^\/cfg\/talk\/(A|B)\/(B|MX|M)(\d+)$/)
 	if (!match) {
 		return
 	}

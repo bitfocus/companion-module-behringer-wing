@@ -159,7 +159,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				GetDropdown('Mode', 'mode', getTalkbackModeOptions()),
 			],
 			callback: async (event) => {
-				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
+				const cmd = ConfigurationCommands.TalkbackMode(event.options.tb as string)
 				const val = event.options.mode as string
 				send(cmd, val)
 			},
@@ -173,8 +173,8 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.TalkbackMonitorDim(event.options.tb as string)
-				const val = event.options.dim as string
-				send(cmd, val)
+				const val = event.options.dim as number
+				send(cmd, val, true)
 			},
 		},
 		[CommonActions.TalkbackBusDim]: {
@@ -186,8 +186,8 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.TalkbackBusDim(event.options.tb as string)
-				const val = event.options.dim as string
-				send(cmd, val)
+				const val = event.options.dim as number
+				send(cmd, val, true)
 			},
 		},
 		[CommonActions.TalkbackAssign]: {
@@ -236,7 +236,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				GetDropdown('Mode', 'mode', getTalkbackIndividualOptions()),
 			],
 			callback: async (event) => {
-				const cmd = ConfigurationCommands.TalkbackMonitorDim(event.options.tb as string)
+				const cmd = ConfigurationCommands.TalkbackIndividual(event.options.tb as string)
 				const val = event.options.mode as number
 				send(cmd, val)
 			},
