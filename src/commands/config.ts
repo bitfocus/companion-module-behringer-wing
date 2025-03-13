@@ -213,4 +213,40 @@ export namespace ConfigurationCommands {
 	export function SoloLRSwap(): string {
 		return `${SoloNode()}/$flip`
 	}
+
+	export function TalkbackNode(talkback: string): string {
+		return `${ConfigNode()}/talk/${talkback}`
+	}
+
+	export function TalkbackOn(talkback: string): string {
+		return `${TalkbackNode(talkback)}/$on`
+	}
+
+	export function TalkbackMode(talkback: string): string {
+		return `${TalkbackNode(talkback)}/mode`
+	}
+
+	export function TalkbackMonitorDim(talkback: string): string {
+		return `${TalkbackNode(talkback)}/mondim`
+	}
+
+	export function TalkbackBusDim(talkback: string): string {
+		return `${TalkbackNode(talkback)}/busdim`
+	}
+
+	export function TalkbackIndividual(talkback: string): string {
+		return `${TalkbackNode(talkback)}/indiv`
+	}
+
+	export function TalkbackBusAssign(talkback: string, bus: number): string {
+		return `${TalkbackNode(talkback)}/B${bus}`
+	}
+
+	export function TalkbackMatrixAssign(talkback: string, matrix: number): string {
+		return `${TalkbackNode(talkback)}/MX${matrix}`
+	}
+
+	export function TalkbackMainAssign(talkback: string, main: number): string {
+		return `${TalkbackNode(talkback)}/M${main}`
+	}
 }
