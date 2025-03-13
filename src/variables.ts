@@ -184,6 +184,19 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		})
 	}
 
+	for (let bus = 1; bus <= model.busses; bus++) {
+		variables.push({ variableId: `talkback_a_bus${bus}_assign`, name: `Talkback A to Bus ${bus} assign` })
+		variables.push({ variableId: `talkback_b_bus${bus}_assign`, name: `Talkback B to Bus ${bus} assign` })
+	}
+	for (let mtx = 1; mtx <= model.matrices; mtx++) {
+		variables.push({ variableId: `talkback_a_mtx${mtx}_assign`, name: `Talkback A to Matrix ${mtx} assign` })
+		variables.push({ variableId: `talkback_b_mtx${mtx}_assign`, name: `Talkback B to Matrix ${mtx} assign` })
+	}
+	for (let main = 1; main <= model.mains; main++) {
+		variables.push({ variableId: `talkback_a_main${main}_assign`, name: `Talkback A to Main ${main} assign` })
+		variables.push({ variableId: `talkback_b_main${main}_assign`, name: `Talkback B to Main ${main} assign` })
+	}
+
 	self.setVariableDefinitions(variables)
 }
 
@@ -199,6 +212,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		UpdatePanoramaVariables(self, path, args[0]?.value as number)
 		UpdateUsbVariables(self, path, args[0])
 		UpdateSdVariables(self, path, args[0])
+		UpdateTalkbackVariables(self, path, args[0])
 	}
 }
 
@@ -367,4 +381,28 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 			})
 		}
 	}
+}
+
+function UpdateTalkbackVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
+	const match = path.match(/^\/cfg\/(A|B)\/(B|MX|M)(\d+)$/)
+	if (!match) {
+		return
+	}
+
+	const talkback = match[1].toLowerCase()
+	let destination = ''
+	if (match[2] == 'B') {
+		destination = 'bus'
+	} else if (match[2] == 'MX') {
+		destination = 'mtx'
+	} else if (match[2] == 'M') {
+		destination = 'main'
+	} else {
+		return
+	}
+	const num = match[3]
+
+	self.setVariableValues({
+		[`talkback_${talkback}_${destination}${num}_assign`]: args.value as number,
+	})
 }
