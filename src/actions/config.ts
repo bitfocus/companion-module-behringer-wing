@@ -11,7 +11,7 @@ import * as ActionUtil from './utils.js'
 import { ConfigurationCommands } from '../commands/config.js'
 import { StateUtil } from '../state/index.js'
 import { getIdLabelPair } from '../choices/utils.js'
-import { getTalkbackOptions, getTalkbackModeOptions } from '../choices/config.js'
+import { getTalkbackOptions, getTalkbackModeOptions, getTalkbackIndividualOptions } from '../choices/config.js'
 
 export enum CommonActions {
 	// Solo
@@ -26,6 +26,7 @@ export enum CommonActions {
 	TalkbackMonitorDim = 'talkback-monitor-dim',
 	TalkbackBusDim = 'talkback-bus-dim',
 	TalkbackAssign = 'talkback-destination',
+	TalkbackIndividualLevels = 'talkback-individual-levels',
 }
 
 export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -225,6 +226,19 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 					const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
 					ensureLoaded(cmd)
 				}
+			},
+		},
+		[CommonActions.TalkbackIndividualLevels]: {
+			name: 'Talkback Individual Levels',
+			description: 'Enable or disable individual bus and main talkback levels.',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('Mode', 'mode', getTalkbackIndividualOptions()),
+			],
+			callback: async (event) => {
+				const cmd = ConfigurationCommands.TalkbackMonitorDim(event.options.tb as string)
+				const val = event.options.mode as number
+				send(cmd, val)
 			},
 		},
 	}

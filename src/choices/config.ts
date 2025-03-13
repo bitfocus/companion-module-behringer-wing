@@ -8,3 +8,7 @@ export function getTalkbackOptions(): DropdownChoice[] {
 export function getTalkbackModeOptions(): DropdownChoice[] {
 	return [getIdLabelPair('AUTO', 'Automatic'), getIdLabelPair('PUSH', 'Push'), getIdLabelPair('LATCH', 'Latch')]
 }
+
+export function getTalkbackIndividualOptions(): DropdownChoice[] {
+	return [getIdLabelPair('1', 'Individual'), getIdLabelPair('0', 'Linked')]
+}
