@@ -4,7 +4,7 @@ import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-impo
 export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition, 'callback'>
 
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { GetDropdown, GetMuteDropdown } from '../choices/common.js'
+import { GetDropdown, GetMuteDropdown, GetNumberField } from '../choices/common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
@@ -23,6 +23,8 @@ export enum CommonActions {
 	// Talkback
 	TalkbackOn = 'talkback-on',
 	TalkbackMode = 'talkback-mode',
+	TalkbackMonitorDim = 'talkback-monitor-dim',
+	TalkbackBusDim = 'talkback-bus-dim',
 	TalkbackAssign = 'talkback-destination',
 }
 
@@ -158,6 +160,32 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
 				const val = event.options.mode as string
+				send(cmd, val)
+			},
+		},
+		[CommonActions.TalkbackMonitorDim]: {
+			name: 'Talkback Monitor Dim',
+			description: 'Set the the monitor dim amount of a talkback channel.',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetNumberField('Dim [dB]', 'dim', 0, 40, 1, 10, true),
+			],
+			callback: async (event) => {
+				const cmd = ConfigurationCommands.TalkbackMonitorDim(event.options.tb as string)
+				const val = event.options.dim as string
+				send(cmd, val)
+			},
+		},
+		[CommonActions.TalkbackBusDim]: {
+			name: 'Talkback Bus Dim',
+			description: 'Set the the bus dim amount of a talkback channel.',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetNumberField('Dim [dB]', 'dim', 0, 40, 1, 10, true),
+			],
+			callback: async (event) => {
+				const cmd = ConfigurationCommands.TalkbackBusDim(event.options.tb as string)
+				const val = event.options.dim as string
 				send(cmd, val)
 			},
 		},
