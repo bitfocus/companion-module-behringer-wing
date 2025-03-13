@@ -11,6 +11,7 @@ import * as ActionUtil from './utils.js'
 import { ConfigurationCommands } from '../commands/config.js'
 import { StateUtil } from '../state/index.js'
 import { getIdLabelPair } from '../choices/utils.js'
+import { getTalkbackOptions, getTalkbackModeOptions } from '../choices/config.js'
 
 export enum CommonActions {
 	// Solo
@@ -18,6 +19,11 @@ export enum CommonActions {
 	SetSoloDim = 'set-solo-dim',
 	SetSoloMono = 'set-solo-mono',
 	SetSoloLRSwap = 'set-solo-swap',
+
+	// Talkback
+	TalkbackOn = 'talkback-on',
+	TalkbackMode = 'talkback-mode',
+	TalkbackAssign = 'talkback-destination',
 }
 
 export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -124,6 +130,73 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			subscribe: (_) => {
 				const cmd = ConfigurationCommands.SoloLRSwap()
 				ensureLoaded(cmd)
+			},
+		},
+		////////////////////////////////////////////////////////////////
+		// Talkback
+		////////////////////////////////////////////////////////////////
+		[CommonActions.TalkbackOn]: {
+			name: 'Talkback On',
+			description: 'Enable or disable the on state of a talkback.',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+			],
+			callback: async (event) => {
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
+				const val = event.options.on as number
+				send(cmd, val)
+			},
+		},
+		[CommonActions.TalkbackMode]: {
+			name: 'Talkback Mode',
+			description: 'Set the mode of a talkback channel.',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('Mode', 'mode', getTalkbackModeOptions()),
+			],
+			callback: async (event) => {
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
+				const val = event.options.mode as string
+				send(cmd, val)
+			},
+		},
+		[CommonActions.TalkbackAssign]: {
+			name: 'Talkback Assign',
+			description: 'Enable, disable or toggle the assignment of a talkback to a bus, matrix or main.',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('Destination', 'dest', [
+					...state.namedChoices.busses,
+					...state.namedChoices.matrices,
+					...state.namedChoices.mains,
+				]),
+				GetDropdown('Assign', 'assign', [
+					getIdLabelPair('1', 'Assign'),
+					getIdLabelPair('0', 'Not Assign'),
+					getIdLabelPair('2', 'Toggle'),
+				]),
+			],
+			callback: async (event) => {
+				const talkback = event.options.tb as string
+				const destination = event.options.dest as string
+				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
+				const val = event.options.assign as number
+				if (val < 2) {
+					send(cmd, val)
+				} else {
+					const currentVal = StateUtil.getBooleanFromState(cmd, state)
+					send(cmd, Number(!currentVal))
+				}
+			},
+			subscribe: (event) => {
+				const val = event.options.mode as number
+				if (val >= 2) {
+					const talkback = event.options.tb as string
+					const destination = event.options.dest as string
+					const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
+					ensureLoaded(cmd)
+				}
 			},
 		},
 	}
