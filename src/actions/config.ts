@@ -9,7 +9,6 @@ import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
 import { ConfigurationCommands } from '../commands/config.js'
-import { StateUtil } from '../state/index.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import { getTalkbackOptions, getTalkbackModeOptions, getTalkbackIndividualOptions } from '../choices/config.js'
 
@@ -44,17 +43,14 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			options: [GetMuteDropdown('mute')],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloMute()
-				const val = ActionUtil.getNumber(event, 'mute')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val >= 2) {
-					send(cmd, Number(!currentVal))
-				} else {
-					send(cmd, val)
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state)
+				send(cmd, val)
 			},
-			subscribe: (_) => {
-				const cmd = ConfigurationCommands.SoloMute()
-				ensureLoaded(cmd)
+			subscribe: (event) => {
+				if (event.options.mute ?? 0 > 2) {
+					const cmd = ConfigurationCommands.SoloMute()
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		[CommonActions.SetSoloDim]: {
@@ -70,17 +66,14 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloDim()
-				const val = ActionUtil.getNumber(event, 'dim')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val >= 2) {
-					send(cmd, Number(!currentVal))
-				} else {
-					send(cmd, val)
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'dim'), state)
+				send(cmd, val)
 			},
-			subscribe: (_) => {
-				const cmd = ConfigurationCommands.SoloDim()
-				ensureLoaded(cmd)
+			subscribe: (event) => {
+				if (event.options.dim ?? 0 > 2) {
+					const cmd = ConfigurationCommands.SoloDim()
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		[CommonActions.SetSoloMono]: {
@@ -96,17 +89,14 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloMono()
-				const val = ActionUtil.getNumber(event, 'mono')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val >= 2) {
-					send(cmd, Number(!currentVal))
-				} else {
-					send(cmd, val)
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mono'), state)
+				send(cmd, val)
 			},
-			subscribe: (_) => {
-				const cmd = ConfigurationCommands.SoloMono()
-				ensureLoaded(cmd)
+			subscribe: (event) => {
+				if (event.options.mono ?? 0 > 2) {
+					const cmd = ConfigurationCommands.SoloMono()
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		[CommonActions.SetSoloLRSwap]: {
@@ -122,17 +112,14 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloLRSwap()
-				const val = ActionUtil.getNumber(event, 'swap')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val >= 2) {
-					send(cmd, Number(!currentVal))
-				} else {
-					send(cmd, val)
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'swap'), state)
+				send(cmd, val)
 			},
-			subscribe: (_) => {
-				const cmd = ConfigurationCommands.SoloLRSwap()
-				ensureLoaded(cmd)
+			subscribe: (event) => {
+				if (event.options.swap ?? 0 > 2) {
+					const cmd = ConfigurationCommands.SoloLRSwap()
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -210,17 +197,11 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				const talkback = event.options.tb as string
 				const destination = event.options.dest as string
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
-				const val = event.options.assign as number
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					const currentVal = StateUtil.getBooleanFromState(cmd, state)
-					send(cmd, Number(!currentVal))
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, event.options.assign as number, state)
+				send(cmd, val)
 			},
 			subscribe: (event) => {
-				const val = event.options.mode as number
-				if (val >= 2) {
+				if (event.options.mode ?? 0 > 2) {
 					const talkback = event.options.tb as string
 					const destination = event.options.dest as string
 					const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
