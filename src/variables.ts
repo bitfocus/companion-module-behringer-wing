@@ -197,6 +197,9 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		variables.push({ variableId: `talkback_b_main${main}_assign`, name: `Talkback B to Main ${main} assign` })
 	}
 
+	for (let gpio = 1; gpio <= model.gpio; gpio++) {
+		variables.push({ variableId: `gpio${gpio}`, name: `GPIO ${gpio} state (true = pressed/connected)` })
+	}
 	self.setVariableDefinitions(variables)
 }
 
@@ -213,6 +216,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		UpdateUsbVariables(self, path, args[0])
 		UpdateSdVariables(self, path, args[0])
 		UpdateTalkbackVariables(self, path, args[0])
+		UpdateGpioVariables(self, path, args[0]?.value as number)
 	}
 }
 
@@ -405,4 +409,14 @@ function UpdateTalkbackVariables(self: WingInstance, path: string, args: OSCMeta
 	self.setVariableValues({
 		[`talkback_${talkback}_${destination}${num}_assign`]: args.value as number,
 	})
+}
+
+function UpdateGpioVariables(self: WingInstance, path: string, value: number): void {
+	const match = path.match(/^\/\$ctl\/gpio\/(\d+)\/\$state$/)
+	if (!match) {
+		return
+	}
+
+	const gpio = match[1]
+	self.setVariableValues({ [`gpio${gpio}`]: !value })
 }
