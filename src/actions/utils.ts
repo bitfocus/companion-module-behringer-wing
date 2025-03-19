@@ -4,7 +4,7 @@ import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/ba
 import { Easing } from '../easings.js'
 import * as StateUtils from '../state/utils.js'
 import { ChannelCommands } from '../commands/channel.js'
-import { AuxCommands } from '../commands/aux.js'
+import { AuxCommands } from '../commands/auxes.js'
 import { BusCommands } from '../commands/bus.js'
 import { MatrixCommands } from '../commands/matrix.js'
 import { MainCommands } from '../commands/main.js'
