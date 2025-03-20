@@ -19,4 +19,5 @@ export const WingFull: ModelSpec = {
 	aesIns: 2,
 	aesOut: 2,
 	stageConnect: 1,
+	gpio: 4,
 }

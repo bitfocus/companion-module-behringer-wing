@@ -1,4 +1,4 @@
-import { AuxCommands as Aux } from './aux.js'
+import { AuxCommands as Aux } from './auxes.js'
 import { ChannelCommands as Channel } from './channel.js'
 import { BusCommands as Bus } from './bus.js'
 import { MatrixCommands as Matrix } from './matrix.js'

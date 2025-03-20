@@ -20,6 +20,7 @@ export function createBusActions(self: InstanceBaseExt<WingConfig>): CompanionAc
 	const actions: { [id in BusActions]: CompanionActionWithCallback | undefined } = {
 		[BusActions.SetBusToMatrixLevel]: {
 			name: 'Set Bus to Matrix Level',
+			description: 'Set the level of a bus to matrix send.',
 			options: [
 				GetDropdown('From Bus', 'bus', state.namedChoices.busses),
 				GetDropdown('To Matrix', 'matrix', state.namedChoices.matrices),
@@ -35,6 +36,7 @@ export function createBusActions(self: InstanceBaseExt<WingConfig>): CompanionAc
 		},
 		[BusActions.SetBusToMatrixMute]: {
 			name: 'Set Bus to Matrix Mute',
+			description: 'Set the state of a bus to matrix mute.',
 			options: [
 				GetDropdown('From Bus', 'bus', state.namedChoices.busses),
 				GetDropdown('To Matrix', 'matrix', state.namedChoices.matrices),

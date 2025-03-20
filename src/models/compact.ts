@@ -19,4 +19,5 @@ export const WingCompact: ModelSpec = {
 	aesIns: 2,
 	aesOut: 2,
 	stageConnect: 1,
+	gpio: 2,
 }

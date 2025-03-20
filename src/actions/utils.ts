@@ -4,12 +4,13 @@ import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/ba
 import { Easing } from '../easings.js'
 import * as StateUtils from '../state/utils.js'
 import { ChannelCommands } from '../commands/channel.js'
-import { AuxCommands } from '../commands/aux.js'
+import { AuxCommands } from '../commands/auxes.js'
 import { BusCommands } from '../commands/bus.js'
 import { MatrixCommands } from '../commands/matrix.js'
 import { MainCommands } from '../commands/main.js'
 import { DcaCommands } from '../commands/dca.js'
 import { MuteGroupCommands } from '../commands/mutegroup.js'
+import { ConfigurationCommands } from '../commands/config.js'
 
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
 	return action.options[id]?.toString().split('/')[2] as unknown as number
@@ -263,6 +264,19 @@ export function getScribblelightCommand(sel: string, val: number): string {
 		cmd = MainCommands.ScribbleLight(val)
 	} else if (sel.startsWith('/dca')) {
 		cmd = DcaCommands.ScribbleLight(val)
+	}
+	return cmd
+}
+
+export function getTalkbackAssignCommand(talkback: string, destination: string): string {
+	let cmd = ''
+	const num = destination.split('/')[2] as unknown as number
+	if (destination.startsWith('/bus')) {
+		cmd = ConfigurationCommands.TalkbackBusAssign(talkback, num)
+	} else if (destination.startsWith('/mtx')) {
+		cmd = ConfigurationCommands.TalkbackMatrixAssign(talkback, num)
+	} else if (destination.startsWith('/main')) {
+		cmd = ConfigurationCommands.TalkbackMainAssign(talkback, num)
 	}
 	return cmd
 }

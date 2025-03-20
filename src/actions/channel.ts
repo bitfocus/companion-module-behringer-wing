@@ -28,6 +28,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 	const actions: { [id in ChannelActions]: CompanionActionWithCallback | undefined } = {
 		[ChannelActions.SetChannelMainConnection]: {
 			name: 'Set Channel Main Connection',
+			description: 'Set the index of the main connection of a channel',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
 				GetDropdown('Group', 'group', getSourceGroupChoices()),
@@ -42,6 +43,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[ChannelActions.SetChannelFilterModel]: {
 			name: 'Set Channel Filter Model',
+			description: 'Set the filter model for a channel.',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
 				GetDropdown('Filter', 'filter', getFilterModelOptions()),
@@ -53,6 +55,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[ChannelActions.SetChannelEqType]: {
 			name: 'Set Channel EQ Model',
+			description: 'Set the EQ model for a channel.',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
 				GetDropdown('EQ Model', 'model', EqModelChoice),
@@ -64,6 +67,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[ChannelActions.SetChannelEqParameter]: {
 			name: 'Set Channel EQ Parameter',
+			description: 'Set the parameter of an equalizer in a channel',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
 				...EqModelDropdown('model'),
@@ -85,6 +89,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[ChannelActions.SetChannelProcessOrder]: {
 			name: 'Set Channel Process Order',
+			description: 'Set the process order of EQ, gate, dynamics and insert of a channel.',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
 				GetDropdown('Order', 'order', getChannelProcessOrderChoices()),
@@ -96,6 +101,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[ChannelActions.SetChannelIcon]: {
 			name: 'Set Channel Icon',
+			description: 'Set the icon displayed for a channel.',
 			options: [
 				GetDropdown('Channel', 'channel', state.namedChoices.channels),
 				GetDropdown('Icon', 'icon', getIconChoices()),

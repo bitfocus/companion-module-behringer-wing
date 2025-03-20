@@ -27,6 +27,7 @@ export interface ModelSpec {
 
 	stageConnect: number
 	headphoneOuts?: number
+	gpio: number
 }
 
 export const ModelChoices: DropdownChoice[] = [

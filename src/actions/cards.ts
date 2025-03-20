@@ -29,6 +29,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 	const actions: { [id in CardsActionId]: CompanionActionWithCallback | undefined } = {
 		[CardsActionId.SetLink]: {
 			name: 'WLive: Set Link',
+			description: 'Set whether the USB cards should be linked or unlinked.',
 			options: [GetDropdown('Link', 'link', getCardsLinkChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveSDLink()
@@ -69,6 +70,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		},
 		[CardsActionId.CardAction]: {
 			name: 'WLive: Card Action',
+			description: 'Start, stop, pause or record on a card.',
 			options: [
 				GetDropdown('Card', 'card', getCardsChoices()),
 				GetDropdown('Action', 'action', getCardsActionChoices()),
@@ -80,6 +82,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		},
 		[CardsActionId.AddMarker]: {
 			name: 'WLive: Add Marker',
+			description: 'Add a marker to a recording on a card.',
 			options: [GetDropdown('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveCardSetMarker(event.options.card as number)
@@ -88,6 +91,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		},
 		[CardsActionId.FormatCard]: {
 			name: 'WLive: Format Card',
+			description: 'Format (delete all contents) of a card.',
 			options: [GetDropdown('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveCardFormat(event.options.card as number)
