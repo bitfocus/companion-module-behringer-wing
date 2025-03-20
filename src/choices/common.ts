@@ -66,13 +66,25 @@ export function GetDropdown(
 	defaultChoice?: string,
 	tooltip?: string,
 ): CompanionInputFieldDropdown {
-	return {
-		type: 'dropdown',
-		label: label,
-		id: id,
-		default: defaultChoice ?? choices[0].id,
-		choices: choices,
-		tooltip: tooltip,
+	if (choices.length == 0) {
+		// return empty dropdown
+		return {
+			type: 'dropdown',
+			label: label,
+			id: id,
+			default: '',
+			choices: [],
+			tooltip: tooltip,
+		}
+	} else {
+		return {
+			type: 'dropdown',
+			label: label,
+			id: id,
+			default: defaultChoice ?? choices[0].id ?? '',
+			choices: choices,
+			tooltip: tooltip,
+		}
 	}
 }
 

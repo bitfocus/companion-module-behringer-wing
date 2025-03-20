@@ -1,6 +1,7 @@
 import { OscMessage } from 'osc'
 import type { WingInstance } from './index.js'
 import { OSCMetaArgument } from '@companion-module/base/dist/index.js' // eslint-disable-line n/no-missing-import
+import { ControlCommands } from './commands/control.js'
 
 export function UpdateVariableDefinitions(self: WingInstance): void {
 	const model = self.model
@@ -446,6 +447,6 @@ function UpdateControlVariables(self: WingInstance, path: string, args: OSCMetaA
 		self.setVariableValues({ active_scene_name: scene })
 	} else if (command == '$scenes') {
 		// need to request full list of scenes
-		self.sendCommand('/$ctl/lib', '?')
+		self.sendCommand(ControlCommands.LibraryNode(), '?')
 	}
 }

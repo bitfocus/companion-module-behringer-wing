@@ -9,5 +9,5 @@ export interface InstanceBaseExt<TConfig> extends InstanceBase<TConfig> {
 	transitions: WingTransitions
 	state: WingState
 	sendCommand: (cmd: string, argument?: number | string, preferFloat?: boolean) => void
-	ensureLoaded: (path: string) => void
+	ensureLoaded: (path: string, arg?: string | number) => void
 }

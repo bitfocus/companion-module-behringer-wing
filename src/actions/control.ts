@@ -9,7 +9,7 @@ import { getIdLabelPair } from '../choices/utils.js'
 
 export enum OtherActionId {
 	RecallScene = 'recall-scene',
-	//RecallSceneFromList = 'recall-scene-from-list',
+	RecallSceneFromList = 'recall-scene-from-list',
 	SendLibraryAction = 'send-library-action',
 }
 
@@ -53,11 +53,11 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				return { num: StateUtil.getNumberFromState(cmd, state) }
 			},
 		},
-		/*[OtherActionId.RecallSceneFromList]: {
+		[OtherActionId.RecallSceneFromList]: {
 			name: 'Recall Scene from List',
 			description: 'Recall a scene from a list and optionally go to it',
 			options: [
-				GetDropdown('Scene', 'scene_id', state.namedChoices.scenes),
+				GetDropdown('Scene', 'num', state.namedChoices.scenes),
 				{
 					type: 'checkbox',
 					id: 'go',
@@ -66,14 +66,8 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				},
 			],
 			callback: async (event) => {
-				const id = event.options.scene_id as string
 				const go = event.options.go as boolean
-
-				console.log('Recall Scene from List', id, go)
-				const num = parseInt(id.replace('scene_', ''))
-				console.log('Recall Scene from List num:', num)
-
-				send(ControlCommands.LibrarySceneSelectionIndex(), num)
+				send(ControlCommands.LibrarySceneSelectionIndex(), event.options.num as number)
 				if (go) {
 					send(ControlCommands.LibraryAction(), 'GO')
 				}
@@ -81,12 +75,13 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			subscribe: () => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				ensureLoaded(cmd)
+				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
 			learn: () => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				return { num: StateUtil.getNumberFromState(cmd, state) }
 			},
-		},*/
+		},
 		[OtherActionId.SendLibraryAction]: {
 			name: 'Send Library Action',
 			description: 'Trigger a library action (Selecting and navigating scenes)',

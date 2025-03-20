@@ -283,6 +283,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			// setImmediate(() => {
 			this.checkFeedbackChanges(message)
 
+			this.updateLists(message)
+
 			this.variableMessages[message.address] = message
 			// this.debounceUpdateVariables()
 
@@ -315,6 +317,27 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 	}
 
+	private updateLists(msg: osc.OscMessage): void {
+		const args = msg.args as osc.MetaArgument[]
+
+		const libRe = /\/\$ctl\/lib/
+		// const usbRe = /\/play/
+		// const sd1Re = /\cards\/wlive\/1\/\$stat/
+		// const sd2Re = /\cards\/wlive\/2\/\$stat/
+
+		// scene list
+		if (libRe.test(msg.address)) {
+			console.log('Got library')
+			const content = (args[0].value as string) ?? ''
+			const scenes = content.match(/\$scenes\s+list\s+\[([^\]]+)\]/)
+			console.log(scenes)
+			if (scenes) {
+				const sceneList = scenes[1].split(',').map((s) => s.trim())
+				this.state.namedChoices.scenes = sceneList.map((s, i) => ({ id: i + 1, label: s }))
+			}
+		}
+	}
+
 	private checkFeedbackChanges(msg: osc.OscMessage): void {
 		const toUpdate = this.WingSubscriptions.getFeedbacks(msg.address)
 		if (toUpdate.length > 0) {
@@ -327,7 +350,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		const busNameRe = /\/bus\/\d+\/\$name/
 		const mtxNameRe = /\/mtx\/\d+\/\$name/
 		const mainNameRe = /\/main\/\d+\/\$name/
-		const libRe = /\/$ctl\/lib/
+		const libRe = /\/\$ctl\/lib/
 		if (
 			channelNameRe.test(msg.address) ||
 			busNameRe.test(msg.address) ||
