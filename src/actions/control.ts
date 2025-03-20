@@ -55,7 +55,8 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[OtherActionId.RecallSceneFromList]: {
 			name: 'Recall Scene from List',
-			description: 'Recall a scene from a list and optionally go to it',
+			description:
+				'Recall a scene from a list and optionally go to it (NOTE: This uses the index of the scene, and changes when scenes are added or removed)',
 			options: [
 				GetDropdown('Scene', 'num', state.namedChoices.scenes),
 				{
