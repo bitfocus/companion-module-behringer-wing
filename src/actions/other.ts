@@ -51,6 +51,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 		},
 		[OtherActionId.SendCommandWithString]: {
 			name: 'Send Command with String',
+			description: 'Send an OSC command with a string as an argument to the console.',
 			options: [
 				{
 					type: 'textinput',
