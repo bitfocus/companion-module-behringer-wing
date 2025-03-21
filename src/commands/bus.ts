@@ -111,4 +111,20 @@ export namespace BusCommands {
 	export function MatrixSendLevel(bus: number, matrix: number): string {
 		return `${MatrixSendNode(bus, matrix)}/lvl`
 	}
+
+	export function DelayNode(bus: number): string {
+		return `${Node(bus)}/dly`
+	}
+
+	export function DelayOn(bus: number): string {
+		return `${DelayNode(bus)}/on`
+	}
+
+	export function DelayMode(bus: number): string {
+		return `${DelayNode(bus)}/mode`
+	}
+
+	export function DelayAmount(bus: number): string {
+		return `${DelayNode(bus)}/dly`
+	}
 }

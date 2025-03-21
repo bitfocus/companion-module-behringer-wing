@@ -431,3 +431,12 @@ export function getTriStateTextColor(
 		return thirdColor ?? combineRgb(0, 0, 0)
 	}
 }
+
+export function getDelayModes(): DropdownChoice[] {
+	return [
+		getIdLabelPair('M', 'Meters'),
+		getIdLabelPair('FT', 'Feet'),
+		getIdLabelPair('MS', 'Milliseconds'),
+		getIdLabelPair('SMP', 'Samples'),
+	]
+}

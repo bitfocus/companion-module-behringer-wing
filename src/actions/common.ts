@@ -15,6 +15,7 @@ import {
 	GetColorDropdown,
 	GetNumberField,
 	GetSoloDropdown,
+	getDelayModes,
 } from '../choices/common.js'
 import { getNodeNumber, getNumber, runTransition } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
@@ -50,6 +51,9 @@ export enum CommonActions {
 	RestorePanorama = 'restore-panorama',
 	DeltaPanorama = 'panorama-delta',
 	UndoDeltaPanorama = 'undo-panorama',
+	// Delay
+	SetDelay = 'set-delay',
+	SetDelayAmount = 'set-delay-amount',
 
 	//////////// SEND
 	SetSendMute = 'set-send-mute',
@@ -501,6 +505,132 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 						const cmd = ActionUtil.getSoloCommand(id, number)
 						send(cmd, 0)
 					}
+				}
+			},
+		},
+		////////////////////////////////////////////////////////////////
+		// Delay
+		////////////////////////////////////////////////////////////////
+		[CommonActions.SetDelay]: {
+			name: 'Set Delay',
+			description: 'Enable or disable the delay of a bus, matrix or main.',
+			options: [
+				GetDropdown('Selection', 'sel', [
+					...state.namedChoices.mains,
+					...state.namedChoices.matrices,
+					...state.namedChoices.busses,
+				]),
+				{
+					type: 'checkbox',
+					label: 'Delay On/Off',
+					id: 'delay',
+					default: false,
+				},
+			],
+			callback: async (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getDelayOnCommand(sel, getNodeNumber(event, 'sel'))
+				send(cmd, event.options.delay ? 1 : 0)
+			},
+		},
+
+		[CommonActions.SetDelayAmount]: {
+			name: 'Set Delay Mode',
+			description: 'Set the delay mode of a bus, matrix or main.',
+			options: [
+				GetDropdown('Selection', 'sel', [
+					...state.namedChoices.mains,
+					...state.namedChoices.matrices,
+					...state.namedChoices.busses,
+				]),
+				GetDropdown('Delay Mode', 'mode', getDelayModes()),
+				{
+					type: 'number',
+					label: 'Amount (meters)',
+					id: 'amount_m',
+					min: 0,
+					max: 150,
+					step: 0.1,
+					default: 0,
+					range: true,
+					isVisible: (options) => {
+						console.log('options: ', options)
+						return (options.mode as string) === 'M'
+					},
+				},
+				{
+					type: 'number',
+					label: 'Amount (ft)',
+					id: 'amount_ft',
+					min: 0.5,
+					max: 500,
+					step: 0.5,
+					default: 0.5,
+					range: true,
+					isVisible: (options) => {
+						return options.mode === 'FT'
+					},
+				},
+				{
+					type: 'number',
+					label: 'Amount (ms)',
+					id: 'amount_ms',
+					min: 0.5,
+					max: 500,
+					step: 0.1,
+					default: 0.5,
+					range: true,
+					isVisible: (options) => {
+						return options.mode === 'MS'
+					},
+				},
+				{
+					type: 'number',
+					label: 'Amount (samples)',
+					id: 'amount_samples',
+					min: 16,
+					max: 500,
+					step: 1,
+					default: 16,
+					range: true,
+					isVisible: (options) => {
+						return options.mode === 'SMP'
+					},
+				},
+			],
+			callback: async (event) => {
+				const sel = event.options.sel as string
+				const mode = event.options.mode as string
+				send(ActionUtil.getDelayModeCommand(sel, getNodeNumber(event, 'sel')), mode)
+				switch (mode) {
+					case 'M':
+						send(
+							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							event.options.amount_m as number,
+							true,
+						)
+						break
+					case 'FT':
+						send(
+							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							event.options.amount_ft as number,
+							true,
+						)
+						break
+					case 'MS':
+						send(
+							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							event.options.amount_ms as number,
+							true,
+						)
+						break
+					case 'SMP':
+						send(
+							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							event.options.amount_samples as number,
+							true,
+						)
+						break
 				}
 			},
 		},
