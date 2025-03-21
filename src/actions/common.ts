@@ -299,7 +299,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.StoreFader]: {
 			name: 'Store Level',
-			description: 'Store the fader level of a hannel, aux, bus, dca, matrix or main.',
+			description: 'Store the fader level of a channel, aux, bus, dca, matrix or main.',
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
 			callback: async (event) => {
 				const sel = event.options.sel as string
@@ -350,7 +350,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		},
 		[CommonActions.UndoDeltaFader]: {
 			name: 'Undo Level Adjust',
-			description: 'Undo the previous level adjustment on a hannel, aux, bus, dca, matrix or main.',
+			description: 'Undo the previous level adjustment on a channel, aux, bus, dca, matrix or main.',
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string

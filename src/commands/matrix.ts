@@ -24,24 +24,28 @@ export namespace MatrixCommands {
 		return `${InputSetNode(matrix)}/bal`
 	}
 
-	export function DirectInputNode(matrix: number, direct: number): string {
-		return `${InputNode(matrix)}/dir/${direct}`
+	export function DirectInputNode(matrix: number): string {
+		return `${Node(matrix)}/dir`
 	}
 
-	export function DirectInputSwitch(matrix: number, direct: number): string {
-		return `${DirectInputNode(matrix, direct)}/on`
+	export function DirectInputSwitch(matrix: number): string {
+		return `${DirectInputNode(matrix)}/on`
 	}
 
-	export function DirectInputLevel(matrix: number, direct: number): string {
-		return `${DirectInputNode(matrix, direct)}/lvl`
+	export function DirectInputLevel(matrix: number): string {
+		return `${DirectInputNode(matrix)}/lvl`
 	}
 
-	export function DirectInputInvert(matrix: number, direct: number): string {
-		return `${DirectInputNode(matrix, direct)}/inv`
+	export function DirectInputInvert(matrix: number): string {
+		return `${DirectInputNode(matrix)}/inv`
 	}
 
-	export function DirectInputTap(matrix: number, direct: number): string {
-		return `${DirectInputNode(matrix, direct)}/tap`
+	export function DirectInputTap(matrix: number): string {
+		return `${DirectInputNode(matrix)}/tap`
+	}
+
+	export function DirectInputIn(matrix: number): string {
+		return `${DirectInputNode(matrix)}/in`
 	}
 
 	export function Color(matrix: number): string {
