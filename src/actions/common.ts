@@ -14,7 +14,7 @@ import {
 	GetPanoramaDeltaSlider,
 	GetColorDropdown,
 	GetNumberField,
-	GetSoloDropdown,
+	GetOnOffToggleDropdown,
 	getDelayModes,
 } from '../choices/common.js'
 import { getNodeNumber, getNumber, runTransition } from './utils.js'
@@ -470,7 +470,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetSolo]: {
 			name: 'Set Solo',
 			description: 'Set the solo state for a channel, aux, bux, matrix or main',
-			options: [GetDropdown('Selection', 'sel', allChannels), GetSoloDropdown('solo')],
+			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('solo', 'Solo')],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
@@ -520,17 +520,23 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					...state.namedChoices.matrices,
 					...state.namedChoices.busses,
 				]),
-				{
-					type: 'checkbox',
-					label: 'Delay On/Off',
-					id: 'delay',
-					default: false,
-				},
+				GetOnOffToggleDropdown('delay', 'Delay'),
 			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getDelayOnCommand(sel, getNodeNumber(event, 'sel'))
-				send(cmd, event.options.delay ? 1 : 0)
+				const val = ActionUtil.getNumber(event, 'delay')
+				if (val < 2) {
+					send(cmd, val)
+				} else {
+					const currentVal = StateUtil.getBooleanFromState(cmd, state)
+					send(cmd, Number(!currentVal))
+				}
+			},
+			subscribe: (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getDelayOnCommand(sel, getNodeNumber(event, 'sel'))
+				ensureLoaded(cmd)
 			},
 		},
 
