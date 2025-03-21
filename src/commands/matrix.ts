@@ -99,4 +99,20 @@ export namespace MatrixCommands {
 	export function MonitorMode(matrix: number): string {
 		return `${Node(matrix)}/mon`
 	}
+
+	export function DelayNode(matrix: number): string {
+		return `${Node(matrix)}/dly`
+	}
+
+	export function DelayOn(matrix: number): string {
+		return `${DelayNode(matrix)}/on`
+	}
+
+	export function DelayMode(matrix: number): string {
+		return `${DelayNode(matrix)}/mode`
+	}
+
+	export function DelayAmount(matrix: number): string {
+		return `${DelayNode(matrix)}/dly`
+	}
 }

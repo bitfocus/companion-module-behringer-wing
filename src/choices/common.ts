@@ -101,13 +101,17 @@ export function GetMuteDropdown(id: string, label?: string, includeToggle?: bool
 	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('2', 'Toggle')] }
 }
 
-export function GetSoloDropdown(id: string, label?: string, includeToggle?: boolean): CompanionInputFieldDropdown {
+export function GetOnOffToggleDropdown(
+	id: string,
+	label?: string,
+	includeToggle?: boolean,
+): CompanionInputFieldDropdown {
 	const dropdown = GetDropdown(
-		label ?? 'Solo',
+		label ?? 'Selection',
 		id,
 		[getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')],
 		'1',
-		'Select whether to Mute, Unmute or Toggle your selected target',
+		'Select whether to turn On, Off, or Toggle your selected target',
 	)
 	if (includeToggle == false) return dropdown
 
@@ -442,4 +446,13 @@ export function getTriStateTextColor(
 	} else {
 		return thirdColor ?? combineRgb(0, 0, 0)
 	}
+}
+
+export function getDelayModes(): DropdownChoice[] {
+	return [
+		getIdLabelPair('M', 'Meters'),
+		getIdLabelPair('FT', 'Feet'),
+		getIdLabelPair('MS', 'Milliseconds'),
+		getIdLabelPair('SMP', 'Samples'),
+	]
 }

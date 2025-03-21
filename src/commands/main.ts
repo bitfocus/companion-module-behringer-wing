@@ -87,4 +87,20 @@ export namespace MainCommands {
 	export function MatrixSendLevel(main: number, matrix: number): string {
 		return `${MatrixSendNode(main, matrix)}/lvl`
 	}
+
+	export function DelayNode(main: number): string {
+		return `${Node(main)}/dly`
+	}
+
+	export function DelayOn(main: number): string {
+		return `${DelayNode(main)}/on`
+	}
+
+	export function DelayMode(main: number): string {
+		return `${DelayNode(main)}/mode`
+	}
+
+	export function DelayAmount(main: number): string {
+		return `${DelayNode(main)}/dly`
+	}
 }

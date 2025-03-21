@@ -192,6 +192,42 @@ export function getPanoramaCommand(sel: string, val: number): string {
 	return cmd
 }
 
+export function getDelayOnCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/bus')) {
+		cmd = BusCommands.DelayOn(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.DelayOn(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.DelayOn(val)
+	}
+	return cmd
+}
+
+export function getDelayModeCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/bus')) {
+		cmd = BusCommands.DelayMode(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.DelayMode(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.DelayMode(val)
+	}
+	return cmd
+}
+
+export function getDelayAmountCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/bus')) {
+		cmd = BusCommands.DelayAmount(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.DelayAmount(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.DelayAmount(val)
+	}
+	return cmd
+}
+
 export function getSendMuteCommand(sel: string, src: number, dest: number): string {
 	let cmd = ''
 	if (sel.startsWith('/ch')) {
