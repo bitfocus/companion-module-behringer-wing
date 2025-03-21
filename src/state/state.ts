@@ -13,6 +13,7 @@ type NameChoices = {
 	mains: DropdownChoice[]
 	dcas: DropdownChoice[]
 	mutegroups: DropdownChoice[]
+	scenes: DropdownChoice[]
 }
 
 type Names = {
@@ -23,6 +24,7 @@ type Names = {
 	mains: string[]
 	dcas: string[]
 	mutegroups: string[]
+	scenes: string[]
 }
 export class WingState implements IStoredChannelSubject {
 	private readonly data: Map<string, osc.MetaArgument[]>
@@ -37,6 +39,7 @@ export class WingState implements IStoredChannelSubject {
 		mains: [],
 		dcas: [],
 		mutegroups: [],
+		scenes: [],
 	}
 
 	names: Names = {
@@ -47,6 +50,7 @@ export class WingState implements IStoredChannelSubject {
 		mains: [],
 		dcas: [],
 		mutegroups: [],
+		scenes: [],
 	}
 
 	constructor(model: ModelSpec) {
@@ -191,7 +195,7 @@ export class WingState implements IStoredChannelSubject {
 		}
 	}
 
-	public requestNames(model: ModelSpec, ensureLoaded: (path: string) => void): void {
+	public requestNames(model: ModelSpec, ensureLoaded: (path: string, arg?: string | number) => void): void {
 		for (let ch = 1; ch <= model.channels; ch++) {
 			ensureLoaded(Commands.Channel.RealName(ch))
 		}

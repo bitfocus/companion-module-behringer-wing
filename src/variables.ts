@@ -1,6 +1,7 @@
 import { OscMessage } from 'osc'
 import type { WingInstance } from './index.js'
 import { OSCMetaArgument } from '@companion-module/base/dist/index.js' // eslint-disable-line n/no-missing-import
+import { ControlCommands } from './commands/control.js'
 
 export function UpdateVariableDefinitions(self: WingInstance): void {
 	const model = self.model
@@ -200,6 +201,11 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	for (let gpio = 1; gpio <= model.gpio; gpio++) {
 		variables.push({ variableId: `gpio${gpio}`, name: `GPIO ${gpio} state (true = pressed/connected)` })
 	}
+
+	variables.push({ variableId: 'active_show_name', name: 'Active Show Name' })
+	variables.push({ variableId: 'active_scene_number', name: 'Active Scene Number' })
+	variables.push({ variableId: 'active_scene_name', name: 'Active Scene Name' })
+
 	self.setVariableDefinitions(variables)
 }
 
@@ -217,6 +223,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		UpdateSdVariables(self, path, args[0])
 		UpdateTalkbackVariables(self, path, args[0])
 		UpdateGpioVariables(self, path, args[0]?.value as number)
+		UpdateControlVariables(self, path, args[0])
 	}
 }
 
@@ -419,4 +426,27 @@ function UpdateGpioVariables(self: WingInstance, path: string, value: number): v
 
 	const gpio = match[1]
 	self.setVariableValues({ [`gpio${gpio}`]: !value })
+}
+
+function UpdateControlVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
+	const match = path.match(/^\/\$ctl\/lib\/(\$?\w+)/)
+	if (!match) {
+		return
+	}
+
+	const command = match[1]
+
+	if (command == '$actshow') {
+		const showname = args.value as string
+		self.setVariableValues({ active_show_name: showname })
+	} else if (command == '$actidx') {
+		const index = args.value as number
+		self.setVariableValues({ active_scene_number: index })
+	} else if (command == '$active') {
+		const scene = args.value as string
+		self.setVariableValues({ active_scene_name: scene })
+	} else if (command == '$scenes') {
+		// need to request full list of scenes
+		self.sendCommand(ControlCommands.LibraryNode(), '?')
+	}
 }

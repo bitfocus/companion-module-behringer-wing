@@ -11,6 +11,7 @@ import { createMatrixActions } from './matrix.js'
 import { createUsbPlayerActions } from './usbplayer.js'
 import { createCardsActions } from './cards.js'
 import { createCommonActions } from './common.js'
+import { createControlActions } from './control.js'
 
 export function createActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
 	const actions = {
@@ -24,6 +25,7 @@ export function createActions(self: InstanceBaseExt<WingConfig>): CompanionActio
 		...createUsbPlayerActions(self),
 		...createCardsActions(self),
 		...createConfigurationActions(self),
+		...createControlActions(self),
 	}
 
 	return actions

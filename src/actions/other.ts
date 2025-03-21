@@ -6,6 +6,7 @@ import { WingConfig } from '../config.js'
 export enum OtherActionId {
 	SendCommand = 'send-command',
 	SendCommandWithNumber = 'send-command-with-number',
+	SendCommandWithString = 'send-command-with-string',
 }
 
 export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -46,6 +47,25 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			],
 			callback: async (event) => {
 				send(event.options.cmd as string, event.options.num as number)
+			},
+		},
+		[OtherActionId.SendCommandWithString]: {
+			name: 'Send Command with String',
+			description: 'Send an OSC command with a string as an argument to the console.',
+			options: [
+				{
+					type: 'textinput',
+					id: 'cmd',
+					label: 'Command',
+				},
+				{
+					type: 'textinput',
+					id: 'val',
+					label: 'Value',
+				},
+			],
+			callback: async (event) => {
+				send(event.options.cmd as string, event.options.val as string)
 			},
 		},
 	}
