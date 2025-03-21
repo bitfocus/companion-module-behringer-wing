@@ -56,9 +56,15 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 		[OtherActionId.RecallSceneFromList]: {
 			name: 'Recall Scene from List',
 			description:
-				'Recall a scene from a list and optionally go to it (NOTE: This uses the index of the scene, and changes when scenes are added or removed)',
+				'Recall a scene from a list and optionally go to it (NOTE: When you add/remove/move scenes in your show, you must update this command.)',
 			options: [
-				GetDropdown('Scene', 'num', state.namedChoices.scenes),
+				GetDropdown(
+					'Scene',
+					'num',
+					state.namedChoices.scenes,
+					undefined,
+					'This uses the index of the scene, and changes when scenes are added or removed.',
+				),
 				{
 					type: 'checkbox',
 					id: 'go',
@@ -85,7 +91,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 		},
 		[OtherActionId.SendLibraryAction]: {
 			name: 'Send Library Action',
-			description: 'Trigger a library action (Selecting and navigating scenes)',
+			description: 'Trigger a library action (Select and navigate scenes in a show)',
 			options: [
 				GetDropdown(
 					'Action',
