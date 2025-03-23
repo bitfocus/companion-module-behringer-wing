@@ -143,4 +143,12 @@ export namespace AuxCommands {
 	export function SendPan(aux: number, send: number): string {
 		return `${SendNode(aux, send)}/pan`
 	}
+
+	export function EqNode(aux: number): string {
+		return `${Node(aux)}/eq`
+	}
+
+	export function EqOn(aux: number): string {
+		return `${EqNode(aux)}/on`
+	}
 }

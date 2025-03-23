@@ -103,4 +103,12 @@ export namespace MainCommands {
 	export function DelayAmount(main: number): string {
 		return `${DelayNode(main)}/dly`
 	}
+
+	export function EqNode(main: number): string {
+		return `${Node(main)}/eq`
+	}
+
+	export function EqOn(main: number): string {
+		return `${EqNode(main)}/on`
+	}
 }
