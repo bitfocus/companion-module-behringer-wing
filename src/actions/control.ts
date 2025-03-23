@@ -16,6 +16,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 	const send = self.sendCommand
 	const state = self.state
 	const ensureLoaded = self.ensureLoaded
+	const subscriptions = self.subscriptions
 
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.RecallScene]: {
@@ -59,9 +60,12 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				send(ControlCommands.LibraryAction(), 'GO')
 			},
 			subscribe: () => {
-				const cmd = ControlCommands.LibraryActiveSceneIndex()
-				ensureLoaded(cmd)
+				subscriptions.subscribePoll(ControlCommands.LibraryScenes())
+				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
+			},
+			unsubscribe: () => {
+				subscriptions.unsubscribePoll(ControlCommands.LibraryScenes())
 			},
 			learn: (event) => {
 				const sceneIdMap = state.sceneNameToIdMap

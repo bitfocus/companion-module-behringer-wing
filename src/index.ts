@@ -26,8 +26,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	state: WingState
 	model: ModelSpec
 	osc: osc.UDPPort
-
-	private WingSubscriptions: WingSubscriptions
+	subscriptions: WingSubscriptions
 
 	private heartbeatTimer: NodeJS.Timeout | undefined
 	private reconnectTimer: NodeJS.Timeout | undefined
@@ -58,7 +57,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		super(internal)
 
 		this.osc = new osc.UDPPort({})
-		this.WingSubscriptions = new WingSubscriptions()
+		this.subscriptions = new WingSubscriptions()
 		this.model = getDeskModel(WingModel.Full)
 		this.state = new WingState(this.model)
 
@@ -145,7 +144,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	async configUpdated(config: WingConfig): Promise<void> {
 		this.config = config
 
-		this.WingSubscriptions = new WingSubscriptions()
+		this.subscriptions = new WingSubscriptions()
 		this.state = new WingState(this.model)
 
 		this.transitions.stopAll()
@@ -171,7 +170,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	updateFeedbacks(): void {
-		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.WingSubscriptions, this.ensureLoaded))
+		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.subscriptions, this.ensureLoaded))
 	}
 
 	updateVariableDefinitions(): void {
@@ -243,7 +242,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			}, 9000)
 			this.statusUpdateInterval = setInterval(() => {
 				this.requestStatusUpdates()
-			}, this.config.statusPollUpdateRate ?? 250)
+			}, this.config.statusPollUpdateRate ?? 3000)
 
 			this.state.requestNames(this.model, this.ensureLoaded)
 			this.requestQueue.clear()
@@ -312,7 +311,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private requestStatusUpdates(): void {
-		this.WingSubscriptions.getPollPaths().forEach((c) => {
+		this.subscriptions.getPollPaths().forEach((c) => {
 			this.sendCommand(c)
 		})
 	}
@@ -339,7 +338,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private checkFeedbackChanges(msg: osc.OscMessage): void {
-		const toUpdate = this.WingSubscriptions.getFeedbacks(msg.address)
+		const toUpdate = this.subscriptions.getFeedbacks(msg.address)
 		if (toUpdate.length > 0) {
 			toUpdate.forEach((f) => this.messageFeedbacks.add(f))
 			this.debounceMessageFeedbacks()
@@ -370,7 +369,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		this.setPresetDefinitions(GetPresets(this))
 		this.setActionDefinitions(createActions(this))
-		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.WingSubscriptions, this.ensureLoaded))
+		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.subscriptions, this.ensureLoaded))
 		this.checkFeedbacks()
 	}
 

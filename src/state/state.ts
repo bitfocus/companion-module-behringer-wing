@@ -267,12 +267,10 @@ export class WingSubscriptions {
 	public getPollPaths(): string[] {
 		return Array.from(this.pollData)
 	}
-	public subscribePoll(path: string, feedbackId: string, type: FeedbackId): void {
-		this.subscribe(path, feedbackId, type)
+	public subscribePoll(path: string): void {
 		this.pollData.add(path)
 	}
-	public unsubscribePoll(path: string, feedbackId: string): void {
-		this.unsubscribe(path, feedbackId)
+	public unsubscribePoll(path: string): void {
 		this.pollData.delete(path)
 	}
 }
