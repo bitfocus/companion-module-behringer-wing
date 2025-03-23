@@ -1,9 +1,11 @@
-import osc from 'osc'
 import { FeedbackId } from '../feedbacks.js'
 import { DropdownChoice } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import * as Commands from '../commands/index.js'
+import { Channel } from '../state/channel.js'
+import { Bus } from './bus.js'
+import { OSCLeaf } from './base.js'
 
 type NameChoices = {
 	channels: DropdownChoice[]
@@ -26,8 +28,10 @@ type Names = {
 	mutegroups: string[]
 	scenes: string[]
 }
+
+type t_DataBase = number | string | boolean | undefined
 export class WingState implements IStoredChannelSubject {
-	private readonly data: Map<string, osc.MetaArgument[]>
+	private readonly data: Map<string, t_DataBase>
 	private readonly pressStorage: Map<string, number>
 	private readonly deltaStorage: Map<string, number>
 	private storedChannel: number
@@ -53,12 +57,62 @@ export class WingState implements IStoredChannelSubject {
 		scenes: [],
 	}
 
+	channels: Record<number, Channel> = {}
+	busses: Bus[] = []
+
 	constructor(model: ModelSpec) {
+		for (let i = 1; i <= model.channels; i++) {
+			this.channels[i] = new Channel(i)
+		}
+		for (let i = 1; i <= model.busses; i++) {
+			this.busses[i] = new Bus(model, i)
+		}
+
 		this.data = new Map()
 		this.pressStorage = new Map()
 		this.deltaStorage = new Map()
 		this.storedChannel = 1
 		this.updateNames(model)
+	}
+
+	private getLeaf(path: string): OSCLeaf<t_DataBase> | undefined {
+		for (const key of Object.keys(this)) {
+			const property = (this as any)[key]
+			const leaf = this.findLeafRecursive(property, path)
+			if (leaf) return leaf
+		}
+		return undefined
+	}
+
+	public get(path: string): any | undefined {
+		const leaf = this.getLeaf(path)
+		if (leaf) {
+			return leaf.value
+		}
+		return this.data.get(path)
+	}
+
+	public set(path: string, value: t_DataBase): boolean {
+		const leaf = this.getLeaf(path)
+		if (leaf) {
+			leaf.value = value
+			return true
+		}
+		this.data.set(path, value)
+		return false
+	}
+
+	private findLeafRecursive(obj: any, path: string): OSCLeaf<any> | undefined {
+		if (obj instanceof OSCLeaf && obj.getPath() === path) {
+			return obj
+		}
+		if (typeof obj === 'object' && obj !== null) {
+			for (const value of Object.values(obj)) {
+				const found = this.findLeafRecursive(value, path)
+				if (found) return found
+			}
+		}
+		return undefined
 	}
 
 	// StoredChannelSubject
@@ -82,25 +136,6 @@ export class WingState implements IStoredChannelSubject {
 		}
 	}
 
-	public get(path: string): osc.MetaArgument[] | undefined {
-		// console.log(`Getting ${path}`)
-		return this.data.get(path)
-	}
-	public set(path: string, data: osc.MetaArgument[]): void {
-		const key = path
-		if (data[0].value == '-oo') {
-			data[0] = { type: 'f', value: -140 }
-		}
-		// if (data[0].type == 's') {
-		// 	const strAsNum = Number(data[0].value)
-		// 	console.log(`Setting ${key} to ${strAsNum}`)
-		// 	if (strAsNum != undefined) data[0] = { type: 'f', value: strAsNum }
-		// }
-
-		this.data.set(key, data)
-		// console.log(`Setting ${key}`)
-	}
-
 	public setPressValue(path: string, value: number): void {
 		this.pressStorage.set(path, value)
 	}
@@ -121,7 +156,7 @@ export class WingState implements IStoredChannelSubject {
 	}
 
 	private getRealName(key: string): string | undefined {
-		const name = this.get(key)?.[0]?.value as string
+		const name = this.get(key) as string
 		return name
 	}
 

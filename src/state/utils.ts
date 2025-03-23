@@ -1,6 +1,7 @@
 import { WingState } from './state.js'
 
 export function getStringFromState(cmd: string, state: WingState): string | undefined {
+	return state.get(cmd) as string
 	const currentState = state.get(cmd)
 	if (!currentState || currentState.length === 0) {
 		return undefined
@@ -28,6 +29,7 @@ export function getValueFromKey(cmd: string, state: WingState): number | undefin
 }
 
 export function getNumberFromState(cmd: string, state: WingState): number | undefined {
+	return state.get(cmd) as number
 	const currentState = state.get(cmd)
 
 	if (!currentState || currentState.length === 0) {
