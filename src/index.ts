@@ -272,7 +272,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.updateStatus(InstanceStatus.Ok)
 			const args = message.args as osc.MetaArgument[]
 			// this.log('debug', `Received ${JSON.stringify(message)}`)
-			this.state.set(message.address, args)
+			this.state.set(message.address, args[0]?.value ?? undefined)
 
 			if (this.inFlightRequests[message.address]) {
 				// this.log('debug', `Received answer for request ${message.address}`)

@@ -29,7 +29,7 @@ type Names = {
 	scenes: string[]
 }
 
-type t_DataBase = number | string | boolean | undefined
+type t_DataBase = number | string | Uint8Array | undefined
 export class WingState implements IStoredChannelSubject {
 	private readonly data: Map<string, t_DataBase>
 	private readonly pressStorage: Map<string, number>
