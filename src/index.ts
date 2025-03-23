@@ -423,7 +423,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			args: args,
 		}
 		this.osc.send(command)
-		// this.osc.send({ address: cmd, args: [] })
+		this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
 	}
 
 	ensureLoaded = (path: string, arg?: string | number): void => {
