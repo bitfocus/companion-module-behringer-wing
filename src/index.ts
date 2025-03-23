@@ -333,7 +333,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			console.log(scenes)
 			if (scenes) {
 				const sceneList = scenes[1].split(',').map((s) => s.trim())
-				this.state.namedChoices.scenes = sceneList.map((s, i) => ({ id: i + 1, label: s }))
+				this.state.namedChoices.scenes = sceneList.map((s) => ({ id: s, label: s }))
+				this.state.sceneNameToIdMap = new Map(sceneList.map((s, i) => [s, i + 1]))
 			}
 		}
 	}

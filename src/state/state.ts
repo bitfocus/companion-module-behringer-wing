@@ -53,11 +53,14 @@ export class WingState implements IStoredChannelSubject {
 		scenes: [],
 	}
 
+	sceneNameToIdMap: Map<string, number>
+
 	constructor(model: ModelSpec) {
 		this.data = new Map()
 		this.pressStorage = new Map()
 		this.deltaStorage = new Map()
 		this.storedChannel = 1
+		this.sceneNameToIdMap = new Map()
 		this.updateNames(model)
 	}
 
