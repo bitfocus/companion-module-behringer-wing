@@ -262,7 +262,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.sel ?? 0 > 2) {
+				if (event.options.sel ?? 0 >= 2) {
 					const sel = event.options.sel as string
 					const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
 					ensureLoaded(cmd)
@@ -472,7 +472,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.sel ?? 0 > 2) {
+				if (event.options.sel ?? 0 >= 2) {
 					const sel = event.options.sel as string
 					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
 					ensureLoaded(cmd)
@@ -749,12 +749,12 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.src as string
 				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
-				// The Send mutes need to be sent inverted becauxe it is an 'on' command
-				const val = Number(!ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state))
+				let val = ActionUtil.getNumber(event, 'mute')
+				val = ActionUtil.getSetOrToggleValue(cmd, val, state, true)
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.sel ?? 0 > 2) {
+				if (event.options.sel ?? 0 >= 2) {
 					const sel = event.options.sel as string
 					const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
 					ensureLoaded(cmd)
@@ -881,8 +881,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.src as string
 				const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
-				// The Send mutes need to be sent inverted becauxe it is an 'on' command
-				const val = Number(!ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state))
+				let val = ActionUtil.getNumber(event, 'mute')
+				val = Number(ActionUtil.getSetOrToggleValue(cmd, val, state, true))
 				send(cmd, val)
 			},
 			subscribe: (event) => {

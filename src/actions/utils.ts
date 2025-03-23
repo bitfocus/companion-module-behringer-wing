@@ -317,10 +317,12 @@ export function getTalkbackAssignCommand(talkback: string, destination: string):
 	return cmd
 }
 
-export function getSetOrToggleValue(cmd: string, val: number, state: WingState): number {
+export function getSetOrToggleValue(cmd: string, val: number, state: WingState, invert?: boolean): number {
+	const inv = invert ?? false
 	if (val >= 2) {
 		const currentVal = StateUtil.getBooleanFromState(cmd, state)
 		return Number(!currentVal)
 	}
-	return val
+	if (inv) return Number(!val)
+	else return Number(val)
 }
