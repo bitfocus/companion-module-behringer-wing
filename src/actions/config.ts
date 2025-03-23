@@ -47,7 +47,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.mute ?? 0 > 2) {
+				if (event.options.mute ?? 0 >= 2) {
 					const cmd = ConfigurationCommands.SoloMute()
 					ensureLoaded(cmd)
 				}
@@ -70,7 +70,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.dim ?? 0 > 2) {
+				if (event.options.dim ?? 0 >= 2) {
 					const cmd = ConfigurationCommands.SoloDim()
 					ensureLoaded(cmd)
 				}
@@ -93,7 +93,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.mono ?? 0 > 2) {
+				if (event.options.mono ?? 0 >= 2) {
 					const cmd = ConfigurationCommands.SoloMono()
 					ensureLoaded(cmd)
 				}
@@ -116,7 +116,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.swap ?? 0 > 2) {
+				if (event.options.swap ?? 0 >= 2) {
 					const cmd = ConfigurationCommands.SoloLRSwap()
 					ensureLoaded(cmd)
 				}
@@ -201,7 +201,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.mode ?? 0 > 2) {
+				if (event.options.mode ?? 0 >= 2) {
 					const talkback = event.options.tb as string
 					const destination = event.options.dest as string
 					const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)

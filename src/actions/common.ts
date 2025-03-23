@@ -114,7 +114,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.led ?? 0 > 2) {
+				if (event.options.led ?? 0 >= 2) {
 					const sel = event.options.sel as string
 					const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
 					ensureLoaded(cmd)
@@ -886,7 +886,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				send(cmd, val)
 			},
 			subscribe: (event) => {
-				if (event.options.mute ?? 0 > 2) {
+				if (event.options.mute ?? 0 >= 2) {
 					const sel = event.options.sel as string
 					const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
 					ensureLoaded(cmd)
