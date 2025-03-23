@@ -59,13 +59,12 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
 				send(ControlCommands.LibraryAction(), 'GO')
 			},
-			subscribe: () => {
-				subscriptions.subscribePoll(ControlCommands.LibraryScenes())
+			subscribe: (event) => {
+				if (event.options.useSceneId == false) {
+					subscriptions.subscribePoll(ControlCommands.LibraryScenes())
+				}
 				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
-			},
-			unsubscribe: () => {
-				subscriptions.unsubscribePoll(ControlCommands.LibraryScenes())
 			},
 			learn: (event) => {
 				const sceneIdMap = state.sceneNameToIdMap
