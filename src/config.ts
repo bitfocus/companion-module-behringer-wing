@@ -3,7 +3,7 @@ import { WingDeviceDetectorInstance } from './device-detector.js'
 // import { ModelChoices, WingModel } from './models/types.js'
 
 export const fadeUpdateRateDefault = 50
-export const pollUpdateRateDefault = 500
+export const pollUpdateRateDefault = 3000
 
 export const DeskTypes = [
 	{ id: 'wing', label: 'Wing' },
