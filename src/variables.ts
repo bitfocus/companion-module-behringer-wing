@@ -22,6 +22,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `Channel ${ch} Gain`,
 		})
 		variables.push({
+			variableId: `ch${ch}_mute`,
+			name: `Channel ${ch} Mute`,
+		})
+		variables.push({
 			variableId: `ch${ch}_level`,
 			name: `Channel ${ch} Level`,
 		})
@@ -30,6 +34,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `Channel ${ch} Pan`,
 		})
 		for (let bus = 1; bus <= model.busses; bus++) {
+			variables.push({
+				variableId: `ch${ch}_bus${bus}_mute`,
+				name: `Channel ${ch} to Bus ${bus} Mute`,
+			})
 			variables.push({
 				variableId: `ch${ch}_bus${bus}_level`,
 				name: `Channel ${ch} to Bus ${bus} Level`,
@@ -40,6 +48,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			})
 		}
 		for (let mtx = 1; mtx <= model.matrices; mtx++) {
+			variables.push({
+				variableId: `ch${ch}_mtx${mtx}_mute`,
+				name: `Channel ${ch} to Matrix ${mtx} Mute`,
+			})
 			variables.push({
 				variableId: `ch${ch}_mtx${mtx}_level`,
 				name: `Channel ${ch} to Matrix ${mtx} Level`,
@@ -57,6 +69,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `Aux ${aux} Gain`,
 		})
 		variables.push({
+			variableId: `aux${aux}_mute`,
+			name: `Aux ${aux} Mute`,
+		})
+		variables.push({
 			variableId: `aux${aux}_level`,
 			name: `Aux ${aux} Level`,
 		})
@@ -66,6 +82,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		})
 		for (let bus = 1; bus <= model.busses; bus++) {
 			variables.push({
+				variableId: `aux${aux}_bus${bus}_mute`,
+				name: `Aux ${aux} to Bus ${bus} Mutes`,
+			})
+			variables.push({
 				variableId: `aux${aux}_bus${bus}_level`,
 				name: `Aux ${aux} to Bus ${bus} Level`,
 			})
@@ -74,12 +94,22 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 				name: `Aux ${aux} to Bus ${bus} Pan`,
 			})
 		}
+		for (let mtx = 1; mtx <= model.matrices; mtx++) {
+			variables.push({
+				variableId: `aux${aux}_mtx${mtx}_mute`,
+				name: `Aux ${aux} to Matrix ${mtx} Mute`,
+			})
+		}
 	}
 
 	for (let bus = 1; bus <= model.busses; bus++) {
 		variables.push({
 			variableId: `bus${bus}_name`,
 			name: `Bus ${bus} Name`,
+		})
+		variables.push({
+			variableId: `bus${bus}_mute`,
+			name: `Bus ${bus} Mute`,
 		})
 		variables.push({
 			variableId: `bus${bus}_level`,
@@ -94,6 +124,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 				continue
 			}
 			variables.push({
+				variableId: `bus${bus}_bus${send}_mute`,
+				name: `Bus ${bus} to Bus ${send} Mute`,
+			})
+			variables.push({
 				variableId: `bus${bus}_bus${send}_level`,
 				name: `Bus ${bus} to Bus ${send} Level`,
 			})
@@ -102,12 +136,22 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 				name: `Bus ${bus} to Bus ${send} Pan`,
 			})
 		}
+		for (let mtx = 1; mtx <= model.matrices; mtx++) {
+			variables.push({
+				variableId: `bus${bus}_mtx${mtx}_mute`,
+				name: `Bus ${bus} to Matrix ${mtx} Mute`,
+			})
+		}
 	}
 
 	for (let mtx = 1; mtx <= model.matrices; mtx++) {
 		variables.push({
 			variableId: `mtx${mtx}_name`,
 			name: `Matrix ${mtx} Name`,
+		})
+		variables.push({
+			variableId: `mtx${mtx}_mute`,
+			name: `Matrix ${mtx} Mute`,
 		})
 		variables.push({
 			variableId: `mtx${mtx}_level`,
@@ -125,6 +169,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `Main ${main} Name`,
 		})
 		variables.push({
+			variableId: `main${main}_mute`,
+			name: `Main ${main} Mute`,
+		})
+		variables.push({
 			variableId: `main${main}_level`,
 			name: `Main ${main} Level`,
 		})
@@ -140,6 +188,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `DCA ${dca} Name`,
 		})
 		variables.push({
+			variableId: `dca${dca}_mute`,
+			name: `DCA ${dca} Mute`,
+		})
+		variables.push({
 			variableId: `dca${dca}_level`,
 			name: `DCA ${dca} Level`,
 		})
@@ -148,7 +200,11 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
 		variables.push({
 			variableId: `mgrp${mgrp}_name`,
-			name: `Mute ${mgrp} Name`,
+			name: `Mutegroup ${mgrp} Name`,
+		})
+		variables.push({
+			variableId: `mgrp${mgrp}_mute`,
+			name: `Mutegroup ${mgrp} Mute`,
 		})
 	}
 
@@ -217,6 +273,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		// console.log('Updating variable:', path, args)
 
 		UpdateNameVariables(self, path, args[0]?.value as string)
+		UpdateMuteVariables(self, path, args[0]?.value as number)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
 		UpdatePanoramaVariables(self, path, args[0]?.value as number)
 		UpdateUsbVariables(self, path, args[0])
@@ -236,6 +293,46 @@ function UpdateNameVariables(self: WingInstance, path: string, value: string): v
 	const base = match[1]
 	const num = match[2]
 	self.setVariableValues({ [`${base}${num}_name`]: value })
+}
+
+function UpdateMuteVariables(self: WingInstance, path: string, value: number): void {
+	const match = path.match(
+		/^\/(ch|aux|bus|mtx|main|dca|mgrp)\/(\d+)(?:\/(send|main)\/(?:(MX)(\d+)|(\d+))\/(mute|on)|\/(mute))$/,
+	)
+
+	if (!match) return
+
+	const source = match[1]
+	const srcnum = parseInt(match[2])
+	const section = match[3] ?? null
+	let dest: string | null = null
+	let destnum: number | null = null
+	if (match[4] === 'MX') {
+		dest = 'MX'
+		destnum = parseInt(match[5])
+	} else if (match[6]) {
+		dest = section
+		destnum = parseInt(match[6])
+	}
+	const action = match[7] ?? match[8]
+
+	// Invert to get mute
+	if (action === 'on') value = Number(!value)
+
+	if (dest == null) {
+		const varName = `${source}${srcnum}_mute`
+		self.setVariableValues({ [varName]: value })
+		console.log(varName)
+	} else {
+		if (dest === 'send') {
+			dest = 'bus'
+		} else if (dest === 'MX') {
+			dest = 'mtx'
+		}
+		const varName = `${source}${srcnum}_${dest}${destnum}_mute`
+		self.setVariableValues({ [varName]: value })
+		console.log(varName)
+	}
 }
 
 function UpdateFaderVariables(self: WingInstance, path: string, value: number): void {
