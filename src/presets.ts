@@ -5,16 +5,45 @@ import { CommonActions } from './actions/common.js'
 import { FeedbackId } from './feedbacks.js'
 
 export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPresetDefinitions {
+	const model = _instance.model
+
 	const presets: {
 		[id: string]: CompanionButtonPresetDefinition | undefined
 	} = {}
 
-	presets['mute-button'] = {
+	for (let i = 1; i <= model.channels; i++) {
+		presets[`ch${i}-mute-button`] = getMutePreset('ch', i)
+		presets[`ch${i}-solo-button`] = getSoloPreset('ch', i)
+	}
+
+	for (let i = 1; i <= model.auxes; i++) {
+		presets[`aux${i}-mute-button`] = getMutePreset('aux', i)
+		presets[`aux${i}-solo-button`] = getSoloPreset('aux', i)
+	}
+
+	for (let i = 1; i <= model.busses; i++) {
+		presets[`bus${i}-mute-button`] = getMutePreset('bus', i)
+	}
+
+	for (let i = 1; i <= model.matrices; i++) {
+		presets[`mtx${i}-mute-button`] = getMutePreset('mtx', i)
+	}
+
+	for (let i = 1; i <= model.mains; i++) {
+		presets[`main${i}-mute-button`] = getMutePreset('main', i)
+	}
+
+	return presets
+}
+
+function getMutePreset(base: string, val: number): CompanionButtonPresetDefinition {
+	const path = `/${base}/${val}`
+	return {
 		name: 'Mute Button',
-		category: 'Channel',
+		category: 'Mute',
 		type: 'button',
 		style: {
-			text: 'Mute\\n$(wing:ch1_name)',
+			text: `Mute\\n$(wing:${base}${val}_name)`,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(0, 0, 0),
@@ -27,7 +56,7 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 				down: [
 					{
 						actionId: CommonActions.SetMute,
-						options: { sel: '/ch/1', mute: 2 },
+						options: { sel: path, mute: 2 },
 					},
 				],
 				up: [],
@@ -36,7 +65,7 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.Mute,
-				options: { sel: '/ch/1', mute: 1 },
+				options: { sel: path, mute: 1 },
 				style: {
 					color: combineRgb(255, 255, 255),
 					bgcolor: combineRgb(255, 0, 0),
@@ -44,13 +73,16 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 			},
 		],
 	}
+}
 
-	presets['solo-button'] = {
+function getSoloPreset(base: string, val: number): CompanionButtonPresetDefinition {
+	const path = `/${base}/${val}`
+	return {
 		name: 'Solo Button',
-		category: 'Channel',
+		category: 'Solo',
 		type: 'button',
 		style: {
-			text: 'Solo CH1',
+			text: `Solo\\n$(wing:${base}${val}_name)`,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(0, 0, 0),
@@ -62,9 +94,13 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 			{
 				down: [
 					{
+						actionId: CommonActions.StoreFader,
+						options: { sel: path },
+					},
+					{
 						actionId: CommonActions.DeltaFader,
 						options: {
-							sel: '/ch/1',
+							sel: path,
 							delta: 3,
 							fadeDuration: 1000,
 							fadeAlgorithm: 'quadratic',
@@ -73,11 +109,11 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 					},
 					{
 						actionId: CommonActions.StorePanorama,
-						options: { sel: '/ch/1' },
+						options: { sel: path },
 					},
 					{
 						actionId: CommonActions.SetPanorama,
-						options: { sel: '/ch/1', pan: 0, fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
+						options: { sel: path, pan: 0, fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
 					},
 				],
 				up: [],
@@ -85,12 +121,12 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 			{
 				down: [
 					{
-						actionId: CommonActions.UndoDeltaFader,
-						options: { sel: '/ch/1', fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
+						actionId: CommonActions.RestoreFader,
+						options: { sel: path, fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
 					},
 					{
 						actionId: CommonActions.RestorePanorama,
-						options: { sel: '/ch/1', fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
+						options: { sel: path, fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
 					},
 				],
 				up: [],
@@ -98,6 +134,4 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 		],
 		feedbacks: [],
 	}
-
-	return presets
 }
