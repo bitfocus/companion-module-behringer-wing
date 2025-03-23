@@ -20,7 +20,8 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.RecallScene]: {
 			name: 'Recall Scene',
-			description: 'If you change the order of the scenes on your desk, restart the WING integration!',
+			description:
+				'If you change the order of the scenes on your desk, restart the WING integration!. ATTENTION: if you have the same scene name twice in your show, you will not be able to recall it by name! In this case, use the scene ID instead.',
 			options: [
 				{
 					type: 'checkbox',

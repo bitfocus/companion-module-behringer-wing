@@ -327,8 +327,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		// scene list
 		if (libRe.test(msg.address)) {
-			console.log('Got library')
-			const content = (args[0].value as string) ?? ''
+			const content = String(args[0]?.value ?? '')
 			const scenes = content.match(/\$scenes\s+list\s+\[([^\]]+)\]/)
 			console.log(scenes)
 			if (scenes) {
