@@ -430,7 +430,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = event.options.delta as number
+				const delta = event.options.pan as number
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
