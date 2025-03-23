@@ -1,4 +1,4 @@
-export abstract class OSCLeaf<T> {
+export class OSCLeaf<T> {
 	value: T | undefined = undefined
 
 	constructor(public path: string) {}

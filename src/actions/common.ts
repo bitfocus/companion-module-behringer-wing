@@ -287,17 +287,17 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				runTransition(cmd, 'level', event, state, transitions)
 			},
 			subscribe: (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				ensureLoaded(cmd)
 			},
 			learn: (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				return { level: StateUtil.getNumberFromState(cmd, state) }
 			},
 		},
@@ -307,12 +307,12 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
 			callback: async (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				ensureLoaded(cmd)
 			},
 		},
@@ -322,7 +322,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
 			},
@@ -336,7 +336,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = event.options.delta as number
 				state.storeDelta(cmd, delta)
@@ -348,7 +348,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				ensureLoaded(cmd)
 			},
 		},
@@ -358,7 +358,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
 			callback: async (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
@@ -368,7 +368,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: (event) => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'), state)
 				ensureLoaded(cmd)
 			},
 		},

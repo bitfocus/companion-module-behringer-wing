@@ -1,16 +1,16 @@
 // import { ModelSpec } from "../models/types.js"
 // import { BusSend } from "./bus.js"
 
-import { BooleanLeaf, NumberLeaf, StringLeaf } from './base.js'
+import { BooleanLeaf, NumberLeaf, OSCLeaf, StringLeaf } from './base.js'
 
-// export enum ConnectionGroup {
-//     OFF = 'Off',
-//     LCL = 'Local',
-//     Aux = 'Auxiliary',
-//     A = 'AES A',
-//     B = 'AES B',
-//     C = 'AES C',
-// }
+export enum ConnectionGroup {
+	OFF = 'Off',
+	LCL = 'Local',
+	Aux = 'Auxiliary',
+	A = 'AES A',
+	B = 'AES B',
+	C = 'AES C',
+}
 
 // export class InputConnection {
 //     group: ConnectionGroup | undefined
@@ -52,6 +52,7 @@ export class Channel {
 	wid = new NumberLeaf('')
 	solo = new BooleanLeaf('')
 	name = new StringLeaf('')
+	test = new OSCLeaf<ConnectionGroup>('')
 
 	constructor(index: number) {
 		const base = `/ch/${index}`
