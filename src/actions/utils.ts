@@ -1,5 +1,5 @@
 import { WingTransitions } from '../transitions.js'
-import { WingState } from '../state/index.js'
+import { StateUtil, WingState } from '../state/index.js'
 import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
 import { Easing } from '../easings.js'
 import * as StateUtils from '../state/utils.js'
@@ -315,4 +315,14 @@ export function getTalkbackAssignCommand(talkback: string, destination: string):
 		cmd = ConfigurationCommands.TalkbackMainAssign(talkback, num)
 	}
 	return cmd
+}
+
+export function getSetOrToggleValue(cmd: string, val: number, state: WingState, invert?: boolean): number {
+	const inv = invert ?? false
+	if (val >= 2) {
+		const currentVal = StateUtil.getBooleanFromState(cmd, state)
+		return Number(!currentVal)
+	}
+	if (inv) return Number(!val)
+	else return Number(val)
 }

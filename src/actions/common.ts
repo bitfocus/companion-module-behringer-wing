@@ -110,18 +110,15 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'led')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					send(cmd, Number(!currentVal))
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'led'), state)
+				send(cmd, val)
 			},
 			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				if (event.options.led ?? 0 >= 2) {
+					const sel = event.options.sel as string
+					const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		[CommonActions.SetScribbleLightColor]: {
@@ -261,18 +258,15 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'mute')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					send(cmd, Number(!currentVal))
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state)
+				send(cmd, val)
 			},
 			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				if (event.options.sel ?? 0 >= 2) {
+					const sel = event.options.sel as string
+					const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -474,18 +468,15 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'solo')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					send(cmd, Number(!currentVal))
-				}
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'solo'), state)
+				send(cmd, val)
 			},
 			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				if (event.options.sel ?? 0 >= 2) {
+					const sel = event.options.sel as string
+					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		[CommonActions.ClearSolo]: {
@@ -758,23 +749,16 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.src as string
 				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
-				const val = ActionUtil.getNumber(event, 'mute')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				// The Send mutes need to be sent inverted becauxe it is an 'on' command
-				if (val >= 2) {
-					send(cmd, Number(!currentVal))
-				} else {
-					if (val < 1) {
-						send(cmd, 1)
-					} else {
-						send(cmd, 0)
-					}
-				}
+				let val = ActionUtil.getNumber(event, 'mute')
+				val = ActionUtil.getSetOrToggleValue(cmd, val, state, true)
+				send(cmd, val)
 			},
 			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
-				ensureLoaded(cmd)
+				if (event.options.sel ?? 0 >= 2) {
+					const sel = event.options.sel as string
+					const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -897,23 +881,16 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.src as string
 				const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
-				const val = ActionUtil.getNumber(event, 'mute')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				// The Main Send mutes need to be sent inverted becauxe it is an 'on' command
-				if (val >= 2) {
-					send(cmd, Number(!currentVal))
-				} else {
-					if (val < 1) {
-						send(cmd, 1)
-					} else {
-						send(cmd, 0)
-					}
-				}
+				let val = ActionUtil.getNumber(event, 'mute')
+				val = Number(ActionUtil.getSetOrToggleValue(cmd, val, state, true))
+				send(cmd, val)
 			},
 			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
-				ensureLoaded(cmd)
+				if (event.options.mute ?? 0 >= 2) {
+					const sel = event.options.sel as string
+					const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+					ensureLoaded(cmd)
+				}
 			},
 		},
 		[CommonActions.SetMainSendFader]: {
