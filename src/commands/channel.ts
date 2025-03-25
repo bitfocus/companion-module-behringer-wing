@@ -224,6 +224,10 @@ export namespace ChannelCommands {
 		return `${Node(channel)}/eq`
 	}
 
+	export function EqOn(channel: number): string {
+		return `${EqNode(channel)}/on`
+	}
+
 	export function EqModel(channel: number): string {
 		return `${EqNode(channel)}/mdl`
 	}

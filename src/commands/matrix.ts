@@ -115,4 +115,12 @@ export namespace MatrixCommands {
 	export function DelayAmount(matrix: number): string {
 		return `${DelayNode(matrix)}/dly`
 	}
+
+	export function EqNode(matrix: number): string {
+		return `${Node(matrix)}/eq`
+	}
+
+	export function EqOn(matrix: number): string {
+		return `${EqNode(matrix)}/on`
+	}
 }

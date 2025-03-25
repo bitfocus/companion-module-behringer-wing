@@ -317,6 +317,22 @@ export function getTalkbackAssignCommand(talkback: string, destination: string):
 	return cmd
 }
 
+export function getEqEnableCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.EqOn(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.EqOn(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.EqOn(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.EqOn(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.EqOn(val)
+	}
+	return cmd
+}
+
 export function getSetOrToggleValue(cmd: string, val: number, state: WingState, invert?: boolean): number {
 	const inv = invert ?? false
 	if (val >= 2) {

@@ -54,6 +54,8 @@ export enum CommonActions {
 	// Delay
 	SetDelay = 'set-delay',
 	SetDelayAmount = 'set-delay-amount',
+	// EQ
+	SetEqOn = 'set-eq-on',
 
 	//////////// SEND
 	SetSendMute = 'set-send-mute',
@@ -629,6 +631,27 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 						)
 						break
 				}
+			},
+		},
+		[CommonActions.SetEqOn]: {
+			name: 'Set EQ On',
+			description: 'Enable, disable or toggle the on-state of an EQ on a channel, bus, aux, matrix or main.',
+			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('enable', 'Enable')],
+			callback: async (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getEqEnableCommand(sel, getNodeNumber(event, 'sel'))
+				const val = ActionUtil.getNumber(event, 'enable')
+				const currentVal = StateUtil.getBooleanFromState(cmd, state)
+				if (val < 2) {
+					send(cmd, val)
+				} else {
+					send(cmd, Number(!currentVal))
+				}
+			},
+			subscribe: (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+				ensureLoaded(cmd)
 			},
 		},
 

@@ -127,4 +127,12 @@ export namespace BusCommands {
 	export function DelayAmount(bus: number): string {
 		return `${DelayNode(bus)}/dly`
 	}
+
+	export function EqNode(bus: number): string {
+		return `${Node(bus)}/eq`
+	}
+
+	export function EqOn(bus: number): string {
+		return `${EqNode(bus)}/on`
+	}
 }
