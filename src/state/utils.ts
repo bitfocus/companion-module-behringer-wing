@@ -50,8 +50,8 @@ export function getNumberFromState(cmd: string, state: WingState): number | unde
 
 export function getBooleanFromState(cmd: string, state: WingState): boolean | undefined {
 	const val = getNumberFromState(cmd, state)
-
-	if (val) return val > 0
+	if (val == 0) return false
+	if (val == 1) return true
 	return undefined
 }
 
