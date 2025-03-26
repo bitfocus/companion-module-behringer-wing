@@ -71,7 +71,7 @@ export function runTransition(
 		getAlgorithm(action, 'fadeAlgorithm'),
 		getCurve(action, 'fadeType'),
 	)
-	state.set(cmd, [{ type: 'f', value: target }])
+	state.set(cmd, target)
 }
 
 export function getColorCommand(sel: string, val: number): string {
@@ -158,10 +158,10 @@ export function getSoloCommand(sel: string, val: number): string {
 	return cmd
 }
 
-export function getFaderCommand(sel: string, val: number): string {
+export function getFaderCommand(sel: string, val: number, state: WingState): string {
 	let cmd = ''
 	if (sel.startsWith('/ch')) {
-		cmd = ChannelCommands.Fader(val)
+		cmd = state.channels[val].fdr.getPath()
 	} else if (sel.startsWith('/aux')) {
 		cmd = AuxCommands.Fader(val)
 	} else if (sel.startsWith('/bus')) {
