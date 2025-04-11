@@ -11,13 +11,7 @@ import {
 	CompanionFeedbackInfo,
 } from '@companion-module/base'
 // import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
-import {
-	GetDropdown,
-	GetMuteDropdown,
-	getTimeFormatChoices,
-	getTriStateColor,
-	getTriStateTextColor,
-} from './choices/common.js'
+import { GetDropdown, GetMuteDropdown, getTriStateColor, getTriStateTextColor } from './choices/common.js'
 import { getNodeNumber } from './actions/utils.js'
 import { StateUtil } from './state/index.js'
 import { UsbPlayerCommands } from './commands/usbplayer.js'
@@ -34,9 +28,7 @@ export enum FeedbackId {
 	Mute = 'mute',
 	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
-	RecorderTime = 'recorder-time',
 	RecorderState = 'recorder-state',
-	PlayerTime = 'player-time',
 }
 
 function subscribeFeedback(
@@ -160,33 +152,6 @@ export function GetFeedbacksList(
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
-		[FeedbackId.RecorderTime]: {
-			type: 'advanced',
-			name: 'USB Recorder Time',
-			description: 'Current Time of the Recording',
-			options: [GetDropdown('Format', 'format', getTimeFormatChoices())],
-			callback: (): CompanionAdvancedFeedbackResult => {
-				const cmd = UsbPlayerCommands.RecorderTime()
-				const time = StateUtil.getNumberFromState(cmd, state) ?? 'N/A'
-				if (time) {
-					if (isNaN(Number(time))) {
-						return {
-							text: time as string,
-						}
-					} else return {}
-				} else return {}
-			},
-			subscribe: (event): void => {
-				const cmd = UsbPlayerCommands.RecorderTime()
-				subs.subscribePoll(cmd, event.id, event.feedbackId as FeedbackId)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
-			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const cmd = UsbPlayerCommands.RecorderTime()
-				subs.unsubscribePoll(cmd, event.feedbackId as FeedbackId)
-				unsubscribeFeedback(subs, cmd, event)
-			},
-		},
 		[FeedbackId.RecorderState]: {
 			type: 'advanced',
 			name: 'USB Recorder State',
@@ -233,28 +198,6 @@ export function GetFeedbacksList(
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
-				unsubscribeFeedback(subs, cmd, event)
-			},
-		},
-		[FeedbackId.PlayerTime]: {
-			type: 'advanced',
-			name: 'USB Player Time',
-			description: 'Current Time of the USB Player',
-			options: [GetDropdown('Format', 'format', getTimeFormatChoices())],
-			callback: (): CompanionAdvancedFeedbackResult => {
-				const cmd = UsbPlayerCommands.PlayerTotalTime()
-				return {
-					text: `${StateUtil.getNumberFromState(cmd, state) ?? 'N/A'}`,
-				}
-			},
-			subscribe: (event): void => {
-				const cmd = UsbPlayerCommands.PlayerTotalTime()
-				subs.subscribePoll(cmd, event.id, event.feedbackId as FeedbackId)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
-			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const cmd = UsbPlayerCommands.PlayerTotalTime()
-				subs.unsubscribePoll(cmd, event.feedbackId as FeedbackId)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},

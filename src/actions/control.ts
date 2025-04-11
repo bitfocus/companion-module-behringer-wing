@@ -1,4 +1,4 @@
-import { CompanionActionDefinitions } from '@companion-module/base'
+import { CompanionActionDefinitions, CompanionOptionValues } from '@companion-module/base'
 import { CompanionActionWithCallback } from './common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
@@ -9,7 +9,6 @@ import { getIdLabelPair } from '../choices/utils.js'
 
 export enum OtherActionId {
 	RecallScene = 'recall-scene',
-	RecallSceneFromList = 'recall-scene-from-list',
 	SendLibraryAction = 'send-library-action',
 }
 
@@ -17,76 +16,65 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 	const send = self.sendCommand
 	const state = self.state
 	const ensureLoaded = self.ensureLoaded
+	const subscriptions = self.subscriptions
 
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.RecallScene]: {
 			name: 'Recall Scene',
-			description: 'Recall a scene and optionally go to it',
+			description:
+				'ATTENTION: if you have the same scene name twice in your show, you will not be able to recall it by name! In this case, use the scene ID instead.',
 			options: [
 				{
+					type: 'checkbox',
+					id: 'useSceneId',
+					label: 'Use Scene Id',
+					default: false,
+				},
+				{
 					type: 'number',
-					id: 'num',
+					id: 'sceneId',
 					label: 'Scene Number',
 					min: 1,
 					max: 16384,
 					default: 1,
+					isVisible: (options: CompanionOptionValues): boolean => {
+						return options.useSceneId != null && options.useSceneId == true
+					},
 				},
 				{
-					type: 'checkbox',
-					id: 'go',
-					label: 'Go to Scene?',
-					default: true,
+					...GetDropdown('Scene Name', 'sceneName', state.namedChoices.scenes),
+					isVisible: (options: CompanionOptionValues): boolean => {
+						return options.useSceneId != null && options.useSceneId == false
+					},
 				},
 			],
 			callback: async (event) => {
-				send(ControlCommands.LibrarySceneSelectionIndex(), event.options.num as number)
-				if (event.options.go) {
-					send(ControlCommands.LibraryAction(), 'GO')
+				const useSceneId = event.options.useSceneId
+				let sceneId = 0
+				if (useSceneId == true) {
+					sceneId = event.options.sceneId as number
+				} else {
+					sceneId = state.sceneNameToIdMap.get(event.options.sceneName as string) ?? 0
 				}
+				send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
+				send(ControlCommands.LibraryAction(), 'GO')
 			},
-			subscribe: () => {
-				const cmd = ControlCommands.LibraryActiveSceneIndex()
-				ensureLoaded(cmd)
-			},
-			learn: () => {
-				const cmd = ControlCommands.LibraryActiveSceneIndex()
-				return { num: StateUtil.getNumberFromState(cmd, state) }
-			},
-		},
-		[OtherActionId.RecallSceneFromList]: {
-			name: 'Recall Scene from List',
-			description:
-				'Recall a scene from a list and optionally go to it (NOTE: When you add/remove/move scenes in your show, you must update this command.)',
-			options: [
-				GetDropdown(
-					'Scene',
-					'num',
-					state.namedChoices.scenes,
-					undefined,
-					'This uses the index of the scene, and changes when scenes are added or removed.',
-				),
-				{
-					type: 'checkbox',
-					id: 'go',
-					label: 'Go to Scene?',
-					default: true,
-				},
-			],
-			callback: async (event) => {
-				const go = event.options.go as boolean
-				send(ControlCommands.LibrarySceneSelectionIndex(), event.options.num as number)
-				if (go) {
-					send(ControlCommands.LibraryAction(), 'GO')
+			subscribe: (event) => {
+				if (event.options.useSceneId == false) {
+					subscriptions.subscribePoll(ControlCommands.LibraryScenes())
 				}
-			},
-			subscribe: () => {
-				const cmd = ControlCommands.LibraryActiveSceneIndex()
-				ensureLoaded(cmd)
+				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
-			learn: () => {
+			learn: (event) => {
+				const sceneIdMap = state.sceneNameToIdMap
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
-				return { num: StateUtil.getNumberFromState(cmd, state) }
+				const sceneId = StateUtil.getNumberFromState(cmd, state)
+				let sceneName = ''
+				for (const [key, value] of sceneIdMap.entries()) {
+					if (value === sceneId) sceneName = key
+				}
+				return { sceneName: sceneName, sceneId: sceneId, useSceneId: event.options.useSceneId }
 			},
 		},
 		[OtherActionId.SendLibraryAction]: {

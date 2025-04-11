@@ -261,6 +261,7 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	variables.push({ variableId: 'active_show_name', name: 'Active Show Name' })
 	variables.push({ variableId: 'active_scene_number', name: 'Active Scene Number' })
 	variables.push({ variableId: 'active_scene_name', name: 'Active Scene Name' })
+	variables.push({ variableId: 'active_scene_folder', name: 'Active Scene Folder' })
 
 	self.setVariableDefinitions(variables)
 }
@@ -526,24 +527,30 @@ function UpdateGpioVariables(self: WingInstance, path: string, value: number): v
 }
 
 function UpdateControlVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
-	const match = path.match(/^\/\$ctl\/lib\/(\$?\w+)/)
-	if (!match) {
-		return
-	}
+	const pathMatch = path.match(/^\/\$ctl\/lib\/(\$?\w+)/)
+	if (!pathMatch) return
 
-	const command = match[1]
+	const command = pathMatch[1]
 
-	if (command == '$actshow') {
-		const showname = args.value as string
+	if (command === '$actshow') {
+		const fullShowPath = String(args.value)
+		const showMatch = fullShowPath.match(/([^/\\]+)(?=\.show$)/)
+		const showname = showMatch?.[1] ?? 'N/A'
 		self.setVariableValues({ active_show_name: showname })
-	} else if (command == '$actidx') {
+	} else if (command === '$actidx') {
 		const index = args.value as number
 		self.setVariableValues({ active_scene_number: index })
-	} else if (command == '$active') {
-		const scene = args.value as string
-		self.setVariableValues({ active_scene_name: scene })
-	} else if (command == '$scenes') {
-		// need to request full list of scenes
+	} else if (command === '$active') {
+		const fullScenePath = String(args.value)
+		const sceneMatch = fullScenePath.match(/([^/\\]+)[/\\]([^/\\]+)\..*$/)
+		const scene = sceneMatch?.[2] ?? 'N/A'
+		const parent = sceneMatch?.[1] ?? 'N/A'
+
+		self.setVariableValues({
+			active_scene_name: scene,
+			active_scene_folder: parent,
+		})
+	} else if (command === '$scenes') {
 		self.sendCommand(ControlCommands.LibraryNode(), '?')
 	}
 }
