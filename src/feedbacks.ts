@@ -12,6 +12,8 @@ import {
 } from '@companion-module/base'
 // import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
 import { GetDropdown, GetMuteDropdown, getTriStateColor, getTriStateTextColor } from './choices/common.js'
+import { getTalkbackOptions } from './choices/config.js'
+import { ConfigurationCommands } from './commands/config.js'
 import { getNodeNumber } from './actions/utils.js'
 import { StateUtil } from './state/index.js'
 import { UsbPlayerCommands } from './commands/usbplayer.js'
@@ -32,6 +34,9 @@ export enum FeedbackId {
 	AesStatus = 'aes-status',
 	RecorderState = 'recorder-state',
 	GpioState = 'gpio-state',
+	Solo = 'solo',
+	TalkbackOn = 'talkback-on',
+	TalkbackAssign = 'talkback-assign',
 }
 
 function subscribeFeedback(
@@ -53,21 +58,21 @@ export function GetFeedbacksList(
 	subs: WingSubscriptions,
 	ensureLoaded: (path: string) => void,
 ): CompanionFeedbackDefinitions {
+	const allChannels = [
+		...state.namedChoices.channels,
+		...state.namedChoices.auxes,
+		...state.namedChoices.busses,
+		...state.namedChoices.matrices,
+		...state.namedChoices.mains,
+	]
+
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
 		[FeedbackId.Mute]: {
 			type: 'boolean',
 			name: 'Mute',
 			description: "React to a change in a channel's mute state",
 			options: [
-				GetDropdown('Selection', 'sel', [
-					...state.namedChoices.channels,
-					...state.namedChoices.auxes,
-					...state.namedChoices.busses,
-					...state.namedChoices.matrices,
-					...state.namedChoices.mains,
-					...state.namedChoices.dcas,
-					...state.namedChoices.mutegroups,
-				]),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
 				GetMuteDropdown('mute', 'State', false),
 			],
 			defaultStyle: {
@@ -96,13 +101,7 @@ export function GetFeedbacksList(
 			name: 'Send Mute',
 			description: "React to a change in a channel's send mute state",
 			options: [
-				GetDropdown('From', 'src', [
-					...state.namedChoices.channels,
-					...state.namedChoices.auxes,
-					...state.namedChoices.busses,
-					...state.namedChoices.matrices,
-					...state.namedChoices.mains,
-				]),
+				GetDropdown('From', 'src', allChannels),
 				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
 				GetMuteDropdown('mute', 'State', false),
 			],
@@ -230,6 +229,98 @@ export function GetFeedbacksList(
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const sel = event.options.sel as number
 				const cmd = ControlCommands.GpioReadState(sel)
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.Solo]: {
+			type: 'boolean',
+			name: 'Solo',
+			description: "React to a change in a channel's solo state",
+			options: [
+				GetDropdown('Selection', 'sel', allChannels),
+				GetDropdown('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(255, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.solo
+			},
+			subscribe: (event): void => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.TalkbackOn]: {
+			type: 'boolean',
+			name: 'Talkback On',
+			description: 'React to the status of a talkback channel.',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(255, 0, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.on
+			},
+			subscribe: (event): void => {
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.TalkbackAssign]: {
+			type: 'boolean',
+			name: 'Talkback Assign',
+			description: 'React to the assignment of a talkback channel to a bus matrix or main',
+			options: [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('Destination', 'dest', [
+					...state.namedChoices.busses,
+					...state.namedChoices.matrices,
+					...state.namedChoices.mains,
+				]),
+				GetDropdown('Assign', 'assign', [getIdLabelPair('1', 'Assigned'), getIdLabelPair('0', 'Not Assigned')]),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const talkback = event.options.tb as string
+				const destination = event.options.dest as string
+				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.assign
+			},
+			subscribe: (event): void => {
+				const talkback = event.options.tb as string
+				const destination = event.options.dest as string
+				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const talkback = event.options.tb as string
+				const destination = event.options.dest as string
+				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
