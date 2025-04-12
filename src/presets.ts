@@ -13,12 +13,12 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 
 	for (let i = 1; i <= model.channels; i++) {
 		presets[`ch${i}-mute-button`] = getMutePreset('ch', i)
-		presets[`ch${i}-solo-button`] = getSoloPreset('ch', i)
+		presets[`ch${i}-boost-and-center-button`] = getBoostAndCenterPreset('ch', i)
 	}
 
 	for (let i = 1; i <= model.auxes; i++) {
 		presets[`aux${i}-mute-button`] = getMutePreset('aux', i)
-		presets[`aux${i}-solo-button`] = getSoloPreset('aux', i)
+		presets[`aux${i}-boost-and-center-button`] = getBoostAndCenterPreset('aux', i)
 	}
 
 	for (let i = 1; i <= model.busses; i++) {
@@ -75,14 +75,14 @@ function getMutePreset(base: string, val: number): CompanionButtonPresetDefiniti
 	}
 }
 
-function getSoloPreset(base: string, val: number): CompanionButtonPresetDefinition {
+function getBoostAndCenterPreset(base: string, val: number): CompanionButtonPresetDefinition {
 	const path = `/${base}/${val}`
 	return {
-		name: 'Solo Button',
-		category: 'Solo',
+		name: 'Boost and Center Button',
+		category: 'Boost',
 		type: 'button',
 		style: {
-			text: `Solo\\n$(wing:${base}${val}_name)`,
+			text: `Boost & Center\\n$(wing:${base}${val}_name)`,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(0, 0, 0),
