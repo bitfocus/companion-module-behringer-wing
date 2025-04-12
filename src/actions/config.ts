@@ -4,7 +4,7 @@ import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-impo
 export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition, 'callback'>
 
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { GetDropdown, GetMuteDropdown, GetNumberField } from '../choices/common.js'
+import { GetDropdown, GetFaderInputField, GetMuteDropdown, GetNumberField } from '../choices/common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
@@ -19,6 +19,9 @@ export enum CommonActions {
 	SetSoloMono = 'set-solo-mono',
 	SetSoloLRSwap = 'set-solo-swap',
 
+	// Monitor
+	SetMonitorLevel = 'set-monitor-level',
+
 	// Talkback
 	TalkbackOn = 'talkback-on',
 	TalkbackMode = 'talkback-mode',
@@ -32,6 +35,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 	const send = self.sendCommand
 	const ensureLoaded = self.ensureLoaded
 	const state = self.state
+	const transitions = self.transitions
 
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
 		////////////////////////////////////////////////////////////////
@@ -118,6 +122,25 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			subscribe: (event) => {
 				if (event.options.swap ?? 0 >= 2) {
 					const cmd = ConfigurationCommands.SoloLRSwap()
+					ensureLoaded(cmd)
+				}
+			},
+		},
+		[CommonActions.SetMonitorLevel]: {
+			name: 'Set Monitor Level',
+			description:
+				'Set the level of a monitor channel. ATTENTION: This command only works on the Rack and Compact Model, due to the full-size Wing having potentiometers as control knobs.',
+			options: [
+				GetDropdown('Monitor', 'mon', [getIdLabelPair('1', 'Monitor 1'), getIdLabelPair('2', 'Monitor 2')], '1'),
+				...GetFaderInputField('level'),
+			],
+			callback: async (event) => {
+				const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions)
+			},
+			subscribe: (event) => {
+				if (event.options.swap ?? 0 >= 2) {
+					const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
 					ensureLoaded(cmd)
 				}
 			},

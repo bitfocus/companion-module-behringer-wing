@@ -107,91 +107,99 @@ export namespace ConfigurationCommands {
 	}
 
 	export function ClockRate(): string {
-		return `${ConfigNode}/clkrate`
+		return `${ConfigNode()}/clkrate`
 	}
 
 	export function ClockSource(): string {
-		return `${ConfigNode}/clksrc`
+		return `${ConfigNode()}/clksrc`
 	}
 
 	export function MainLink(): string {
-		return `${ConfigNode}/mainlink`
+		return `${ConfigNode()}/mainlink`
 	}
 
 	export function DcaGroup(): string {
-		return `${ConfigNode}/dcamgrp`
+		return `${ConfigNode()}/dcamgrp`
 	}
 
 	export function MuteOverride(): string {
-		return `${ConfigNode}/muteovr`
+		return `${ConfigNode()}/muteovr`
 	}
 
 	export function StartMute(): string {
-		return `${ConfigNode}/startmute`
+		return `${ConfigNode()}/startmute`
 	}
 
 	export function UsbConfig(): string {
-		return `${ConfigNode}/usbacfg`
+		return `${ConfigNode()}/usbacfg`
 	}
 
 	export function ScConfig(): string {
-		return `${ConfigNode}/sccfg`
+		return `${ConfigNode()}/sccfg`
 	}
 
-	export function MonitorEqGain(node: MonitorNode, band: MonitorEqBand): string {
-		return `${ConfigNode}/mon/${node}/eq/${band}g`
+	export function MonitorNode(node: number): string {
+		return `${ConfigNode()}/mon/${node}`
 	}
 
-	export function MonitorEqFrequency(node: MonitorNode, band: MonitorEqBand): string {
-		return `${ConfigNode}/mon/${node}/eq/${band}f`
+	export function MonitorLevel(node: number): string {
+		return `${MonitorNode(node)}/lvl`
 	}
 
-	export function MonitorEqQ(node: MonitorNode, band: MonitorEqBand): string {
-		return `${ConfigNode}/mon/${node}/eq/${band}q`
+	export function MonitorEqGain(node: number, band: MonitorEqBand): string {
+		return `${MonitorNode(node)}/eq/${band}g`
 	}
 
-	export function MonitorEqHighShelfGain(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/eq/hsg`
+	export function MonitorEqFrequency(node: number, band: MonitorEqBand): string {
+		return `${MonitorNode(node)}/eq/${band}f`
 	}
 
-	export function MonitorEqHighShelfFrequency(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/eq/hsf`
+	export function MonitorEqQ(node: number, band: MonitorEqBand): string {
+		return `${MonitorNode(node)}/eq/${band}q`
 	}
 
-	export function MonitorLimiterLevel(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/lim`
+	export function MonitorEqHighShelfGain(node: number): string {
+		return `${MonitorNode(node)}/eq/hsg`
 	}
 
-	export function MonitorDelayOn(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/dly/on`
+	export function MonitorEqHighShelfFrequency(node: number): string {
+		return `${MonitorNode(node)}/eq/hsf`
 	}
 
-	export function MonitorDelayMeters(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/dly/m`
+	export function MonitorLimiterLevel(node: number): string {
+		return `${MonitorNode(node)}/lim`
 	}
 
-	export function MonitorDelayDimLevel(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/dim`
+	export function MonitorDelayOn(node: number): string {
+		return `${MonitorNode(node)}/dly/on`
 	}
 
-	export function MonitorPflDim(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/pfldim`
+	export function MonitorDelayMeters(node: number): string {
+		return `${MonitorNode(node)}/dly/m`
 	}
 
-	export function MonitorEqBandSoloTrim(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/eqbdtrim`
+	export function MonitorDelayDimLevel(node: number): string {
+		return `${MonitorNode(node)}/dim`
 	}
 
-	export function MonitorSourceLevel(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/srclvl`
+	export function MonitorPflDim(node: number): string {
+		return `${MonitorNode(node)}/pfldim`
 	}
 
-	export function MonitorSourceMix(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/srcmix`
+	export function MonitorEqBandSoloTrim(node: number): string {
+		return `${MonitorNode(node)}/eqbdtrim`
 	}
 
-	export function MonitorSource(node: MonitorNode): string {
-		return `${ConfigNode}/mon/${node}/src`
+	export function MonitorSourceLevel(node: number): string {
+		return `${MonitorNode(node)}/srclvl`
+	}
+
+	export function MonitorSourceMix(node: number): string {
+		return `${MonitorNode(node)}/srcmix`
+	}
+
+	export function MonitorSource(node: number): string {
+		return `${MonitorNode(node)}/src`
 	}
 
 	export function SoloNode(): string {
