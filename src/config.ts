@@ -1,9 +1,11 @@
 import { type SomeCompanionConfigField } from '@companion-module/base'
 import { WingDeviceDetectorInstance } from './device-detector.js'
+import { ModelChoices, WingModel } from './models/types.js'
 // import { ModelChoices, WingModel } from './models/types.js'
 
 export const fadeUpdateRateDefault = 50
 export const pollUpdateRateDefault = 3000
+export const variableUpdateRateDefault = 100
 
 export const DeskTypes = [
 	{ id: 'wing', label: 'Wing' },
@@ -32,14 +34,15 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			default: '',
 			allowCustom: true,
 		},
-		// {
-		// 	type: 'dropdown',
-		// 	id: 'model',
-		// 	label: 'Desk Type',
-		// 	width: 6,
-		// 	choices: ModelChoices,
-		// 	default: WingModel.Full.toString(),
-		// },
+		{
+			type: 'dropdown',
+			id: 'model',
+			label: 'Desk Type',
+			tooltip: 'Select the variant of the desk that is connected. Placed for potential future use.',
+			width: 6,
+			choices: ModelChoices,
+			default: WingModel.Full.toString(),
+		},
 		{
 			type: 'number',
 			id: 'fadeUpdateRate',
@@ -56,7 +59,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			id: 'statusPollUpdateRate',
 			label: 'Status Poll Rate',
 			tooltip:
-				'Polling rate of the desk status requests.\nSome values need to be actively requested from the desk, this number sets the interval at which those requests occur.',
+				'Some values need to be actively requested from the desk, this number sets the interval in milliseconds at which those requests occur.',
 			width: 5,
 			min: 20,
 			max: 60000,
@@ -65,13 +68,13 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'number',
 			id: 'variableUpdateRate',
-			label:
-				'Rate with which variables are updated.\nDefines how many milliseconds elapse between variable updates. A lower number makes the variables more responsive but may decrease system performance.',
-			tooltip: 'Update Rate of the Variables',
+			label: 'Variable Update Rate',
+			tooltip:
+				'Defines how many milliseconds elapse between variable updates. A lower number makes variables more responsive but may decrease system performance.',
 			width: 5,
 			min: 20,
 			max: 60000,
-			default: 100,
+			default: variableUpdateRateDefault,
 		},
 	]
 }
