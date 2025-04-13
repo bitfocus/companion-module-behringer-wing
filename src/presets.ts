@@ -3,6 +3,7 @@ import { InstanceBaseExt } from './types.js'
 import { WingConfig } from './config.js'
 import { CommonActions } from './actions/common.js'
 import { FeedbackId } from './feedbacks.js'
+import { ConfigActions } from './actions/config.js'
 
 export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPresetDefinitions {
 	const model = _instance.model
@@ -32,6 +33,9 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 	for (let i = 1; i <= model.mains; i++) {
 		presets[`main${i}-mute-button`] = getMutePreset('main', i)
 	}
+
+	presets[`talkback-a-button`] = getTalkbackPreset('A')
+	presets[`talkback-b-button`] = getTalkbackPreset('B')
 
 	return presets
 }
@@ -133,5 +137,46 @@ function getBoostAndCenterPreset(base: string, val: number): CompanionButtonPres
 			},
 		],
 		feedbacks: [],
+	}
+}
+
+function getTalkbackPreset(talkback: 'A' | 'B'): CompanionButtonPresetDefinition {
+	return {
+		name: `Talkback ${talkback}`,
+		category: 'Talkback',
+		type: 'button',
+		style: {
+			text: `TB ${talkback}`,
+			size: 'auto',
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0),
+		},
+		options: {
+			stepAutoProgress: true,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: ConfigActions.TalkbackOn,
+						options: {
+							tb: `${talkback}`,
+							solo: 2,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: FeedbackId.TalkbackOn,
+				options: { tb: `${talkback}`, on: '1' },
+				style: {
+					color: combineRgb(255, 255, 255),
+					bgcolor: combineRgb(255, 0, 0),
+				},
+			},
+		],
 	}
 }
