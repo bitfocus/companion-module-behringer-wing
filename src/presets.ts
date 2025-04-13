@@ -14,24 +14,29 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 
 	for (let i = 1; i <= model.channels; i++) {
 		presets[`ch${i}-mute-button`] = getMutePreset('ch', i)
+		presets[`ch${i}-solo-button`] = getSoloPreset('ch', i)
 		presets[`ch${i}-boost-and-center-button`] = getBoostAndCenterPreset('ch', i)
 	}
 
 	for (let i = 1; i <= model.auxes; i++) {
 		presets[`aux${i}-mute-button`] = getMutePreset('aux', i)
+		presets[`aux${i}-solo-button`] = getSoloPreset('aux', i)
 		presets[`aux${i}-boost-and-center-button`] = getBoostAndCenterPreset('aux', i)
 	}
 
 	for (let i = 1; i <= model.busses; i++) {
 		presets[`bus${i}-mute-button`] = getMutePreset('bus', i)
+		presets[`bus${i}-solo-button`] = getSoloPreset('bus', i)
 	}
 
 	for (let i = 1; i <= model.matrices; i++) {
 		presets[`mtx${i}-mute-button`] = getMutePreset('mtx', i)
+		presets[`mtx${i}-solo-button`] = getSoloPreset('mtx', i)
 	}
 
 	for (let i = 1; i <= model.mains; i++) {
 		presets[`main${i}-mute-button`] = getMutePreset('main', i)
+		presets[`main${i}-solo-button`] = getSoloPreset('main', i)
 	}
 
 	presets[`talkback-a-button`] = getTalkbackPreset('A')
@@ -73,6 +78,48 @@ function getMutePreset(base: string, val: number): CompanionButtonPresetDefiniti
 				style: {
 					color: combineRgb(255, 255, 255),
 					bgcolor: combineRgb(255, 0, 0),
+				},
+			},
+		],
+	}
+}
+
+function getSoloPreset(base: string, val: number): CompanionButtonPresetDefinition {
+	const path = `/${base}/${val}`
+	return {
+		name: `SoloButton`,
+		category: 'Solo',
+		type: 'button',
+		style: {
+			text: `Solo\\n$(wing:${base}${val}_name)`,
+			size: 'auto',
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0),
+		},
+		options: {
+			stepAutoProgress: true,
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: CommonActions.SetSolo,
+						options: {
+							sel: `${path}`,
+							solo: 2,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: FeedbackId.Solo,
+				options: { sel: path, solo: '1' },
+				style: {
+					color: combineRgb(0, 0, 0),
+					bgcolor: combineRgb(255, 255, 0),
 				},
 			},
 		],
