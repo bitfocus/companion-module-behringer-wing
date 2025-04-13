@@ -5,7 +5,6 @@ import { ControlCommands } from './commands/control.js'
 
 export function UpdateVariableDefinitions(self: WingInstance): void {
 	const model = self.model
-	// const state = self.state
 
 	const variables = []
 
@@ -259,8 +258,12 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	}
 
 	variables.push({ variableId: 'active_show_name', name: 'Active Show Name' })
+	variables.push({ variableId: 'previous_scene_number', name: 'Previous Scene Number' })
 	variables.push({ variableId: 'active_scene_number', name: 'Active Scene Number' })
+	variables.push({ variableId: 'next_scene_number', name: 'Next Scene Number' })
+	variables.push({ variableId: 'previous_scene_name', name: 'Previous Scene Name' })
 	variables.push({ variableId: 'active_scene_name', name: 'Active Scene Name' })
+	variables.push({ variableId: 'next_scene_name', name: 'Next Scene Name' })
 	variables.push({ variableId: 'active_scene_folder', name: 'Active Scene Folder' })
 
 	self.setVariableDefinitions(variables)
@@ -271,8 +274,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		const path = msg.address
 		const args = msg.args as OSCMetaArgument[]
 
-		// console.log('Updating variable:', path, args)
-
+		self.log('debug', `'Updating variable:', ${path}, ${JSON.stringify(args)}`)
 		UpdateNameVariables(self, path, args[0]?.value as string)
 		UpdateMuteVariables(self, path, args[0]?.value as number)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
@@ -323,7 +325,6 @@ function UpdateMuteVariables(self: WingInstance, path: string, value: number): v
 	if (dest == null) {
 		const varName = `${source}${srcnum}_mute`
 		self.setVariableValues({ [varName]: value })
-		console.log(varName)
 	} else {
 		if (dest === 'send') {
 			dest = 'bus'
@@ -332,7 +333,6 @@ function UpdateMuteVariables(self: WingInstance, path: string, value: number): v
 		}
 		const varName = `${source}${srcnum}_${dest}${destnum}_mute`
 		self.setVariableValues({ [varName]: value })
-		console.log(varName)
 	}
 }
 
@@ -538,8 +538,11 @@ function UpdateControlVariables(self: WingInstance, path: string, args: OSCMetaA
 		const showname = showMatch?.[1] ?? 'N/A'
 		self.setVariableValues({ active_show_name: showname })
 	} else if (command === '$actidx') {
-		const index = args.value as number
-		self.setVariableValues({ active_scene_number: index })
+		const index = Number(args.value)
+		self.setVariableValues({
+			active_scene_number: index,
+		})
+		UpdateShowControlVariables(self)
 	} else if (command === '$active') {
 		const fullScenePath = String(args.value)
 		const sceneMatch = fullScenePath.match(/([^/\\]+)[/\\]([^/\\]+)\..*$/)
@@ -553,4 +556,33 @@ function UpdateControlVariables(self: WingInstance, path: string, args: OSCMetaA
 	} else if (command === '$scenes') {
 		self.sendCommand(ControlCommands.LibraryNode(), '?')
 	}
+}
+
+export function UpdateShowControlVariables(self: WingInstance): void {
+	const index = Number(self.getVariableValue('active_scene_number'))
+	const nameMap = self.state.sceneNameToIdMap
+
+	const previous_number = index > 0 ? index - 1 : index
+	const next_number = index < nameMap.size - 1 ? index + 1 : index
+	self.setVariableValues({
+		previous_scene_number: previous_number,
+		active_scene_number: index,
+		next_scene_number: next_number,
+	})
+
+	function getKeyByValue(map: Map<string, number>, value: number): string | undefined {
+		for (const [key, val] of map.entries()) {
+			if (val === value) return key
+		}
+		return undefined
+	}
+
+	const nextName = getKeyByValue(nameMap, index + 1)
+	const currentName = getKeyByValue(nameMap, index)
+	const prevName = getKeyByValue(nameMap, index - 1)
+	self.setVariableValues({
+		previous_scene_name: prevName as string,
+		active_scene_name: currentName as string,
+		next_scene_name: nextName as string,
+	})
 }

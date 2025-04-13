@@ -86,7 +86,6 @@ export class WingState implements IStoredChannelSubject {
 	}
 
 	public get(path: string): osc.MetaArgument[] | undefined {
-		// console.log(`Getting ${path}`)
 		return this.data.get(path)
 	}
 	public set(path: string, data: osc.MetaArgument[]): void {
@@ -94,14 +93,7 @@ export class WingState implements IStoredChannelSubject {
 		if (data[0].value == '-oo') {
 			data[0] = { type: 'f', value: -140 }
 		}
-		// if (data[0].type == 's') {
-		// 	const strAsNum = Number(data[0].value)
-		// 	console.log(`Setting ${key} to ${strAsNum}`)
-		// 	if (strAsNum != undefined) data[0] = { type: 'f', value: strAsNum }
-		// }
-
 		this.data.set(key, data)
-		// console.log(`Setting ${key}`)
 	}
 
 	public setPressValue(path: string, value: number): void {

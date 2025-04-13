@@ -52,7 +52,6 @@ export function EqParameterDropdown(id: string, modelId: string, bus?: boolean):
 			choices: StdEqBandChoices(bus),
 			default: 'l',
 			isVisible: (opt) => {
-				// console.log(opt[modelId]?.toString())
 				return opt[modelId]?.toString() != 'STD'
 			},
 		},

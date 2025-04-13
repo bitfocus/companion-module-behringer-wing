@@ -217,7 +217,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					console.log('targetValue', targetValue)
 					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue)
 				}
 			},
@@ -338,7 +337,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					console.log('targetValue', targetValue)
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
@@ -430,7 +428,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					console.log('targetValue', targetValue)
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
 				}
 			},
@@ -553,7 +550,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					default: 0,
 					range: true,
 					isVisible: (options) => {
-						console.log('options: ', options)
 						return (options.mode as string) === 'M'
 					},
 				},
@@ -727,7 +723,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					console.log('targetValue', targetValue)
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
@@ -855,7 +850,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					console.log('targetValue', targetValue)
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
 				}
 			},
@@ -981,7 +975,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					console.log('targetValue', targetValue)
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
@@ -1003,7 +996,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const src = event.options.src as string
 				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				console.log(targetValue)
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
 					targetValue -= delta
