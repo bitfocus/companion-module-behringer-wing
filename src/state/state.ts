@@ -191,9 +191,9 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.mutegroups = []
 		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(mgrp)) ?? `Mute ${mgrp}`)
+			this.names.channels.push(this.getRealName(Commands.Channel.RealName(mgrp)) ?? `Mute Group ${mgrp}`)
 			this.namedChoices.mutegroups.push(
-				this.getNameForChoice(mgrp, Commands.MuteGroup.Node(mgrp), Commands.MuteGroup.Name(mgrp), 'MuteGroup', 'MGRP'),
+				this.getNameForChoice(mgrp, Commands.MuteGroup.Node(mgrp), Commands.MuteGroup.Name(mgrp), 'Mute Group', 'MGRP'),
 			)
 		}
 	}

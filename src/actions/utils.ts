@@ -136,7 +136,7 @@ export function getMuteCommand(sel: string, val: number): string {
 		cmd = MainCommands.Mute(val)
 	} else if (sel.startsWith('/dca')) {
 		cmd = DcaCommands.Mute(val)
-	} else if (sel.startsWith('/mute')) {
+	} else if (sel.startsWith('/mgrp')) {
 		cmd = MuteGroupCommands.Mute(val)
 	}
 	return cmd
