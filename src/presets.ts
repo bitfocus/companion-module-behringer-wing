@@ -217,7 +217,7 @@ function getTalkbackPreset(talkback: 'A' | 'B'): CompanionButtonPresetDefinition
 		],
 		feedbacks: [
 			{
-				feedbackId: FeedbackId.TalkbackOn,
+				feedbackId: FeedbackId.Talkback,
 				options: { tb: `${talkback}`, on: '1' },
 				style: {
 					color: combineRgb(255, 255, 255),

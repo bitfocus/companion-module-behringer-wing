@@ -9,7 +9,6 @@ export interface InstanceBaseExt<TConfig> extends InstanceBase<TConfig> {
 	osc: osc.UDPPort
 	transitions: WingTransitions
 	state: WingState
-	model: ModelSpec
 	subscriptions: WingSubscriptions
 	model: ModelSpec
 	sendCommand: (cmd: string, argument?: number | string, preferFloat?: boolean) => void
