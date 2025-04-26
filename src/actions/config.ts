@@ -11,6 +11,7 @@ import * as ActionUtil from './utils.js'
 import { ConfigurationCommands } from '../commands/config.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import { getTalkbackOptions, getTalkbackModeOptions, getTalkbackIndividualOptions } from '../choices/config.js'
+import { WingRack } from '../models/rack.js'
 
 export enum CommonActions {
 	// Solo
@@ -36,6 +37,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 	const ensureLoaded = self.ensureLoaded
 	const state = self.state
 	const transitions = self.transitions
+	const model = self.model
 
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
 		////////////////////////////////////////////////////////////////
@@ -126,25 +128,28 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				}
 			},
 		},
-		[CommonActions.SetMonitorLevel]: {
-			name: 'Set Monitor Level',
-			description:
-				'Set the level of a monitor channel. ATTENTION: This command only works on the Rack and Compact Model, due to the full-size Wing having potentiometers as control knobs.',
-			options: [
-				GetDropdown('Monitor', 'mon', [getIdLabelPair('1', 'Monitor 1'), getIdLabelPair('2', 'Monitor 2')], '1'),
-				...GetFaderInputField('level'),
-			],
-			callback: async (event) => {
-				const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
-				ActionUtil.runTransition(cmd, 'level', event, state, transitions)
-			},
-			subscribe: (event) => {
-				if (event.options.swap ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
-					ensureLoaded(cmd)
-				}
-			},
-		},
+		[CommonActions.SetMonitorLevel]:
+			model == WingRack
+				? {
+						name: 'Set Monitor Level',
+						description:
+							'Set the level of a monitor channel. ATTENTION: This command only works on the Rack and Compact Model, due to the full-size Wing having potentiometers as control knobs.',
+						options: [
+							GetDropdown('Monitor', 'mon', [getIdLabelPair('1', 'Monitor 1'), getIdLabelPair('2', 'Monitor 2')], '1'),
+							...GetFaderInputField('level'),
+						],
+						callback: async (event) => {
+							const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
+							ActionUtil.runTransition(cmd, 'level', event, state, transitions)
+						},
+						subscribe: (event) => {
+							if (event.options.swap ?? 0 >= 2) {
+								const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
+								ensureLoaded(cmd)
+							}
+						},
+					}
+				: undefined,
 		////////////////////////////////////////////////////////////////
 		// Talkback
 		////////////////////////////////////////////////////////////////
