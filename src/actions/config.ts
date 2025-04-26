@@ -4,7 +4,13 @@ import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-impo
 export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition, 'callback'>
 
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { GetDropdown, GetFaderInputField, GetMuteDropdown, GetNumberField } from '../choices/common.js'
+import {
+	GetDropdown,
+	GetFaderInputField,
+	GetMuteDropdown,
+	GetNumberField,
+	GetOnOffToggleDropdown,
+} from '../choices/common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
@@ -13,7 +19,7 @@ import { getIdLabelPair } from '../choices/utils.js'
 import { getTalkbackOptions, getTalkbackModeOptions, getTalkbackIndividualOptions } from '../choices/config.js'
 import { WingRack } from '../models/rack.js'
 
-export enum CommonActions {
+export enum ConfigActions {
 	// Solo
 	SetSoloMute = 'set-solo-mute',
 	SetSoloDim = 'set-solo-dim',
@@ -39,11 +45,11 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 	const transitions = self.transitions
 	const model = self.model
 
-	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
+	const actions: { [id in ConfigActions]: CompanionActionWithCallback | undefined } = {
 		////////////////////////////////////////////////////////////////
 		// Solo
 		////////////////////////////////////////////////////////////////
-		[CommonActions.SetSoloMute]: {
+		[ConfigActions.SetSoloMute]: {
 			name: 'Set Solo Mute',
 			description: 'Set or toggle the mute state of the solo output.',
 			options: [GetMuteDropdown('mute')],
@@ -59,7 +65,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				}
 			},
 		},
-		[CommonActions.SetSoloDim]: {
+		[ConfigActions.SetSoloDim]: {
 			name: 'Set Solo Dim',
 			description: 'Set or toggle the dim state of the solo output.',
 			options: [
@@ -82,7 +88,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				}
 			},
 		},
-		[CommonActions.SetSoloMono]: {
+		[ConfigActions.SetSoloMono]: {
 			name: 'Set Solo Mono',
 			description: 'Set or toggle the mono state of the solo output.',
 			options: [
@@ -105,7 +111,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				}
 			},
 		},
-		[CommonActions.SetSoloLRSwap]: {
+		[ConfigActions.SetSoloLRSwap]: {
 			name: 'Set Solo LR Swap',
 			description: 'Set the left-right channel swap of the solo channel.',
 			options: [
@@ -128,7 +134,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				}
 			},
 		},
-		[CommonActions.SetMonitorLevel]:
+		[ConfigActions.SetMonitorLevel]:
 			model == WingRack
 				? {
 						name: 'Set Monitor Level',
@@ -153,20 +159,17 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 		////////////////////////////////////////////////////////////////
 		// Talkback
 		////////////////////////////////////////////////////////////////
-		[CommonActions.TalkbackOn]: {
+		[ConfigActions.TalkbackOn]: {
 			name: 'Talkback On',
 			description: 'Enable or disable the on state of a talkback.',
-			options: [
-				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
-				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
-			],
+			options: [GetDropdown('Talkback', 'tb', getTalkbackOptions()), GetOnOffToggleDropdown('solo', 'Solo')],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
-				const val = event.options.on as number
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'solo'), state)
 				send(cmd, val)
 			},
 		},
-		[CommonActions.TalkbackMode]: {
+		[ConfigActions.TalkbackMode]: {
 			name: 'Talkback Mode',
 			description: 'Set the mode of a talkback channel.',
 			options: [
@@ -179,7 +182,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val)
 			},
 		},
-		[CommonActions.TalkbackMonitorDim]: {
+		[ConfigActions.TalkbackMonitorDim]: {
 			name: 'Talkback Monitor Dim',
 			description: 'Set the the monitor dim amount of a talkback channel.',
 			options: [
@@ -192,7 +195,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val, true)
 			},
 		},
-		[CommonActions.TalkbackBusDim]: {
+		[ConfigActions.TalkbackBusDim]: {
 			name: 'Talkback Bus Dim',
 			description: 'Set the the bus dim amount of a talkback channel.',
 			options: [
@@ -205,7 +208,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				send(cmd, val, true)
 			},
 		},
-		[CommonActions.TalkbackAssign]: {
+		[ConfigActions.TalkbackAssign]: {
 			name: 'Talkback Assign',
 			description: 'Enable, disable or toggle the assignment of a talkback to a bus, matrix or main.',
 			options: [
@@ -237,7 +240,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				}
 			},
 		},
-		[CommonActions.TalkbackIndividualLevels]: {
+		[ConfigActions.TalkbackIndividualLevels]: {
 			name: 'Talkback Individual Levels',
 			description: 'Enable or disable individual bus and main talkback levels.',
 			options: [

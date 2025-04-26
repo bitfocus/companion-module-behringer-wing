@@ -440,7 +440,7 @@ export function getTriStateTextColor(
 	thirdColor?: number,
 ): number {
 	if (text == (okText ?? 'OK')) {
-		return okColor ?? combineRgb(255, 255, 255)
+		return okColor ?? combineRgb(0, 0, 0)
 	} else if (text == (errorText ?? 'ERR')) {
 		return errorColor ?? combineRgb(255, 255, 255)
 	} else {
