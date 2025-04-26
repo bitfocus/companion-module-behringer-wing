@@ -31,4 +31,20 @@ export namespace ControlCommands {
 	export function LibrarySceneSelectionIndex(): string {
 		return `${LibraryNode()}/$actionidx`
 	}
+
+	export function GpioNode(gpio: number): string {
+		return `${Node()}/gpio/${gpio}`
+	}
+
+	export function GpioMode(gpio: number): string {
+		return `${GpioNode(gpio)}/mode`
+	}
+
+	export function GpioState(gpio: number): string {
+		return `${GpioNode(gpio)}/gpstate`
+	}
+
+	export function GpioReadState(gpio: number): string {
+		return `${GpioNode(gpio)}/$state`
+	}
 }

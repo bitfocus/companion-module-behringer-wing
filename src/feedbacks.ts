@@ -18,6 +18,8 @@ import { UsbPlayerCommands } from './commands/usbplayer.js'
 import * as ActionUtil from './actions/utils.js'
 import { getIdLabelPair } from './choices/utils.js'
 import { StatusCommands } from './commands/status.js'
+import { getGpios } from './choices/control.js'
+import { ControlCommands } from './commands/control.js'
 
 type CompanionFeedbackWithCallback = SetRequired<
 	CompanionBooleanFeedbackDefinition | CompanionAdvancedFeedbackDefinition,
@@ -29,6 +31,7 @@ export enum FeedbackId {
 	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
 	RecorderState = 'recorder-state',
+	GpioState = 'gpio-state',
 }
 
 function subscribeFeedback(
@@ -198,6 +201,35 @@ export function GetFeedbacksList(
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.GpioState]: {
+			type: 'boolean',
+			name: 'GPIO State',
+			description: "React to a change in a gpio's state",
+			options: [
+				GetDropdown('Selection', 'sel', getGpios(4)),
+				GetDropdown('State', 'state', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const sel = event.options.sel as number
+				const cmd = ControlCommands.GpioReadState(sel)
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.state
+			},
+			subscribe: (event): void => {
+				const sel = event.options.sel as number
+				const cmd = ControlCommands.GpioReadState(sel)
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const sel = event.options.sel as number
+				const cmd = ControlCommands.GpioReadState(sel)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
