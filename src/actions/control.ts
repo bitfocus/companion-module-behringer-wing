@@ -4,12 +4,17 @@ import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { ControlCommands } from '../commands/control.js'
 import { StateUtil } from '../state/index.js'
-import { GetDropdown } from '../choices/common.js'
+import { GetDropdown, GetOnOffToggleDropdown } from '../choices/common.js'
 import { getIdLabelPair } from '../choices/utils.js'
+import { getGpioModes } from '../choices/control.js'
+import { getGpios } from '../choices/control.js'
+import * as ActionUtil from './utils.js'
 
 export enum OtherActionId {
 	RecallScene = 'recall-scene',
 	SendLibraryAction = 'send-library-action',
+	SetGpioMode = 'set-gpio-mode',
+	SetGpioState = 'set-gpio-state',
 }
 
 export function createControlActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -17,6 +22,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 	const state = self.state
 	const ensureLoaded = self.ensureLoaded
 	const subscriptions = self.subscriptions
+	const model = self.model
 
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.RecallScene]: {
@@ -102,6 +108,32 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				}
 				const cmd = ControlCommands.LibraryAction()
 				send(cmd, act)
+			},
+		},
+		[OtherActionId.SetGpioMode]: {
+			name: 'Set GPIO Mode',
+			description: 'Configure the mode of a GPIO',
+			options: [
+				GetDropdown('Mode', 'mode', getGpioModes(), 'TGLNO'),
+				GetDropdown('GPIO', 'gpio', getGpios(model.gpio), '1'),
+			],
+			callback: async (event) => {
+				const gpio = event.options.gpio as number
+				const val = event.options.mode as string
+				const cmd = ControlCommands.GpioMode(gpio)
+				send(cmd, val)
+			},
+		},
+		[OtherActionId.SetGpioState]: {
+			name: 'Set GPIO State',
+			description: 'Set the state of a GPIO',
+			options: [GetDropdown('Selection', 'sel', getGpios(model.gpio), '1'), GetOnOffToggleDropdown('state', 'State')],
+			callback: async (event) => {
+				const sel = event.options.sel as number
+				const cmd = ControlCommands.GpioState(sel)
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'state'), state)
+
+				send(cmd, val)
 			},
 		},
 	}
