@@ -58,8 +58,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		this.osc = new osc.UDPPort({})
 		this.subscriptions = new WingSubscriptions()
-		this.model = getDeskModel(WingModel.Full)
-		this.state = new WingState(this.model)
+		this.model = getDeskModel(WingModel.Full) // default, later set in init
+		this.state = new WingState(this.model) // default, later set in init
 
 		this.debounceUpdateCompanion = debounceFn(this.updateCompanionWithState.bind(this), {
 			wait: 200,
@@ -87,6 +87,9 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	async init(config: WingConfig): Promise<void> {
 		this.config = config
+		this.model = getDeskModel(this.config.model)
+		this.state = new WingState(this.model)
+		this.log('error', `${this.model.gpio}`)
 
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
 		this.updateStatus(InstanceStatus.Connecting)
@@ -143,6 +146,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	async configUpdated(config: WingConfig): Promise<void> {
 		this.config = config
+		this.model = getDeskModel(this.config.model)
+		this.state = new WingState(this.model)
 
 		this.subscriptions = new WingSubscriptions()
 		this.state = new WingState(this.model)

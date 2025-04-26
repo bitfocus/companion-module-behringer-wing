@@ -15,6 +15,7 @@ export const DeskTypes = [
 export interface WingConfig {
 	host?: string
 	port?: number
+	model?: WingModel
 	fadeUpdateRate?: number
 	statusPollUpdateRate?: number
 	variableUpdateRate?: number
@@ -42,6 +43,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 6,
 			choices: ModelChoices,
 			default: WingModel.Full.toString(),
+			allowCustom: true,
 		},
 		{
 			type: 'number',
