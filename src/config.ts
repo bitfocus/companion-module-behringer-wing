@@ -43,7 +43,6 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 6,
 			choices: ModelChoices,
 			default: WingModel.Full.toString(),
-			allowCustom: true,
 		},
 		{
 			type: 'number',
