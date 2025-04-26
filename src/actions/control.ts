@@ -22,6 +22,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 	const state = self.state
 	const ensureLoaded = self.ensureLoaded
 	const subscriptions = self.subscriptions
+	const model = self.model
 
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.RecallScene]: {
@@ -112,7 +113,10 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 		[OtherActionId.SetGpioMode]: {
 			name: 'Set GPIO Mode',
 			description: 'Configure the mode of a GPIO',
-			options: [GetDropdown('Mode', 'mode', getGpioModes(), 'TGLNO'), GetDropdown('GPIO', 'gpio', getGpios(4), '1')],
+			options: [
+				GetDropdown('Mode', 'mode', getGpioModes(), 'TGLNO'),
+				GetDropdown('GPIO', 'gpio', getGpios(model.gpio), '1'),
+			],
 			callback: async (event) => {
 				const gpio = event.options.gpio as number
 				const val = event.options.mode as string
@@ -123,7 +127,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 		[OtherActionId.SetGpioState]: {
 			name: 'Set GPIO State',
 			description: 'Set the state of a GPIO',
-			options: [GetDropdown('Selection', 'sel', getGpios(4), '1'), GetOnOffToggleDropdown('state', 'State')],
+			options: [GetDropdown('Selection', 'sel', getGpios(model.gpio), '1'), GetOnOffToggleDropdown('state', 'State')],
 			callback: async (event) => {
 				const sel = event.options.sel as number
 				const cmd = ControlCommands.GpioState(sel)
