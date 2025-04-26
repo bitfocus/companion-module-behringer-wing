@@ -35,7 +35,7 @@ export enum FeedbackId {
 	RecorderState = 'recorder-state',
 	GpioState = 'gpio-state',
 	Solo = 'solo',
-	TalkbackOn = 'talkback-on',
+	Talkback = 'talkback',
 	TalkbackAssign = 'talkback-assign',
 }
 
@@ -261,9 +261,9 @@ export function GetFeedbacksList(
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
-		[FeedbackId.TalkbackOn]: {
+		[FeedbackId.Talkback]: {
 			type: 'boolean',
-			name: 'Talkback On',
+			name: 'Talkback',
 			description: 'React to the status of a talkback channel.',
 			options: [
 				GetDropdown('Talkback', 'tb', getTalkbackOptions()),

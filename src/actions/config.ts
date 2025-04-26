@@ -4,7 +4,13 @@ import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-impo
 export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition, 'callback'>
 
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { GetDropdown, GetFaderInputField, GetMuteDropdown, GetNumberField, GetOnOffToggleDropdown } from '../choices/common.js'
+import {
+	GetDropdown,
+	GetFaderInputField,
+	GetMuteDropdown,
+	GetNumberField,
+	GetOnOffToggleDropdown,
+} from '../choices/common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
