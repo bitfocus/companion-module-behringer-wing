@@ -8,7 +8,11 @@ import {
 import PQueue from 'p-queue'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
-import { UpdateVariables as UpdateAllVariables, UpdateVariableDefinitions } from './variables.js'
+import {
+	UpdateVariables as UpdateAllVariables,
+	UpdateShowControlVariables,
+	UpdateVariableDefinitions,
+} from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
 import { FeedbackId, GetFeedbacksList } from './feedbacks.js'
@@ -27,6 +31,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	model: ModelSpec
 	osc: osc.UDPPort
 	subscriptions: WingSubscriptions
+	connected: boolean = false
 
 	private heartbeatTimer: NodeJS.Timeout | undefined
 	private reconnectTimer: NodeJS.Timeout | undefined
@@ -216,6 +221,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.osc.on('error', (err: Error): void => {
+			this.connected = false
 			this.log('error', `Error: ${err.message}`)
 			this.updateStatus(InstanceStatus.ConnectionFailure, err.message)
 
@@ -273,13 +279,16 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.osc.on('message', (message): void => {
-			this.updateStatus(InstanceStatus.Ok)
+			if (this.connected == false) {
+				this.updateStatus(InstanceStatus.Ok)
+				this.connected = true
+			}
 			const args = message.args as osc.MetaArgument[]
-			// this.log('debug', `Received ${JSON.stringify(message)}`)
+			this.log('debug', `Received ${JSON.stringify(message)}`)
 			this.state.set(message.address, args)
 
 			if (this.inFlightRequests[message.address]) {
-				// this.log('debug', `Received answer for request ${message.address}`)
+				this.log('debug', `Received answer for request ${message.address}`)
 				this.inFlightRequests[message.address]()
 				delete this.inFlightRequests[message.address]
 			}
@@ -325,15 +334,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		const args = msg.args as osc.MetaArgument[]
 
 		const libRe = /\/\$ctl\/lib/
-		// const usbRe = /\/play/
-		// const sd1Re = /\cards\/wlive\/1\/\$stat/
-		// const sd2Re = /\cards\/wlive\/2\/\$stat/
-
-		// scene list
 		if (libRe.test(msg.address)) {
 			const content = String(args[0]?.value ?? '')
 			const scenes = content.match(/\$scenes\s+list\s+\[([^\]]+)\]/)
-			console.log(scenes)
+			UpdateShowControlVariables(this)
 			if (scenes) {
 				const sceneList = scenes[1].split(',').map((s) => s.trim())
 				const newScenes = sceneList.map((s) => ({ id: s, label: s }))
