@@ -263,6 +263,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.osc.on('close' as any, () => {
+			this.log('info', `Closed connection for ${this.config.host}:${this.config.port}`)
 			if (this.heartbeatTimer !== undefined) {
 				clearInterval(this.heartbeatTimer)
 				this.heartbeatTimer = undefined
@@ -284,7 +285,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				this.connected = true
 			}
 			const args = message.args as osc.MetaArgument[]
-			this.log('debug', `Received ${JSON.stringify(message)}`)
+			this.log('debug', `OSC RX:${JSON.stringify(message)}`)
 			this.state.set(message.address, args)
 
 			if (this.inFlightRequests[message.address]) {
@@ -310,6 +311,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	private pulse(): void {
 		try {
 			this.sendCommand('/WING?')
+			this.log('debug', 'Requesting Wing Data')
 		} catch (_e) {
 			// Ignore
 		}
@@ -318,6 +320,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		if (this.osc) {
 			try {
 				this.sendCommand('/*S', undefined)
+				this.log('debug', `Subscribing for updates on IP ${this.config.host}`)
 			} catch (_e) {
 				// Ignore
 			}
@@ -429,12 +432,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		} else if (argument == undefined) {
 			args = []
 		} else {
-			console.error('Unsupported argument type. Command aborted.')
+			this.log('error', `Unsupported argument type! ${JSON.stringify(argument)} has type ${typeof argument}.`)
 		}
 		const command = {
 			address: cmd,
 			args: args,
 		}
+		this.log('debug', `OSC TX: ${JSON.stringify(command)}`)
 		this.osc.send(command)
 		this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
 	}
@@ -462,7 +466,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			})
 			.catch((_e: unknown) => {
 				delete this.inFlightRequests[path]
-				// this.log('error', `Request failed for ${path}`)
+				this.log('debug', `Request failed for ${path}`)
 			})
 	}
 }
