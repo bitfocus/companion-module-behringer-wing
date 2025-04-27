@@ -336,8 +336,15 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			console.log(scenes)
 			if (scenes) {
 				const sceneList = scenes[1].split(',').map((s) => s.trim())
-				this.state.namedChoices.scenes = sceneList.map((s) => ({ id: s, label: s }))
-				this.state.sceneNameToIdMap = new Map(sceneList.map((s, i) => [s, i + 1]))
+				const newScenes = sceneList.map((s) => ({ id: s, label: s }))
+				const newSceneNameToIdMap = new Map(sceneList.map((s, i) => [s, i + 1]))
+
+				if (newSceneNameToIdMap != this.state.sceneNameToIdMap) {
+					this.log('info', 'Updating scene map')
+					this.state.namedChoices.scenes = newScenes
+					this.state.sceneNameToIdMap = newSceneNameToIdMap
+					this.debounceUpdateCompanion()
+				}
 			}
 		}
 	}
@@ -354,14 +361,12 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		const busNameRe = /\/bus\/\d+\/\$name/
 		const mtxNameRe = /\/mtx\/\d+\/\$name/
 		const mainNameRe = /\/main\/\d+\/\$name/
-		const libRe = /\/\$ctl\/lib/
 		if (
 			channelNameRe.test(msg.address) ||
 			busNameRe.test(msg.address) ||
 			auxNameRe.test(msg.address) ||
 			mtxNameRe.test(msg.address) ||
-			mainNameRe.test(msg.address) ||
-			libRe.test(msg.address)
+			mainNameRe.test(msg.address)
 		) {
 			// this.log('info', 'Would update now')
 
