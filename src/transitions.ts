@@ -38,6 +38,9 @@ export class WingTransitions {
 		}
 	}
 
+	/**
+	 * Run a single tick of all pending transitions.
+	 */
 	private runTick(): void {
 		const completedPaths: string[] = []
 		for (const [path, info] of this.transitions.entries()) {
@@ -61,6 +64,15 @@ export class WingTransitions {
 		}
 	}
 
+	/**
+	 * Schedule a transition between to values using an OSC command to be executed.
+	 * @param path The command to execute the transition with
+	 * @param from Value to start the transition from
+	 * @param to Value to end the transition with
+	 * @param duration Duration of the transition
+	 * @param algorithm The fade-curve to use for the transition
+	 * @param curve The easing to use for the transition start and end
+	 */
 	public run(
 		path: string,
 		from: number | undefined,
@@ -76,13 +88,16 @@ export class WingTransitions {
 			this.transitions.delete(path)
 			this.sendOsc(path, to)
 		} else {
+			// Map the transition in dB to a linear scale (=linear fader movement)
+			from = dbToFloat(from)
+			to = dbToFloat(to)
 			const diff = to - from
 			const steps: number[] = []
 
 			const easing = Easing.getEasing(algorithm, curve)
 			for (let i = 1; i <= stepCount; i++) {
 				const fraction = easing(i / stepCount)
-				steps.push(from + diff * fraction)
+				steps.push(floatToDb(from + diff * fraction)) // map back to dB
 			}
 
 			this.transitions.set(path, { steps })
@@ -93,4 +108,51 @@ export class WingTransitions {
 			}
 		}
 	}
+}
+
+/**
+ * Converts a fader position to the value of that fader in dB
+ * @param f Fader position between 0.0 and 1.0
+ * @returns Value of the fader position in dB
+ */
+function floatToDb(f: number): number {
+	if (f > 1.0 || f < 0.0) {
+		console.error(`Illegal value for fader float ([0.0, 1.0]) = ${f}`)
+	}
+	if (f >= 0.5) {
+		return f * 40 - 30
+	} else if (f >= 0.25) {
+		return f * 80 - 50
+	} else if (f >= 0.0625) {
+		return f * 160 - 70
+	} else if (f >= 0.0) {
+		return f * 480 - 90
+	} else {
+		return Number.NEGATIVE_INFINITY
+	}
+}
+
+/**
+ * Converts a fader value in dB to a fader position
+ * @param d A value of a fader in dB
+ * @returns The fader position between 0.0 and 1.0
+ */
+function dbToFloat(d: number): number {
+	if (d > 1.0 || d < 0.0) {
+		console.error(`Illegal value for fader ([-144 10]) = ${d}`)
+	}
+
+	let f: number
+	if (d < -60) {
+		f = (d + 90) / 480
+	} else if (d < -30) {
+		f = (d + 70) / 160
+	} else if (d < -10) {
+		f = (d + 50) / 80
+	} else if (d <= 10) {
+		f = (d + 30) / 40
+	} else {
+		f = 1
+	}
+	return f
 }
