@@ -424,10 +424,22 @@ function UpdateUsbVariables(self: WingInstance, path: string, args: OSCMetaArgum
 	} else if (direction == 'play') {
 		if (command == '$pos') {
 			const seconds = args.value as number
+			const totalSeconds = seconds.toString()
+			const totalMinutes = Math.floor(seconds / 60)
+				.toString()
+				.padStart(3, '0')
+			const remainderSeconds = (seconds % 60).toString().padStart(2, '0')
+			const hours = Math.floor(seconds / 3600)
+				.toString()
+				.padStart(2, '0')
+			const minutesWithinHour = Math.floor((seconds % 3600) / 60)
+				.toString()
+				.padStart(2, '0')
+			const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
 			self.setVariableValues({
-				usb_play_pos_ss: seconds,
-				usb_play_pos_mm_ss: `${Math.floor(seconds / 60)}:${seconds % 60}`,
-				usb_play_pos_hh_mm_ss: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+				usb_play_pos_ss: totalSeconds,
+				usb_play_pos_mm_ss: `${totalMinutes}:${remainderSeconds}`,
+				usb_play_pos_hh_mm_ss: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
 			})
 		} else if (command == '$total') {
 			const seconds = args.value as number
