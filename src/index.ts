@@ -206,8 +206,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		if (this.osc) {
 			try {
 				this.osc.close()
-			} catch (_e) {
-				// Ignore
+			} catch (e) {
+				this.log('error', `${e}`)
 			}
 		}
 
@@ -312,8 +312,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		try {
 			this.sendCommand('/WING?')
 			this.log('debug', 'Requesting Wing Data')
-		} catch (_e) {
-			// Ignore
+		} catch (e) {
+			this.log('error', `${e}`)
 		}
 	}
 	private subscribeForUpdates(): void {
@@ -321,8 +321,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			try {
 				this.sendCommand('/*S', undefined)
 				this.log('debug', `Subscribing for updates on IP ${this.config.host}`)
-			} catch (_e) {
-				// Ignore
+			} catch (e) {
+				this.log('error', `${e}`)
 			}
 		}
 	}
@@ -464,9 +464,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 				await p
 			})
-			.catch((_e: unknown) => {
+			.catch((e: unknown) => {
 				delete this.inFlightRequests[path]
-				this.log('debug', `Request failed for ${path}`)
+				this.log('error', `${e}`)
+				this.log('error', `Request failed for ${path}`)
 			})
 	}
 }
