@@ -237,7 +237,7 @@ export function GetFeedbacksList(
 			name: 'Solo',
 			description: "React to a change in a channel's solo state",
 			options: [
-				GetDropdown('Selection', 'sel', allChannels),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				GetDropdown('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: {

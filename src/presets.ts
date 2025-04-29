@@ -39,6 +39,11 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 		presets[`main${i}-solo-button`] = getSoloPreset('main', i)
 	}
 
+	for (let i = 1; i <= model.dcas; i++) {
+		presets[`dca${i}-mute-button`] = getMutePreset('dca', i)
+		presets[`dca${i}-solo-button`] = getSoloPreset('dca', i)
+	}
+
 	presets[`talkback-a-button`] = getTalkbackPreset('A')
 	presets[`talkback-b-button`] = getTalkbackPreset('B')
 
