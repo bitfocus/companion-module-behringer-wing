@@ -463,7 +463,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetSolo]: {
 			name: 'Set Solo',
 			description: 'Set the solo state for a channel, aux, bux, matrix or main',
-			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('solo', 'Solo')],
+			options: [
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetOnOffToggleDropdown('solo', 'Solo'),
+			],
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
