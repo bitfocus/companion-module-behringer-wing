@@ -488,17 +488,41 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 			self.setVariableValues({ [`wlive_${card}_state`]: state })
 		} else if (subcommand == 'etime') {
 			const seconds = Math.floor((args.value as number) / 1000)
+			const totalSeconds = seconds.toString()
+			const totalMinutes = Math.floor(seconds / 60)
+				.toString()
+				.padStart(3, '0')
+			const remainderSeconds = (seconds % 60).toString().padStart(2, '0')
+			const hours = Math.floor(seconds / 3600)
+				.toString()
+				.padStart(2, '0')
+			const minutesWithinHour = Math.floor((seconds % 3600) / 60)
+				.toString()
+				.padStart(2, '0')
+			const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
 			self.setVariableValues({
-				[`wlive_${card}_pos_ss`]: seconds,
-				[`wlive_${card}_pos_mm_ss`]: `${Math.floor(seconds / 60)}:${seconds % 60}`,
-				[`wlive_${card}_pos_hh_mm_ss`]: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+				[`wlive_${card}_pos_ss`]: totalSeconds,
+				[`wlive_${card}_pos_mm_ss`]: `${totalMinutes}:${remainderSeconds}`,
+				[`wlive_${card}_pos_hh_mm_ss`]: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
 			})
 		} else if (subcommand == 'sdfree') {
 			const seconds = Math.floor((args.value as number) / 1000)
+			const totalSeconds = seconds.toString()
+			const totalMinutes = Math.floor(seconds / 60)
+				.toString()
+				.padStart(3, '0')
+			const remainderSeconds = (seconds % 60).toString().padStart(2, '0')
+			const hours = Math.floor(seconds / 3600)
+				.toString()
+				.padStart(2, '0')
+			const minutesWithinHour = Math.floor((seconds % 3600) / 60)
+				.toString()
+				.padStart(2, '0')
+			const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
 			self.setVariableValues({
-				[`wlive_${card}_sdfree_ss`]: seconds,
-				[`wlive_${card}_sdfree_mm_ss`]: `${Math.floor(seconds / 60)}:${seconds % 60}`,
-				[`wlive_${card}_sdfree_hh_mm_ss`]: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+				[`wlive_${card}_sdfree_ss`]: totalSeconds,
+				[`wlive_${card}_sdfree_mm_ss`]: `${totalMinutes}:${remainderSeconds}`,
+				[`wlive_${card}_sdfree_hh_mm_ss`]: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
 			})
 		}
 	}
