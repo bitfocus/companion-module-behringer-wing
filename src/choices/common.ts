@@ -98,7 +98,7 @@ export function GetMuteDropdown(id: string, label?: string, includeToggle?: bool
 	)
 	if (includeToggle == false) return dropdown
 
-	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('2', 'Toggle')] }
+	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('2', 'Toggle')], default: '2' }
 }
 
 export function GetOnOffToggleDropdown(
