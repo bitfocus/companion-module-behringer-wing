@@ -484,7 +484,10 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 
 	if (command == '$stat') {
 		if (subcommand == 'state') {
-			const state = args.value as string
+			let state = args.value as string
+			if (state == 'PPAUSE') {
+				state = 'PAUSE'
+			}
 			self.setVariableValues({ [`wlive_${card}_state`]: state })
 		} else if (subcommand == 'etime') {
 			const seconds = Math.floor((args.value as number) / 1000)
