@@ -154,6 +154,8 @@ export function getSoloCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.Solo(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.Solo(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.Solo(val)
 	}
 	return cmd
 }
