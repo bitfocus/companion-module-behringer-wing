@@ -11,7 +11,7 @@ import {
 	CompanionFeedbackInfo,
 } from '@companion-module/base'
 // import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
-import { GetDropdown, GetMuteDropdown, getTriStateColor, getTriStateTextColor } from './choices/common.js'
+import { GetDropdown, GetMuteDropdown } from './choices/common.js'
 import { getTalkbackOptions } from './choices/config.js'
 import { ConfigurationCommands } from './commands/config.js'
 import { getNodeNumber } from './actions/utils.js'
@@ -136,13 +136,37 @@ export function GetFeedbacksList(
 					getIdLabelPair('B', 'AES B'),
 					getIdLabelPair('C', 'AES C'),
 				]),
+				{
+					type: 'colorpicker',
+					id: 'okcolor',
+					label: 'Ok',
+					tooltip: 'Color of the button when an AES connection is OK',
+					default: combineRgb(0, 255, 0),
+				},
+				{
+					type: 'colorpicker',
+					id: 'errcolor',
+					label: 'Error',
+					tooltip: 'Color of the button when an AES connection is not OK',
+					default: combineRgb(255, 0, 0),
+				},
+				{
+					type: 'colorpicker',
+					id: 'nccolor',
+					label: 'Not Connected',
+					tooltip: 'Color of the button when the status of an AES connection is unknown/not connected.',
+					default: combineRgb(0, 0, 0),
+				},
 			],
 			callback: (event: CompanionFeedbackInfo): CompanionAdvancedFeedbackResult => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
 				const val = StateUtil.getStringFromState(cmd, state)
-				return {
-					bgcolor: getTriStateColor(val),
-					color: getTriStateTextColor(val),
+				if (val == 'OK') {
+					return event.options.okcolor as CompanionAdvancedFeedbackResult
+				} else if (val == 'ERR') {
+					return event.options.errcolor as CompanionAdvancedFeedbackResult
+				} else {
+					return event.options.nccolor as CompanionAdvancedFeedbackResult
 				}
 			},
 			subscribe: (event): void => {
