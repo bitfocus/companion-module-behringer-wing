@@ -1,5 +1,4 @@
 import {
-	combineRgb,
 	CompanionInputFieldDropdown,
 	CompanionInputFieldNumber,
 	CompanionInputFieldTextInput,
@@ -412,40 +411,6 @@ export function getTimeFormatChoices(): DropdownChoice[] {
 		getIdLabelPair('mmss', 'Minutes - Seconds'),
 		getIdLabelPair('ss', 'Seconds'),
 	]
-}
-
-export function getTriStateColor(
-	text: string | undefined,
-	okText?: string,
-	errorText?: string,
-	okColor?: number,
-	errorColor?: number,
-	thirdColor?: number,
-): number {
-	if (text == (okText ?? 'OK')) {
-		return okColor ?? combineRgb(0, 255, 0)
-	} else if (text == (errorText ?? 'ERR')) {
-		return errorColor ?? combineRgb(255, 0, 0)
-	} else {
-		return thirdColor ?? combineRgb(255, 255, 0)
-	}
-}
-
-export function getTriStateTextColor(
-	text: string | undefined,
-	okText?: string,
-	errorText?: string,
-	okColor?: number,
-	errorColor?: number,
-	thirdColor?: number,
-): number {
-	if (text == (okText ?? 'OK')) {
-		return okColor ?? combineRgb(0, 0, 0)
-	} else if (text == (errorText ?? 'ERR')) {
-		return errorColor ?? combineRgb(255, 255, 255)
-	} else {
-		return thirdColor ?? combineRgb(0, 0, 0)
-	}
 }
 
 export function getDelayModes(): DropdownChoice[] {
