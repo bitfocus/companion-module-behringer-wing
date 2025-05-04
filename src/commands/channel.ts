@@ -172,6 +172,14 @@ export namespace ChannelCommands {
 		return `${Node(channel)}/$presolo`
 	}
 
+	export function PreInsertNode(channel: number): string {
+		return `${Node(channel)}/preins`
+	}
+
+	export function PreInsertOn(channel: number): string {
+		return `${PreInsertNode(channel)}/on`
+	}
+
 	export function MainNode(channel: number, main: number): string {
 		return `${Node(channel)}/main/${main}`
 	}
@@ -218,6 +226,14 @@ export namespace ChannelCommands {
 
 	export function SendWidth(channel: number, send: number): string {
 		return `${SendNode(channel, send)}/wid`
+	}
+
+	export function PostInsertNode(channel: number): string {
+		return `${Node(channel)}/preins`
+	}
+
+	export function PostInsertOn(channel: number): string {
+		return `${PostInsertNode(channel)}/on`
 	}
 
 	export function EqNode(channel: number): string {

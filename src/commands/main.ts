@@ -111,4 +111,20 @@ export namespace MainCommands {
 	export function EqOn(main: number): string {
 		return `${EqNode(main)}/on`
 	}
+
+	export function PreInsertNode(main: number): string {
+		return `${Node(main)}/preins`
+	}
+
+	export function PreInsertOn(main: number): string {
+		return `${PreInsertNode(main)}/on`
+	}
+
+	export function PostInsertNode(main: number): string {
+		return `${Node(main)}/preins`
+	}
+
+	export function PostInsertOn(main: number): string {
+		return `${PostInsertNode(main)}/on`
+	}
 }
