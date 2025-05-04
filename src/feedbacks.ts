@@ -37,6 +37,7 @@ export enum FeedbackId {
 	Solo = 'solo',
 	Talkback = 'talkback',
 	TalkbackAssign = 'talkback-assign',
+	InsertOn = 'insert-on',
 }
 
 function subscribeFeedback(
@@ -383,6 +384,60 @@ export function GetFeedbacksList(
 				const talkback = event.options.tb as string
 				const destination = event.options.dest as string
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.InsertOn]: {
+			type: 'boolean',
+			name: 'Insert On',
+			description: 'React to a change for an insert on a channel, aux, bus, matrix or main.',
+			options: [
+				GetDropdown('Insert', 'insert', [
+					getIdLabelPair('pre', 'Pre-Insert'),
+					getIdLabelPair('post', 'Post-Insert'),
+					getIdLabelPair('both', 'Both'),
+					getIdLabelPair('either', 'Either'),
+				]),
+				GetDropdown('Selection', 'sel', [...allChannels]),
+				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(255, 0, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const insert = event.options.insert as string
+				let preOn = false
+				let postOn = false
+
+				const sel = event.options.sel as string
+
+				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+				let currentValue = StateUtil.getNumberFromState(cmd, state)
+				preOn = Boolean(currentValue ?? 0 > 0)
+
+				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
+				currentValue = StateUtil.getNumberFromState(cmd, state)
+				postOn = Boolean(currentValue ?? 0 > 0)
+
+				if (insert === 'pre') return preOn
+				if (insert === 'post') return postOn
+				if (insert === 'both') return preOn && postOn
+				if (insert === 'either') return preOn || postOn
+				return false
+			},
+			subscribe: (event): void => {
+				const sel = event.options.sel as string
+				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const sel = event.options.sel as string
+				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+				unsubscribeFeedback(subs, cmd, event)
+				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},

@@ -90,6 +90,9 @@ export enum CommonActions {
 	RestoreMatrixSendPanorama = 'restore-matrix-send-pan',
 	DeltaMatrixSendPanorama = 'delta-matrix-send-pan',
 	UndoDeltaMatrixSendPanorama = 'undo-matrix-send-pan',
+
+	// Inserts
+	SetInsertOn = 'set-insert-on',
 }
 
 export function createCommonActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -1269,6 +1272,55 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					getNodeNumber(event, 'dest'),
 				)
 				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.SetInsertOn]: {
+			name: 'Set Insert On',
+			description: 'Enable or disable an insert for a channel, aux, bus, matrix or main.',
+			options: [
+				GetDropdown('Insert', 'insert', [
+					getIdLabelPair('pre', 'Pre-Insert'),
+					getIdLabelPair('post', 'Post-Insert'),
+					getIdLabelPair('pre-post', 'Both'),
+				]),
+				GetDropdown('Selection', 'sel', [...allChannels]),
+				GetOnOffToggleDropdown('enable', 'Enable'),
+			],
+			callback: async (event) => {
+				const insert = event.options.insert as string
+				const sel = event.options.sel as string
+				const val = ActionUtil.getNumber(event, 'enable')
+				if (insert.includes('pre')) {
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					const currentVal = StateUtil.getBooleanFromState(cmd, state)
+					if (val < 2) {
+						send(cmd, val)
+					} else {
+						send(cmd, Number(!currentVal))
+					}
+				}
+				if (insert.includes('post')) {
+					const cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
+					if (cmd == '') return // if an aux is requested
+					const currentVal = StateUtil.getBooleanFromState(cmd, state)
+					if (val < 2) {
+						send(cmd, val)
+					} else {
+						send(cmd, Number(!currentVal))
+					}
+				}
+			},
+			subscribe: (event) => {
+				const insert = event.options.insert as string
+				const sel = event.options.sel as string
+				if (insert.includes('pre')) {
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					ensureLoaded(cmd)
+				}
+				if (insert.includes('post')) {
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					ensureLoaded(cmd)
+				}
 			},
 		},
 	}
