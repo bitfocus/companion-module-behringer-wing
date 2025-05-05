@@ -907,7 +907,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: (event) => {
 				if (event.options.mute ?? 0 >= 2) {
-					const sel = event.options.sel as string
+					const sel = event.options.src as string
 					const cmd = ActionUtil.getMainSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
 					ensureLoaded(cmd)
 				}

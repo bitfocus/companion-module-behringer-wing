@@ -94,7 +94,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.config = config
 		this.model = getDeskModel(this.config.model)
 		this.state = new WingState(this.model)
-		this.log('error', `${this.model.gpio}`)
 
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
 		this.updateStatus(InstanceStatus.Connecting)
@@ -450,7 +449,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 					return
 				}
 
-				this.log('debug', `Requesting ${path}`)
+				// this.log('debug', `Requesting ${path}`)
 
 				const p = new Promise<void>((resolve) => {
 					this.inFlightRequests[path] = resolve
