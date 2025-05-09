@@ -1,2 +1,8 @@
 node_modules/
-floattest.js
+package-lock.json
+/pkg
+/pkg.tgz
+/dist
+DEBUG-*
+/.yarn
+.DS_Store
