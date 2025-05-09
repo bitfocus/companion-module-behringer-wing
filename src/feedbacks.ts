@@ -66,13 +66,15 @@ export function GetFeedbacksList(
 		...state.namedChoices.mains,
 	]
 
+	const allChannelsAndDcas = [...allChannels, ...state.namedChoices.dcas]
+
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
 		[FeedbackId.Mute]: {
 			type: 'boolean',
 			name: 'Mute',
 			description: "React to a change in a channel's mute state",
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
+				GetDropdown('Selection', 'sel', [...allChannelsAndDcas, ...state.namedChoices.mutegroups]),
 				GetMuteDropdown('mute', 'State', false),
 			],
 			defaultStyle: {
@@ -261,7 +263,11 @@ export function GetFeedbacksList(
 			name: 'Solo',
 			description: "React to a change in a channel's solo state",
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetDropdown('Selection', 'sel', [
+					getIdLabelPair('any', 'Any'),
+					getIdLabelPair('all', 'All'),
+					...allChannelsAndDcas,
+				]),
 				GetDropdown('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: {
@@ -270,19 +276,51 @@ export function GetFeedbacksList(
 			},
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == event.options.solo
+				if (sel == 'any') {
+					return allChannelsAndDcas.some((s) => {
+						const num = s.id.toString().split('/')[2] as unknown as number
+						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
+						const currentValue = StateUtil.getNumberFromState(cmd, state)
+						return currentValue == event.options.solo
+					})
+				} else if (sel == 'all') {
+					return allChannelsAndDcas.every((s) => {
+						const num = s.id.toString().split('/')[2] as unknown as number
+						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
+						const currentValue = StateUtil.getNumberFromState(cmd, state)
+						return currentValue == event.options.solo
+					})
+				} else {
+					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+					const currentValue = StateUtil.getNumberFromState(cmd, state)
+					return typeof currentValue === 'number' && currentValue == event.options.solo
+				}
 			},
 			subscribe: (event): void => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
+				if (sel == 'any' || sel == 'all') {
+					allChannelsAndDcas.forEach((s) => {
+						const num = s.id.toString().split('/')[2] as unknown as number
+						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
+						subscribeFeedback(ensureLoaded, subs, cmd, event)
+					})
+				} else {
+					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+					subscribeFeedback(ensureLoaded, subs, cmd, event)
+				}
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				unsubscribeFeedback(subs, cmd, event)
+				if (sel == 'any' || sel == 'all') {
+					allChannelsAndDcas.forEach((s) => {
+						const num = s.id.toString().split('/')[2] as unknown as number
+						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
+						unsubscribeFeedback(subs, cmd, event)
+					})
+				} else {
+					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
+					unsubscribeFeedback(subs, cmd, event)
+				}
 			},
 		},
 		[FeedbackId.Talkback]: {
