@@ -77,7 +77,7 @@ export namespace MainCommands {
 	}
 
 	export function MatrixSendNode(main: number, matrix: number): string {
-		return `${Node(main)}/MX${matrix}`
+		return `${Node(main)}/send/MX${matrix}`
 	}
 
 	export function MatrixSendMute(main: number, matrix: number): string {
@@ -86,6 +86,10 @@ export namespace MainCommands {
 
 	export function MatrixSendLevel(main: number, matrix: number): string {
 		return `${MatrixSendNode(main, matrix)}/lvl`
+	}
+
+	export function MatrixSendPan(main: number, matrix: number): string {
+		return `${MatrixSendNode(main, matrix)}/pan`
 	}
 
 	export function DelayNode(main: number): string {

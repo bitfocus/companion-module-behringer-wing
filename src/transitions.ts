@@ -80,6 +80,7 @@ export class WingTransitions {
 		duration: number,
 		algorithm?: Easing.algorithm,
 		curve?: Easing.curve,
+		mapLinearToDb?: boolean,
 	): void {
 		const interval = this.fadeUpdateRate
 		const stepCount = Math.ceil(duration / interval)
@@ -89,15 +90,21 @@ export class WingTransitions {
 			this.sendOsc(path, to)
 		} else {
 			// Map the transition in dB to a linear scale (=linear fader movement)
-			from = dbToFloat(from)
-			to = dbToFloat(to)
+			if (mapLinearToDb != false) {
+				from = dbToFloat(from)
+				to = dbToFloat(to)
+			}
 			const diff = to - from
 			const steps: number[] = []
 
 			const easing = Easing.getEasing(algorithm, curve)
 			for (let i = 1; i <= stepCount; i++) {
 				const fraction = easing(i / stepCount)
-				steps.push(floatToDb(from + diff * fraction)) // map back to dB
+				if (mapLinearToDb == false) {
+					steps.push(from + diff * fraction)
+				} else {
+					steps.push(floatToDb(from + diff * fraction)) // map back to dB
+				}
 			}
 
 			this.transitions.set(path, { steps })
