@@ -139,4 +139,20 @@ export namespace BusCommands {
 	export function EqOn(bus: number): string {
 		return `${EqNode(bus)}/on`
 	}
+
+	export function PreInsertNode(bus: number): string {
+		return `${Node(bus)}/preins`
+	}
+
+	export function PreInsertOn(bus: number): string {
+		return `${PreInsertNode(bus)}/on`
+	}
+
+	export function PostInsertNode(bus: number): string {
+		return `${Node(bus)}/postins`
+	}
+
+	export function PostInsertOn(bus: number): string {
+		return `${PostInsertNode(bus)}/on`
+	}
 }

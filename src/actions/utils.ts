@@ -374,3 +374,33 @@ export function getMatrixSendPanoramaCommand(sel: string, src: number, dest: num
 	}
 	return cmd
 }
+
+export function getPreInsertOnCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.PreInsertOn(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.PreInsertOn(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.PreInsertOn(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.PreInsertOn(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.PreInsertOn(val)
+	}
+	return cmd
+}
+
+export function getPostInsertCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.PostInsertOn(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.PostInsertOn(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.PostInsertOn(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.PostInsertOn(val)
+	}
+	return cmd
+}

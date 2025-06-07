@@ -123,4 +123,20 @@ export namespace MatrixCommands {
 	export function EqOn(matrix: number): string {
 		return `${EqNode(matrix)}/on`
 	}
+
+	export function PreInsertNode(matrix: number): string {
+		return `${Node(matrix)}/preins`
+	}
+
+	export function PreInsertOn(matrix: number): string {
+		return `${PreInsertNode(matrix)}/on`
+	}
+
+	export function PostInsertNode(matrix: number): string {
+		return `${Node(matrix)}/postins`
+	}
+
+	export function PostInsertOn(matrix: number): string {
+		return `${PostInsertNode(matrix)}/on`
+	}
 }

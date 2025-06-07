@@ -116,6 +116,14 @@ export namespace AuxCommands {
 		return `${Node(aux)}/mon`
 	}
 
+	export function PreInsertNode(aux: number): string {
+		return `${Node(aux)}/preins`
+	}
+
+	export function PreInsertOn(aux: number): string {
+		return `${PreInsertNode(aux)}/on`
+	}
+
 	export function MainNode(aux: number, main: number): string {
 		return `${Node(aux)}/main/${main}`
 	}

@@ -172,6 +172,14 @@ export namespace ChannelCommands {
 		return `${Node(channel)}/$presolo`
 	}
 
+	export function PreInsertNode(channel: number): string {
+		return `${Node(channel)}/preins`
+	}
+
+	export function PreInsertOn(channel: number): string {
+		return `${PreInsertNode(channel)}/on`
+	}
+
 	export function MainNode(channel: number, main: number): string {
 		return `${Node(channel)}/main/${main}`
 	}
@@ -233,6 +241,14 @@ export namespace ChannelCommands {
 	}
 	export function MatrixSendPan(channel: number, mtx: number): string {
 		return `${MatrixSendNode(channel, mtx)}/pan`
+	}
+
+	export function PostInsertNode(channel: number): string {
+		return `${Node(channel)}/postins`
+	}
+
+	export function PostInsertOn(channel: number): string {
+		return `${PostInsertNode(channel)}/on`
 	}
 
 	export function EqNode(channel: number): string {
