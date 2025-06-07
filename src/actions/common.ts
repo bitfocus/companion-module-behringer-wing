@@ -236,7 +236,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, undefined)
+					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, false)
 				}
 			},
 			subscribe: (event) => {
