@@ -60,6 +60,7 @@ export function runTransition(
 	state: WingState,
 	transitions: WingTransitions,
 	targetValue?: number,
+	mapLinearToDb?: boolean,
 ): void {
 	const current = StateUtils.getNumberFromState(cmd, state)
 	const target = targetValue ?? getNumber(action, valueId)
@@ -70,6 +71,7 @@ export function runTransition(
 		getNumber(action, 'fadeDuration'),
 		getAlgorithm(action, 'fadeAlgorithm'),
 		getCurve(action, 'fadeType'),
+		mapLinearToDb,
 	)
 	state.set(cmd, [{ type: 'f', value: target }])
 }
@@ -343,4 +345,32 @@ export function getSetOrToggleValue(cmd: string, val: number, state: WingState, 
 	}
 	if (inv) return Number(!val)
 	else return Number(val)
+}
+
+export function getMatrixSendLevelCommand(sel: string, src: number, dest: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MatrixSendLevel(src, dest)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MatrixSendLevel(src, dest)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.MatrixSendLevel(src, dest)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.MatrixSendLevel(src, dest)
+	}
+	return cmd
+}
+
+export function getMatrixSendPanoramaCommand(sel: string, src: number, dest: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MatrixSendPan(src, dest)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MatrixSendPan(src, dest)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.MatrixSendPan(src, dest)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.MatrixSendPan(src, dest)
+	}
+	return cmd
 }

@@ -220,6 +220,21 @@ export namespace ChannelCommands {
 		return `${SendNode(channel, send)}/wid`
 	}
 
+	export function MatrixSendNode(channel: number, mtx: number): string {
+		return `${Node(channel)}/send/MX${mtx}`
+	}
+
+	export function MatrixSendOn(channel: number, mtx: number): string {
+		return `${MatrixSendNode(channel, mtx)}/on`
+	}
+
+	export function MatrixSendLevel(channel: number, mtx: number): string {
+		return `${MatrixSendNode(channel, mtx)}/lvl`
+	}
+	export function MatrixSendPan(channel: number, mtx: number): string {
+		return `${MatrixSendNode(channel, mtx)}/pan`
+	}
+
 	export function EqNode(channel: number): string {
 		return `${Node(channel)}/eq`
 	}

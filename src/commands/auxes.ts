@@ -144,6 +144,18 @@ export namespace AuxCommands {
 		return `${SendNode(aux, send)}/pan`
 	}
 
+	export function MatrixSendNode(aux: number, mtx: number): string {
+		return `${Node(aux)}/send/MX${mtx}`
+	}
+
+	export function MatrixSendLevel(aux: number, mtx: number): string {
+		return `${MatrixSendNode(aux, mtx)}/lvl`
+	}
+
+	export function MatrixSendPan(aux: number, mtx: number): string {
+		return `${MatrixSendNode(aux, mtx)}/pan`
+	}
+
 	export function EqNode(aux: number): string {
 		return `${Node(aux)}/eq`
 	}

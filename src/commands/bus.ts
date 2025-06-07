@@ -112,6 +112,10 @@ export namespace BusCommands {
 		return `${MatrixSendNode(bus, matrix)}/lvl`
 	}
 
+	export function MatrixSendPan(bus: number, matrix: number): string {
+		return `${MatrixSendNode(bus, matrix)}/pan`
+	}
+
 	export function DelayNode(bus: number): string {
 		return `${Node(bus)}/dly`
 	}

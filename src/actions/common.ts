@@ -78,6 +78,18 @@ export enum CommonActions {
 	RestoreMainSendFader = 'restore-main-send-fader',
 	DeltaMainSendFader = 'delta-main-send-fader',
 	UndoDeltaMainSendFader = 'undo-main-send-fader',
+	/////////////// Matrix Send
+	SetMatrixSendLevel = 'set-matrix-send-level',
+	StoreMatrixSendLevel = 'store-matrix-send-level',
+	RestoreMatrixSendLevel = 'restore-matrix-send-level',
+	DeltaMatrixSendLevel = 'delta-matrix-send-level',
+	UndoDeltaMatrixSendLevel = 'undo-matrix-send-level',
+	// Pan
+	SetMatrixSendPanorama = 'set-matrix-send-pan',
+	StoreMatrixSendPanorama = 'store-matrix-send-pan',
+	RestoreMatrixSendPanorama = 'restore-matrix-send-pan',
+	DeltaMatrixSendPanorama = 'delta-matrix-send-pan',
+	UndoDeltaMatrixSendPanorama = 'undo-matrix-send-pan',
 }
 
 export function createCommonActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -91,6 +103,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		...state.namedChoices.auxes,
 		...state.namedChoices.busses,
 		...state.namedChoices.matrices,
+		...state.namedChoices.mains,
+	]
+
+	const matrixSendSources = [
+		...state.namedChoices.channels,
+		...state.namedChoices.auxes,
+		...state.namedChoices.busses,
 		...state.namedChoices.mains,
 	]
 
@@ -163,7 +182,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
-				ActionUtil.runTransition(cmd, 'gain', event, state, transitions)
+				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, undefined, false)
 			},
 			subscribe: (event) => {
 				const sel = event.options.sel as string
@@ -199,7 +218,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
-				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, restoreVal)
+				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, restoreVal, false)
 			},
 		},
 		[CommonActions.DeltaGain]: {
@@ -217,7 +236,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, undefined)
 				}
 			},
 			subscribe: (event) => {
@@ -237,7 +256,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
 					targetValue -= delta
-					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, false)
 				}
 			},
 			subscribe: (event) => {
@@ -377,7 +396,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
-				runTransition(cmd, 'pan', event, state, transitions)
+				runTransition(cmd, 'pan', event, state, transitions, undefined, false)
 			},
 			subscribe: (event) => {
 				const sel = event.options.sel as string
@@ -413,7 +432,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
-				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal)
+				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal, false)
 			},
 		},
 		[CommonActions.DeltaPanorama]: {
@@ -428,7 +447,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
 			subscribe: (event) => {
@@ -448,7 +467,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
 					targetValue -= delta
-					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
 			subscribe: (event) => {
@@ -679,11 +698,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.StoreSendFader]: {
 			name: 'Store Send Level',
 			description: 'Store the send level from a channel, aux or bus to a bus.',
-			options: [
-				GetDropdown('From', 'src', allSendSources),
-				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
-				...FadeDurationChoice,
-			],
+			options: [GetDropdown('From', 'src', allSendSources), GetDropdown('To Bus', 'dest', state.namedChoices.busses)],
 			callback: async (event) => {
 				const src = event.options.src as string
 				const cmd = ActionUtil.getSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
@@ -796,7 +811,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const src = event.options.src as string
 				const cmd = ActionUtil.getSendPanoramaCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
-				runTransition(cmd, 'pan', event, state, transitions)
+				runTransition(cmd, 'pan', event, state, transitions, undefined, false)
 			},
 			subscribe: (event) => {
 				const src = event.options.src as string
@@ -834,7 +849,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const src = event.options.src as string
 				const cmd = ActionUtil.getSendPanoramaCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
-				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal)
+				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal, false)
 			},
 		},
 		[CommonActions.DeltaSendPanorama]: {
@@ -853,7 +868,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
 			subscribe: (event) => {
@@ -877,7 +892,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
 					targetValue -= delta
-					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
 			subscribe: (event) => {
@@ -1008,6 +1023,251 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: (event) => {
 				const src = event.options.src as string
 				const cmd = ActionUtil.getMainSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		////////////////////////////////////////////////////////////////
+		// Matrix Send Fader
+		////////////////////////////////////////////////////////////////
+		[CommonActions.SetMatrixSendLevel]: {
+			name: 'Set Matrix Send Level',
+			description: 'Set the send level from a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...GetFaderInputField('level'),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				runTransition(cmd, 'level', event, state, transitions)
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.StoreMatrixSendLevel]: {
+			name: 'Store Matrix Send Level',
+			description: 'Store the send level from a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				StateUtil.storeValueForCommand(cmd, state)
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.RestoreMatrixSendLevel]: {
+			name: 'Restore Matrix Send Level',
+			description: 'Restore the send level from a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				const restoreVal = StateUtil.getValueFromKey(cmd, state)
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
+			},
+		},
+		[CommonActions.DeltaMatrixSendLevel]: {
+			name: 'Adjust Matrix Send Level',
+			description: 'Adjust the send level from a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = event.options.delta as number
+				state.storeDelta(cmd, delta)
+				if (targetValue != undefined) {
+					targetValue += delta
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.UndoDeltaMatrixSendLevel]: {
+			name: 'Undo Matrix Send Level Adjust',
+			description: 'Undo the previous send level ajdustmend from a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = state.restoreDelta(cmd)
+				if (targetValue != undefined) {
+					targetValue -= delta
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+				}
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendLevelCommand(src, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				ensureLoaded(cmd)
+			},
+		},
+		////////////////////////////////////////////////////////////////
+		// Matrix Send Panorama
+		////////////////////////////////////////////////////////////////
+		[CommonActions.SetMatrixSendPanorama]: {
+			name: 'Set Matrix Send Panorama',
+			description: 'Set the panorama of a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...GetPanoramaSlider('pan'),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				console.log(cmd)
+				runTransition(cmd, 'pan', event, state, transitions, undefined, false)
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.StoreMatrixSendPanorama]: {
+			name: 'Store Matrix Send Panorama',
+			description: 'Store the panorama of a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				StateUtil.storeValueForCommand(cmd, state)
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.RestoreMatrixSendPanorama]: {
+			name: 'Restore Matrix Send Panorama',
+			description: 'Restore the panorama of a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				const restoreVal = StateUtil.getValueFromKey(cmd, state)
+				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal, false)
+			},
+		},
+		[CommonActions.DeltaMatrixSendPanorama]: {
+			name: 'Adjust Matrix Send Panorama',
+			description: 'Adjust the panorama of a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...GetPanoramaDeltaSlider('delta', 'Panorama'),
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = event.options.delta as number
+				state.storeDelta(cmd, delta)
+				if (targetValue != undefined) {
+					targetValue += delta
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
+				}
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				ensureLoaded(cmd)
+			},
+		},
+		[CommonActions.UndoDeltaMatrixSendPanorama]: {
+			name: 'Undo Matrix Send Panorama Adjust',
+			description: 'Undo the panorama adjustment of a channel, aux, bus or main to a matrix.',
+			options: [
+				GetDropdown('From', 'src', matrixSendSources),
+				GetDropdown('To Matrix', 'dest', state.namedChoices.matrices),
+				...FadeDurationChoice,
+			],
+			callback: async (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
+				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const delta = state.restoreDelta(cmd)
+				if (targetValue != undefined) {
+					targetValue -= delta
+					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
+				}
+			},
+			subscribe: (event) => {
+				const src = event.options.src as string
+				const cmd = ActionUtil.getMatrixSendPanoramaCommand(
+					src,
+					getNodeNumber(event, 'src'),
+					getNodeNumber(event, 'dest'),
+				)
 				ensureLoaded(cmd)
 			},
 		},
