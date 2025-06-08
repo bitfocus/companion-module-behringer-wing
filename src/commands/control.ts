@@ -47,4 +47,12 @@ export namespace ControlCommands {
 	export function GpioReadState(gpio: number): string {
 		return `${GpioNode(gpio)}/$state`
 	}
+
+	export function ConfigNode(): string {
+		return `${Node()}/cfg`
+	}
+
+	export function SaveNow(): string {
+		return `${ConfigNode()}/$savenow`
+	}
 }

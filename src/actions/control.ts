@@ -15,6 +15,7 @@ export enum OtherActionId {
 	SendLibraryAction = 'send-library-action',
 	SetGpioMode = 'set-gpio-mode',
 	SetGpioState = 'set-gpio-state',
+	SaveNow = 'save-now',
 }
 
 export function createControlActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -134,6 +135,15 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'state'), state)
 
 				send(cmd, val)
+			},
+		},
+		[OtherActionId.SaveNow]: {
+			name: 'Save',
+			description:
+				'Save console data to internal flash. CAUTION: excessive writes to the internal flash memory can cause it to wear out.',
+			options: [],
+			callback: async () => {
+				send(ControlCommands.SaveNow(), 1)
 			},
 		},
 	}
