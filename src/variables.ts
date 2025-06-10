@@ -229,6 +229,28 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 
 	for (let card = 1; card <= 2; card++) {
 		variables.push({ variableId: `wlive_${card}_state`, name: `Wing Live Card ${card} State` })
+		variables.push({ variableId: `wlive_${card}_sdstate`, name: `Wing Live Card ${card} SD State` })
+		variables.push({ variableId: `wlive_${card}_sdsize`, name: `Wing Live Card ${card} SD Size (GB)` })
+		variables.push({ variableId: `wlive_${card}_marker_total`, name: `Wing Live Card ${card} Total Markers` })
+		variables.push({ variableId: `wlive_${card}_marker_current`, name: `Wing Live Card ${card} Current Marker` })
+		variables.push({ variableId: `wlive_${card}_session_total`, name: `Wing Live Card ${card} Total Sessions` })
+		variables.push({ variableId: `wlive_${card}_session_current`, name: `Wing Live Card ${card} Current Session` })
+		variables.push({
+			variableId: `wlive_${card}_marker_time`,
+			name: `Wing Live Card ${card} Marker Time (hh:mm:ss.ss)`,
+		})
+		variables.push({
+			variableId: `wlive_${card}_session_len_ss`,
+			name: `Wing Live Card ${card} Session Length (ss)`,
+		})
+		variables.push({
+			variableId: `wlive_${card}_session_len_mm_ss`,
+			name: `Wing Live Card ${card} Session Length (mm:ss)`,
+		})
+		variables.push({
+			variableId: `wlive_${card}_session_len_hh_mm_ss`,
+			name: `Wing Live Card ${card} Session Length (hh:mm:ss)`,
+		})
 		variables.push({ variableId: `wlive_${card}_pos_ss`, name: `Wing Live Card ${card} Position (ss)` })
 		variables.push({ variableId: `wlive_${card}_pos_mm_ss`, name: `Wing Live Card ${card} Position (mm:ss)` })
 		variables.push({ variableId: `wlive_${card}_pos_hh_mm_ss`, name: `Wing Live Card ${card} Position (hh:mm:ss)` })
@@ -489,6 +511,27 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 				state = 'PAUSE'
 			}
 			self.setVariableValues({ [`wlive_${card}_state`]: state })
+		} else if (subcommand == 'sdstate') {
+			const state = args.value as string
+			self.setVariableValues({ [`wlive_${card}_sdstate`]: state })
+		} else if (subcommand == 'sdsize') {
+			const state = args.value as number
+			self.setVariableValues({ [`wlive_${card}_sdsize`]: state })
+		} else if (subcommand == 'markers') {
+			const state = args.value as number
+			self.setVariableValues({ [`wlive_${card}_marker_total`]: state })
+		} else if (subcommand == 'markerpos') {
+			const state = args.value as number
+			self.setVariableValues({ [`wlive_${card}_marker_current`]: state })
+		} else if (subcommand == 'sessions') {
+			const state = args.value as number
+			self.setVariableValues({ [`wlive_${card}_session_total`]: state })
+		} else if (subcommand == 'sessionpos') {
+			const state = args.value as number
+			self.setVariableValues({ [`wlive_${card}_session_current`]: state })
+		} else if (subcommand == 'markerlist') {
+			const state = args.value as string
+			self.setVariableValues({ [`wlive_${card}_marker_time`]: state })
 		} else if (subcommand == 'etime') {
 			const seconds = Math.floor((args.value as number) / 1000)
 			const totalSeconds = seconds.toString()
@@ -507,6 +550,25 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 				[`wlive_${card}_pos_ss`]: totalSeconds,
 				[`wlive_${card}_pos_mm_ss`]: `${totalMinutes}:${remainderSeconds}`,
 				[`wlive_${card}_pos_hh_mm_ss`]: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
+			})
+		} else if (subcommand == 'sessionlen') {
+			const seconds = Math.floor((args.value as number) / 1000)
+			const totalSeconds = seconds.toString()
+			const totalMinutes = Math.floor(seconds / 60)
+				.toString()
+				.padStart(3, '0')
+			const remainderSeconds = (seconds % 60).toString().padStart(2, '0')
+			const hours = Math.floor(seconds / 3600)
+				.toString()
+				.padStart(2, '0')
+			const minutesWithinHour = Math.floor((seconds % 3600) / 60)
+				.toString()
+				.padStart(2, '0')
+			const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
+			self.setVariableValues({
+				[`wlive_${card}_session_len_ss`]: totalSeconds,
+				[`wlive_${card}_session_len_mm_ss`]: `${totalMinutes}:${remainderSeconds}`,
+				[`wlive_${card}_session_len_hh_mm_ss`]: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
 			})
 		} else if (subcommand == 'sdfree') {
 			const seconds = Math.floor((args.value as number) / 1000)

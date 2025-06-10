@@ -22,6 +22,9 @@ import { getIdLabelPair } from './choices/utils.js'
 import { StatusCommands } from './commands/status.js'
 import { getGpios } from './choices/control.js'
 import { ControlCommands } from './commands/control.js'
+import { CardsCommands } from './commands/cards.js'
+
+import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
 
 type CompanionFeedbackWithCallback = SetRequired<
 	CompanionBooleanFeedbackDefinition | CompanionAdvancedFeedbackDefinition,
@@ -33,6 +36,8 @@ export enum FeedbackId {
 	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
 	RecorderState = 'recorder-state',
+	WLiveSDState = 'wlive-sd-state',
+	WLivePlaybackState = 'wlive-playback-state',
 	GpioState = 'gpio-state',
 	Solo = 'solo',
 	Talkback = 'talkback',
@@ -227,6 +232,52 @@ export function GetFeedbacksList(
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.WLiveSDState]: {
+			type: 'boolean',
+			name: 'WLive SD State',
+			description: 'React to the state of the WLive SD Cards.',
+			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsStatusChoices())],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
+				const currentValue = StateUtil.getStringFromState(cmd, state)
+				return currentValue == event.options.state
+			},
+			subscribe: (event): void => {
+				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.WLivePlaybackState]: {
+			type: 'boolean',
+			name: 'WLive Playback State',
+			description: 'React to the playback state of a WLive Card.',
+			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsActionChoices())],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
+				const currentValue = StateUtil.getStringFromState(cmd, state)
+				return currentValue == event.options.state
+			},
+			subscribe: (event): void => {
+				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},

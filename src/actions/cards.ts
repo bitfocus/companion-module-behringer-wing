@@ -10,7 +10,7 @@ import {
 	getCardsActionChoices,
 	getCardsChoices,
 } from '../choices/cards.js'
-import { GetDropdown } from '../choices/common.js'
+import { GetDropdown, GetNumberField } from '../choices/common.js'
 
 export enum CardsActionId {
 	SetLink = 'set-link',
@@ -19,7 +19,14 @@ export enum CardsActionId {
 	SetAutoPlay = 'set-auto-play',
 	SetAutoRecord = 'set-auto-record',
 	CardAction = 'card-action',
+	OpenSession = 'open-session',
+	DeleteSession = 'delete-session',
+	NameSession = 'name-session',
+	SetPosition = 'set-position',
 	AddMarker = 'add-marker',
+	EditMarker = 'edit-marker',
+	GotoMarker = 'goto-marker',
+	DeleteMarker = 'delete-marker',
 	FormatCard = 'format-card',
 }
 
@@ -80,6 +87,63 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				send(cmd, event.options.action as string)
 			},
 		},
+		[CardsActionId.OpenSession]: {
+			name: 'WLive: Open Session',
+			description: 'Open a session on a card.',
+			options: [
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Session Number', 'session', 1, 100, 1, 1),
+			],
+			callback: async (event) => {
+				const cmd = Commands.WLiveCardOpenSession(event.options.card as number)
+				send(cmd, event.options.session as number)
+			},
+		},
+		[CardsActionId.DeleteSession]: {
+			name: 'WLive: Delete Session',
+			description: 'Delete a session on a card.',
+			options: [
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Session Number', 'session', 1, 100, 1, 1),
+			],
+			callback: async (event) => {
+				const cmd = Commands.WLiveCardDeleteSession(event.options.card as number)
+				send(cmd, event.options.session as number)
+			},
+		},
+		[CardsActionId.NameSession]: {
+			name: 'WLive: Name Session',
+			description: 'Name the current session on a card.',
+			options: [
+				GetDropdown('Card', 'card', getCardsChoices()),
+				{
+					id: 'name',
+					type: 'textinput',
+					label: 'Session Name',
+					default: '',
+					tooltip: 'The name to set for the current session on the card.',
+					useVariables: true,
+				},
+			],
+			callback: async (event) => {
+				const cmd = Commands.WLiveCardNameSession(event.options.card as number)
+				send(cmd, event.options.name as string)
+			},
+		},
+		[CardsActionId.SetPosition]: {
+			name: 'WLive: Set Position',
+			description: 'Set the position of a recording on a card.',
+			options: [
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Position (ms)', 'position', 0, 36000000, 1, 0),
+			],
+			callback: async (event) => {
+				const cmd = Commands.WLiveCardTime(event.options.card as number)
+				send(cmd, event.options.position as number, true)
+				const cmd2 = Commands.WLiveCardGotoMarker(event.options.card as number)
+				send(cmd2, 101)
+			},
+		},
 		[CardsActionId.AddMarker]: {
 			name: 'WLive: Add Marker',
 			description: 'Add a marker to a recording on a card.',
@@ -87,6 +151,45 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const cmd = Commands.WLiveCardSetMarker(event.options.card as number)
 				send(cmd, 1)
+			},
+		},
+		[CardsActionId.EditMarker]: {
+			name: 'WLive: Edit Marker',
+			description: 'Edit a marker in a recording on a card. Sets the marker number to the current position.',
+			options: [
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
+			],
+
+			callback: async (event) => {
+				const cmd = Commands.WLiveCardEditMarker(event.options.card as number)
+				send(cmd, event.options.marker as number)
+			},
+		},
+		[CardsActionId.GotoMarker]: {
+			name: 'WLive: Goto Marker',
+			description: 'Go to a marker in a recording on a card.',
+			options: [
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
+			],
+
+			callback: async (event) => {
+				const cmd = Commands.WLiveCardGotoMarker(event.options.card as number)
+				send(cmd, event.options.marker as number)
+			},
+		},
+		[CardsActionId.DeleteMarker]: {
+			name: 'WLive: Delete Marker',
+			description: 'Delete a marker from a recording on a card.',
+			options: [
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
+			],
+
+			callback: async (event) => {
+				const cmd = Commands.WLiveCardDeleteMarker(event.options.card as number)
+				send(cmd, event.options.marker as number)
 			},
 		},
 		[CardsActionId.FormatCard]: {

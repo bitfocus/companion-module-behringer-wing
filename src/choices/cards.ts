@@ -16,9 +16,19 @@ export function getCardsAutoRoutingChoices(): DropdownChoice[] {
 export function getCardsActionChoices(): DropdownChoice[] {
 	return [
 		getIdLabelPair('STOP', 'Stop'),
-		getIdLabelPair('PPause', 'Pause'),
-		getIdLabelPair('Play', 'Play'),
+		getIdLabelPair('PPAUSE', 'Pause'),
+		getIdLabelPair('PLAY', 'Play'),
 		getIdLabelPair('REC', 'Record'),
+	]
+}
+
+export function getCardsStatusChoices(): DropdownChoice[] {
+	return [
+		getIdLabelPair('NONE', 'None'),
+		getIdLabelPair('READY', 'Ready'),
+		getIdLabelPair('PROTECT', 'Protected'),
+		getIdLabelPair('ERASE', 'Formatting'),
+		getIdLabelPair('ERROR', 'Error'),
 	]
 }
 
