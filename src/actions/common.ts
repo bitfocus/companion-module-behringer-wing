@@ -358,6 +358,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const delta = event.options.delta as number
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
+					if (targetValue < -90) {
+						targetValue = -90
+					}
 					targetValue += delta
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
