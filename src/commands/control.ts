@@ -4,6 +4,14 @@ export namespace ControlCommands {
 		return `/$ctl`
 	}
 
+	export function StatusNode(): string {
+		return `${Node()}/$stat`
+	}
+
+	export function SetSof(): string {
+		return `${StatusNode()}/sof`
+	}
+
 	export function LibraryNode(): string {
 		return `${Node()}/lib`
 	}

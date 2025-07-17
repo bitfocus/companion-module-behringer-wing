@@ -1,4 +1,4 @@
-import { CompanionActionDefinitions } from '@companion-module/base'
+import { CompanionActionDefinitions, Regex } from '@companion-module/base'
 import { CompanionActionWithCallback } from './common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
@@ -21,10 +21,12 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 					type: 'textinput',
 					id: 'cmd',
 					label: 'Command',
+					useVariables: true,
 				},
 			],
 			callback: async (event) => {
-				send(event.options.cmd as string)
+				const cmd = await self.parseVariablesInString(event.options.cmd as string)
+				send(cmd)
 			},
 		},
 		[OtherActionId.SendCommandWithNumber]: {
@@ -35,18 +37,22 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 					type: 'textinput',
 					id: 'cmd',
 					label: 'Command',
+					useVariables: true,
 				},
 				{
-					type: 'number',
+					type: 'textinput',
+					label: 'Value',
 					id: 'num',
-					label: 'Argument',
-					min: -1000000,
-					max: 1000000,
-					default: 0,
+					default: '1',
+					regex: Regex.SIGNED_NUMBER,
+					useVariables: true,
 				},
 			],
 			callback: async (event) => {
-				send(event.options.cmd as string, event.options.num as number)
+				const cmd = await self.parseVariablesInString(event.options.cmd as string)
+				const num = await self.parseVariablesInString(event.options.num as string)
+				console.log(`Sending command: ${cmd} with value: ${num}, parsed as ${parseInt(num)}`)
+				send(cmd, parseInt(num), true)
 			},
 		},
 		[OtherActionId.SendCommandWithString]: {
@@ -57,15 +63,19 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 					type: 'textinput',
 					id: 'cmd',
 					label: 'Command',
+					useVariables: true,
 				},
 				{
 					type: 'textinput',
 					id: 'val',
 					label: 'Value',
+					useVariables: true,
 				},
 			],
 			callback: async (event) => {
-				send(event.options.cmd as string, event.options.val as string)
+				const cmd = await self.parseVariablesInString(event.options.cmd as string)
+				const val = await self.parseVariablesInString(event.options.val as string)
+				send(cmd, val)
 			},
 		},
 	}

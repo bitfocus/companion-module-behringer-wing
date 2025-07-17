@@ -16,6 +16,7 @@ export enum OtherActionId {
 	SetGpioMode = 'set-gpio-mode',
 	SetGpioState = 'set-gpio-state',
 	SaveNow = 'save-now',
+	SetSOF = 'set-sof',
 }
 
 export function createControlActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -144,6 +145,61 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			options: [],
 			callback: async () => {
 				send(ControlCommands.SaveNow(), 1)
+			},
+		},
+		[OtherActionId.SetSOF]: {
+			name: 'Set SOF',
+			description: 'Set Sends on Fader',
+			options: [
+				GetDropdown(
+					'Channel',
+					'channel',
+					[
+						{ id: 'current', label: 'Currently Selected Channel' },
+						{ id: 'off', label: 'Off' },
+						...state.namedChoices.channels,
+						...state.namedChoices.auxes,
+						...state.namedChoices.busses,
+						...state.namedChoices.mains,
+						...state.namedChoices.matrices,
+					],
+					'current',
+				),
+			],
+			callback: async (event) => {
+				// convert channel to index
+				let channelIndex = 0
+				if (event.options.channel === 'current') {
+					channelIndex = -1
+				} else if (event.options.channel != 'off') {
+					// is a channel path, get channel type and index using regex
+					const channelOption = event.options.channel as string
+					const match = channelOption.match(/^\/(ch|aux|bus|main|mtx)\/(\d+)$/)
+					if (match) {
+						const channelType = match[1]
+						const channelNumber = match[2] ? parseInt(match[2]) : 0
+						switch (channelType) {
+							case 'ch':
+								channelIndex = channelNumber
+								break
+							case 'aux':
+								channelIndex = 40 + channelNumber // Aux channels start at 40
+								break
+							case 'bus':
+								channelIndex = 48 + channelNumber // Bus channels start at 48
+								break
+							case 'main':
+								channelIndex = 64 + channelNumber // Main channels start at 64
+								break
+							case 'mtx':
+								channelIndex = 68 + channelNumber // Matrix channels start at 68
+								break
+						}
+					}
+				}
+				console.log(`Setting SOF for channel index: ${channelIndex}`)
+				// send the SOF command with the channel index
+				send(ControlCommands.SetSof(), channelIndex, true)
 			},
 		},
 	}
