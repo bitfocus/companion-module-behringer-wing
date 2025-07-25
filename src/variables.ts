@@ -2,6 +2,7 @@ import { OscMessage } from 'osc'
 import type { WingInstance } from './index.js'
 import { OSCMetaArgument } from '@companion-module/base/dist/index.js' // eslint-disable-line n/no-missing-import
 import { ControlCommands } from './commands/control.js'
+import * as ActionUtil from './actions/utils.js'
 
 export function UpdateVariableDefinitions(self: WingInstance): void {
 	const model = self.model
@@ -287,6 +288,11 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	variables.push({ variableId: 'active_scene_name', name: 'Active Scene Name' })
 	variables.push({ variableId: 'next_scene_name', name: 'Next Scene Name' })
 	variables.push({ variableId: 'active_scene_folder', name: 'Active Scene Folder' })
+
+	variables.push({ variableId: 'sof_mode_index', name: 'Sends on Fader Mode Index' })
+	variables.push({ variableId: 'sof_mode_string', name: 'Sends on Fader Channel String' })
+	variables.push({ variableId: 'sel_index', name: 'Selected Channel Strip Index' })
+	variables.push({ variableId: 'sel_string', name: 'Selected Channel Strip String' })
 
 	self.setVariableDefinitions(variables)
 }
@@ -628,34 +634,60 @@ function UpdateGpioVariables(self: WingInstance, path: string, value: number): v
 }
 
 function UpdateControlVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
-	const pathMatch = path.match(/^\/\$ctl\/lib\/(\$?\w+)/)
+	const pathMatch = path.match(/^\/\$ctl\/(lib|\$stat)\/(\$?\w+)/)
 	if (!pathMatch) return
 
 	const command = pathMatch[1]
+	const subcommand = pathMatch[2]
+	if (command == 'lib') {
+		if (subcommand === '$actshow') {
+			const fullShowPath = String(args.value)
+			const showMatch = fullShowPath.match(/([^/\\]+)(?=\.show$)/)
+			const showname = showMatch?.[1] ?? 'N/A'
+			self.setVariableValues({ active_show_name: showname })
+		} else if (subcommand === '$actidx') {
+			const index = Number(args.value)
+			self.setVariableValues({
+				active_scene_number: index,
+			})
+			UpdateShowControlVariables(self)
+		} else if (subcommand === '$active') {
+			const fullScenePath = String(args.value)
+			const sceneMatch = fullScenePath.match(/([^/\\]+)[/\\]([^/\\]+)\..*$/)
+			const scene = sceneMatch?.[2] ?? 'N/A'
+			const parent = sceneMatch?.[1] ?? 'N/A'
 
-	if (command === '$actshow') {
-		const fullShowPath = String(args.value)
-		const showMatch = fullShowPath.match(/([^/\\]+)(?=\.show$)/)
-		const showname = showMatch?.[1] ?? 'N/A'
-		self.setVariableValues({ active_show_name: showname })
-	} else if (command === '$actidx') {
-		const index = Number(args.value)
-		self.setVariableValues({
-			active_scene_number: index,
-		})
-		UpdateShowControlVariables(self)
-	} else if (command === '$active') {
-		const fullScenePath = String(args.value)
-		const sceneMatch = fullScenePath.match(/([^/\\]+)[/\\]([^/\\]+)\..*$/)
-		const scene = sceneMatch?.[2] ?? 'N/A'
-		const parent = sceneMatch?.[1] ?? 'N/A'
-
-		self.setVariableValues({
-			active_scene_name: scene,
-			active_scene_folder: parent,
-		})
-	} else if (command === '$scenes') {
-		self.sendCommand(ControlCommands.LibraryNode(), '?')
+			self.setVariableValues({
+				active_scene_name: scene,
+				active_scene_folder: parent,
+			})
+		} else if (subcommand === '$scenes') {
+			self.sendCommand(ControlCommands.LibraryNode(), '?')
+		}
+	} else if (command === '$stat') {
+		if (subcommand === 'sof') {
+			let index = Number(args.value)
+			// is arg a string or number?
+			if (args.type === 'i') {
+				// recieved an int, which start at 0 instead of -1
+				index = index - 1
+			}
+			self.setVariableValues({
+				sof_mode_index: index,
+				sof_mode_string: ActionUtil.getStringFromStripIndex(index),
+			})
+		} else if (subcommand === 'selidx') {
+			let index = Number(args.value)
+			// is arg a string or number?
+			if (args.type === 'i') {
+				// recieved an int, which start at 0 instead of 1
+				index = index + 1
+			}
+			self.setVariableValues({
+				sel_index: index,
+				sel_string: ActionUtil.getStringFromStripIndex(index),
+			})
+		}
 	}
 }
 

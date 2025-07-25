@@ -404,3 +404,51 @@ export function getPostInsertCommand(sel: string, val: number): string {
 	}
 	return cmd
 }
+
+export function getStripIndexFromString(sel: string): number {
+	const channelIndex = -1
+	if (sel === 'current') {
+		return channelIndex
+	} else if (sel == 'off') {
+		return 0
+	} else {
+		// is a channel path, get channel type and index using regex
+		const match = sel.match(/^\/(ch|aux|bus|main|mtx)\/(\d+)$/)
+		if (match) {
+			const channelType = match[1]
+			const channelNumber = match[2] ? parseInt(match[2]) : 0
+			switch (channelType) {
+				case 'ch':
+					return channelNumber
+				case 'aux':
+					return 40 + channelNumber // Aux channels start at 40
+				case 'bus':
+					return 48 + channelNumber // Bus channels start at 48
+				case 'main':
+					return 64 + channelNumber // Main channels start at 64
+				case 'mtx':
+					return 68 + channelNumber // Matrix channels start at 68
+			}
+		}
+	}
+	return 0
+}
+
+export function getStringFromStripIndex(index: number): string {
+	if (index === -1) {
+		return 'current'
+	} else if (index === 0) {
+		return 'off'
+	} else if (index >= 1 && index <= 32) {
+		return `/ch/${index}`
+	} else if (index >= 40 && index <= 47) {
+		return `/aux/${index - 40}`
+	} else if (index >= 48 && index <= 63) {
+		return `/bus/${index - 48}`
+	} else if (index >= 64 && index <= 67) {
+		return `/main/${index - 64}`
+	} else if (index >= 68 && index <= 71) {
+		return `/mtx/${index - 68}`
+	}
+	return ''
+}
