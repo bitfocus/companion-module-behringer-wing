@@ -140,6 +140,14 @@ export namespace BusCommands {
 		return `${EqNode(bus)}/on`
 	}
 
+	export function DynamicsNode(bus: number): string {
+		return `${Node(bus)}/dyn`
+	}
+
+	export function DynamicsOn(bus: number): string {
+		return `${DynamicsNode(bus)}/on`
+	}
+
 	export function PreInsertNode(bus: number): string {
 		return `${Node(bus)}/preins`
 	}

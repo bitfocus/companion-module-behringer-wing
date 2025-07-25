@@ -45,6 +45,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		},
 		[CardsActionId.SetAutoInput]: {
 			name: 'WLive: Set Auto Input',
+			description: 'Set which cards should be used for auto input selection.',
 			options: [GetDropdown('Selection', 'selection', getCardsAutoInChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoIn()
@@ -53,6 +54,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		},
 		[CardsActionId.SetAutoStop]: {
 			name: 'WLive: Set Auto Stop',
+			description: 'Set input actions on stop',
 			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoStop()
@@ -61,6 +63,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		},
 		[CardsActionId.SetAutoPlay]: {
 			name: 'WLive: Set Auto Play',
+			description: 'Set input actions on play',
 			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoPlay()
@@ -69,6 +72,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		},
 		[CardsActionId.SetAutoRecord]: {
 			name: 'WLive: Set Auto Record',
+			description: 'Set input actions on record',
 			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoRecord()
