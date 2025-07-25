@@ -279,6 +279,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.osc.on('message', (message): void => {
+			if (this.reconnectTimer) {
+				clearTimeout(this.reconnectTimer)
+				this.reconnectTimer = undefined
+			}
 			if (this.connected == false) {
 				this.updateStatus(InstanceStatus.Ok)
 				this.connected = true
@@ -325,6 +329,18 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private requestStatusUpdates(): void {
+		// create timeout to verify that the desk is still connected
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer)
+			this.reconnectTimer = undefined
+		}
+		this.reconnectTimer = setTimeout(
+			() => {
+				this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
+				this.connected = false
+			},
+			(this.config.statusPollUpdateRate ?? 3000) / 2,
+		)
 		this.subscriptions.getPollPaths().forEach((c) => {
 			this.sendCommand(c)
 		})
