@@ -156,6 +156,10 @@ export namespace AuxCommands {
 		return `${Node(aux)}/send/MX${mtx}`
 	}
 
+	export function MatrixSendOn(aux: number, mtx: number): string {
+		return `${MatrixSendNode(aux, mtx)}/on`
+	}
+
 	export function MatrixSendLevel(aux: number, mtx: number): string {
 		return `${MatrixSendNode(aux, mtx)}/lvl`
 	}

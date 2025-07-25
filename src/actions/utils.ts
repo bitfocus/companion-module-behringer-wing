@@ -16,6 +16,10 @@ export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInf
 	return action.options[id]?.toString().split('/')[2] as unknown as number
 }
 
+export function getNodeNumberFromID(id: string): number {
+	return id.split('/')[2] as unknown as number
+}
+
 export function getNumber(action: CompanionActionInfo, key: string, defaultValue?: number): number {
 	const rawVal = action.options[key]
 	if (defaultValue !== undefined && rawVal === undefined) {
@@ -238,36 +242,88 @@ export function getDelayAmountCommand(sel: string, val: number): string {
 	return cmd
 }
 
-export function getSendMuteCommand(sel: string, src: number, dest: number): string {
+export function getSendMuteCommand(src: string, dest: string): string {
 	let cmd = ''
-	if (sel.startsWith('/ch')) {
-		cmd = ChannelCommands.SendOn(src, dest)
-	} else if (sel.startsWith('/aux')) {
-		cmd = AuxCommands.SendOn(src, dest)
-	} else if (sel.startsWith('/bus')) {
-		cmd = BusCommands.SendOn(src, dest)
+	if (src.startsWith('/ch')) {
+		if (dest.startsWith('/bus')) {
+			cmd = ChannelCommands.SendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = ChannelCommands.MatrixSendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/main')) {
+			cmd = ChannelCommands.MainSendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
+	} else if (src.startsWith('/aux')) {
+		if (dest.startsWith('/bus')) {
+			cmd = AuxCommands.SendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = AuxCommands.MatrixSendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/main')) {
+			cmd = AuxCommands.MainSendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
+	} else if (src.startsWith('/bus')) {
+		if (dest.startsWith('/bus')) {
+			cmd = BusCommands.SendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = BusCommands.MatrixSendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/main')) {
+			cmd = BusCommands.MainSendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
+	} else if (src.startsWith('/main')) {
+		if (dest.startsWith('/mtx')) {
+			cmd = MainCommands.MatrixSendOn(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
 	}
 	return cmd
 }
 
-export function getSendLevelCommand(sel: string, src: number, dest: number): string {
+export function getSendLevelCommand(src: string, dest: string): string {
 	let cmd = ''
-	if (sel.startsWith('/ch')) {
-		cmd = ChannelCommands.SendLevel(src, dest)
-	} else if (sel.startsWith('/aux')) {
-		cmd = AuxCommands.SendLevel(src, dest)
-	} else if (sel.startsWith('/bus')) {
-		cmd = BusCommands.SendLevel(src, dest)
+	if (src.startsWith('/ch')) {
+		if (dest.startsWith('/bus')) {
+			cmd = ChannelCommands.SendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = ChannelCommands.MatrixSendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/main')) {
+			cmd = ChannelCommands.MainSendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
+	} else if (src.startsWith('/aux')) {
+		if (dest.startsWith('/bus')) {
+			cmd = AuxCommands.SendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = AuxCommands.MatrixSendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/main')) {
+			cmd = AuxCommands.MainSendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
+	} else if (src.startsWith('/bus')) {
+		if (dest.startsWith('/bus')) {
+			cmd = BusCommands.SendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = BusCommands.MatrixSendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/main')) {
+			cmd = BusCommands.MainSendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
+	} else if (src.startsWith('/main')) {
+		if (dest.startsWith('/mtx')) {
+			cmd = MainCommands.MatrixSendLevel(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
 	}
 	return cmd
 }
 
-export function getSendPanoramaCommand(sel: string, src: number, dest: number): string {
+export function getSendPanoramaCommand(src: string, dest: string): string {
 	let cmd = ''
-	if (sel.startsWith('/ch')) {
-		cmd = ChannelCommands.SendPan(src, dest)
-	} else if (sel.startsWith('/aux')) {
-		cmd = AuxCommands.SendPan(src, dest)
+	if (src.startsWith('/ch')) {
+		if (dest.startsWith('/bus')) {
+			cmd = ChannelCommands.SendPan(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = ChannelCommands.MatrixSendPan(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
+	} else if (src.startsWith('/aux')) {
+		if (dest.startsWith('/bus')) {
+			cmd = AuxCommands.SendPan(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		} else if (dest.startsWith('/mtx')) {
+			cmd = AuxCommands.MatrixSendPan(getNodeNumberFromID(src), getNodeNumberFromID(dest))
+		}
 	}
 	return cmd
 }

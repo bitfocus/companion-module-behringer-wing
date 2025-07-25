@@ -80,7 +80,7 @@ export namespace MainCommands {
 		return `${Node(main)}/send/MX${matrix}`
 	}
 
-	export function MatrixSendMute(main: number, matrix: number): string {
+	export function MatrixSendOn(main: number, matrix: number): string {
 		return `${MatrixSendNode(main, matrix)}/on`
 	}
 
