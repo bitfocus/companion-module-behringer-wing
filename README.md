@@ -4,6 +4,16 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.0.1
+
+### Added
+
+-
+
+### Changed
+
+-
+
 ## 2.0.0
 
 ### Added
