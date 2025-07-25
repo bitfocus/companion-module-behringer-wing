@@ -124,6 +124,14 @@ export namespace MatrixCommands {
 		return `${EqNode(matrix)}/on`
 	}
 
+	export function DynamicsNode(matrix: number): string {
+		return `${Node(matrix)}/dyn`
+	}
+
+	export function DynamicsOn(matrix: number): string {
+		return `${DynamicsNode(matrix)}/on`
+	}
+
 	export function PreInsertNode(matrix: number): string {
 		return `${Node(matrix)}/preins`
 	}

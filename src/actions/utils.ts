@@ -327,6 +327,14 @@ export function getTalkbackAssignCommand(talkback: string, destination: string):
 	return cmd
 }
 
+export function getGateEnableCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.GateOn(val)
+	}
+	return cmd
+}
+
 export function getEqEnableCommand(sel: string, val: number): string {
 	let cmd = ''
 	if (sel.startsWith('/ch')) {
@@ -339,6 +347,22 @@ export function getEqEnableCommand(sel: string, val: number): string {
 		cmd = MatrixCommands.EqOn(val)
 	} else if (sel.startsWith('/main')) {
 		cmd = MainCommands.EqOn(val)
+	}
+	return cmd
+}
+
+export function getDynamicsEnableCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.DynamicsOn(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.DynamicsOn(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.DynamicsOn(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.DynamicsOn(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.DynamicsOn(val)
 	}
 	return cmd
 }

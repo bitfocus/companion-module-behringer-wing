@@ -116,6 +116,14 @@ export namespace MainCommands {
 		return `${EqNode(main)}/on`
 	}
 
+	export function DynamicsNode(main: number): string {
+		return `${Node(main)}/dyn`
+	}
+
+	export function DynamicsOn(main: number): string {
+		return `${DynamicsNode(main)}/on`
+	}
+
 	export function PreInsertNode(main: number): string {
 		return `${Node(main)}/preins`
 	}

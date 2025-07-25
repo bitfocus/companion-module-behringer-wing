@@ -171,4 +171,12 @@ export namespace AuxCommands {
 	export function EqOn(aux: number): string {
 		return `${EqNode(aux)}/on`
 	}
+
+	export function DynamicsNode(aux: number): string {
+		return `${Node(aux)}/dyn`
+	}
+
+	export function DynamicsOn(aux: number): string {
+		return `${DynamicsNode(aux)}/on`
+	}
 }

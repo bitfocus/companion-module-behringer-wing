@@ -255,6 +255,14 @@ export namespace ChannelCommands {
 		return `${PostInsertNode(channel)}/on`
 	}
 
+	export function GateNode(channel: number): string {
+		return `${Node(channel)}/gate`
+	}
+
+	export function GateOn(channel: number): string {
+		return `${GateNode(channel)}/on`
+	}
+
 	export function EqNode(channel: number): string {
 		return `${Node(channel)}/eq`
 	}
@@ -265,5 +273,13 @@ export namespace ChannelCommands {
 
 	export function EqModel(channel: number): string {
 		return `${EqNode(channel)}/mdl`
+	}
+
+	export function DynamicsNode(channel: number): string {
+		return `${Node(channel)}/dyn`
+	}
+
+	export function DynamicsOn(channel: number): string {
+		return `${DynamicsNode(channel)}/on`
 	}
 }

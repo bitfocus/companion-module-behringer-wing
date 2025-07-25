@@ -54,8 +54,12 @@ export enum CommonActions {
 	// Delay
 	SetDelay = 'set-delay',
 	SetDelayAmount = 'set-delay-amount',
+	// Gate
+	SetGateOn = 'set-gate-on',
 	// EQ
 	SetEqOn = 'set-eq-on',
+	// Dynamics
+	SetDynamicsOn = 'set-dynamics-on',
 
 	//////////// SEND
 	SetSendMute = 'set-send-mute',
@@ -659,6 +663,36 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 		},
+		////////////////////////////////////////////////////////////////
+		// Gate
+		////////////////////////////////////////////////////////////////
+		[CommonActions.SetGateOn]: {
+			name: 'Set Gate On',
+			description: 'Enable, disable or toggle the on-state of a gate on a channel',
+			options: [
+				GetDropdown('Selection', 'sel', state.namedChoices.channels),
+				GetOnOffToggleDropdown('enable', 'Enable'),
+			],
+			callback: async (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getGateEnableCommand(sel, getNodeNumber(event, 'sel'))
+				const val = ActionUtil.getNumber(event, 'enable')
+				if (val < 2) {
+					send(cmd, val)
+				} else {
+					const currentVal = StateUtil.getBooleanFromState(cmd, state)
+					send(cmd, Number(!currentVal))
+				}
+			},
+			subscribe: (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getGateEnableCommand(sel, getNodeNumber(event, 'sel'))
+				ensureLoaded(cmd)
+			},
+		},
+		////////////////////////////////////////////////////////////////
+		// EQ
+		////////////////////////////////////////////////////////////////
 		[CommonActions.SetEqOn]: {
 			name: 'Set EQ On',
 			description: 'Enable, disable or toggle the on-state of an EQ on a channel, bus, aux, matrix or main.',
@@ -680,7 +714,30 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				ensureLoaded(cmd)
 			},
 		},
-
+		////////////////////////////////////////////////////////////////
+		// Dynamics
+		////////////////////////////////////////////////////////////////
+		[CommonActions.SetDynamicsOn]: {
+			name: 'Set Dynamics On',
+			description: 'Enable, disable or toggle the on-state of dynamics on a channel, bus, aux, matrix or main.',
+			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('enable', 'Enable')],
+			callback: async (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getDynamicsEnableCommand(sel, getNodeNumber(event, 'sel'))
+				const val = ActionUtil.getNumber(event, 'enable')
+				const currentVal = StateUtil.getBooleanFromState(cmd, state)
+				if (val < 2) {
+					send(cmd, val)
+				} else {
+					send(cmd, Number(!currentVal))
+				}
+			},
+			subscribe: (event) => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getDynamicsEnableCommand(sel, getNodeNumber(event, 'sel'))
+				ensureLoaded(cmd)
+			},
+		},
 		////////////////////////////////////////////////////////////////
 		// Send Fader
 		////////////////////////////////////////////////////////////////
