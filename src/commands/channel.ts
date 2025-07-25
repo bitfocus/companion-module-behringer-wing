@@ -44,12 +44,16 @@ export namespace ChannelCommands {
 		return `${InputSetNode(channel)}/$vph`
 	}
 
-	export function InputDelay(channel: number): string {
-		return `${InputSetNode(channel)}/dly`
+	export function DelayOn(channel: number): string {
+		return `${InputSetNode(channel)}/dlyon`
 	}
 
-	export function InputDelayOn(channel: number): string {
-		return `${InputSetNode(channel)}/dlyon`
+	export function DelayMode(channel: number): string {
+		return `${InputSetNode(channel)}/dlymode`
+	}
+
+	export function DelayAmount(channel: number): string {
+		return `${InputSetNode(channel)}/dly`
 	}
 
 	export function InputConnectionNode(channel: number): string {

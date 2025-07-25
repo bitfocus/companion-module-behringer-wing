@@ -531,12 +531,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		////////////////////////////////////////////////////////////////
 		[CommonActions.SetDelay]: {
 			name: 'Set Delay',
-			description: 'Enable or disable the delay of a bus, matrix or main.',
+			description: 'Enable or disable the delay of a channel, bus, matrix or main.',
 			options: [
 				GetDropdown('Selection', 'sel', [
-					...state.namedChoices.mains,
+					...state.namedChoices.channels,
 					...state.namedChoices.matrices,
 					...state.namedChoices.busses,
+					...state.namedChoices.mains,
 				]),
 				GetOnOffToggleDropdown('delay', 'Delay'),
 			],
@@ -560,12 +561,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 
 		[CommonActions.SetDelayAmount]: {
 			name: 'Set Delay Mode',
-			description: 'Set the delay mode of a bus, matrix or main.',
+			description: 'Set the delay mode of a channel, bus, matrix or main.',
 			options: [
 				GetDropdown('Selection', 'sel', [
-					...state.namedChoices.mains,
+					...state.namedChoices.channels,
 					...state.namedChoices.matrices,
 					...state.namedChoices.busses,
+					...state.namedChoices.mains,
 				]),
 				GetDropdown('Delay Mode', 'mode', getDelayModes()),
 				{

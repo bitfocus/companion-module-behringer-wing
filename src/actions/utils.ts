@@ -198,7 +198,9 @@ export function getPanoramaCommand(sel: string, val: number): string {
 
 export function getDelayOnCommand(sel: string, val: number): string {
 	let cmd = ''
-	if (sel.startsWith('/bus')) {
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.DelayOn(val)
+	} else if (sel.startsWith('/bus')) {
 		cmd = BusCommands.DelayOn(val)
 	} else if (sel.startsWith('/mtx')) {
 		cmd = MatrixCommands.DelayOn(val)
@@ -210,7 +212,9 @@ export function getDelayOnCommand(sel: string, val: number): string {
 
 export function getDelayModeCommand(sel: string, val: number): string {
 	let cmd = ''
-	if (sel.startsWith('/bus')) {
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.DelayMode(val)
+	} else if (sel.startsWith('/bus')) {
 		cmd = BusCommands.DelayMode(val)
 	} else if (sel.startsWith('/mtx')) {
 		cmd = MatrixCommands.DelayMode(val)
@@ -222,7 +226,9 @@ export function getDelayModeCommand(sel: string, val: number): string {
 
 export function getDelayAmountCommand(sel: string, val: number): string {
 	let cmd = ''
-	if (sel.startsWith('/bus')) {
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.DelayAmount(val)
+	} else if (sel.startsWith('/bus')) {
 		cmd = BusCommands.DelayAmount(val)
 	} else if (sel.startsWith('/mtx')) {
 		cmd = MatrixCommands.DelayAmount(val)
