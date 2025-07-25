@@ -8,11 +8,16 @@ See also HELP.md and LICENSE
 
 ### Added
 
--
+- Added unified send level, pan, and mute actions for all supported send combinations
+- Added main/alt toggle action
+- Added actions to enable/disable gate, dynamics, EQ, and inserts on supported channel strips
+- Added save action
+- Added more WLive actions, variables, and feedbacks
+- Added SoF and Selected channel actions and variables
 
 ### Changed
 
--
+- Fixed issue where increment/decrement actions would not work correctly when current value is -inf
 
 ## 2.0.0
 
