@@ -12,6 +12,10 @@ export namespace ControlCommands {
 		return `${StatusNode()}/sof`
 	}
 
+	export function SetSelect(): string {
+		return `${StatusNode()}/selidx`
+	}
+
 	export function LibraryNode(): string {
 		return `${Node()}/lib`
 	}
