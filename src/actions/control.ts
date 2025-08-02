@@ -17,6 +17,7 @@ export enum OtherActionId {
 	SetGpioState = 'set-gpio-state',
 	SaveNow = 'save-now',
 	SetSOF = 'set-sof',
+	SetSelected = 'set-selected',
 }
 
 export function createControlActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -168,38 +169,30 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			],
 			callback: async (event) => {
 				// convert channel to index
-				let channelIndex = 0
-				if (event.options.channel === 'current') {
-					channelIndex = -1
-				} else if (event.options.channel != 'off') {
-					// is a channel path, get channel type and index using regex
-					const channelOption = event.options.channel as string
-					const match = channelOption.match(/^\/(ch|aux|bus|main|mtx)\/(\d+)$/)
-					if (match) {
-						const channelType = match[1]
-						const channelNumber = match[2] ? parseInt(match[2]) : 0
-						switch (channelType) {
-							case 'ch':
-								channelIndex = channelNumber
-								break
-							case 'aux':
-								channelIndex = 40 + channelNumber // Aux channels start at 40
-								break
-							case 'bus':
-								channelIndex = 48 + channelNumber // Bus channels start at 48
-								break
-							case 'main':
-								channelIndex = 64 + channelNumber // Main channels start at 64
-								break
-							case 'mtx':
-								channelIndex = 68 + channelNumber // Matrix channels start at 68
-								break
-						}
-					}
-				}
+				const channelIndex = ActionUtil.getStripIndexFromString(event.options.channel as string)
 				console.log(`Setting SOF for channel index: ${channelIndex}`)
 				// send the SOF command with the channel index
-				send(ControlCommands.SetSof(), channelIndex, true)
+				send(ControlCommands.SetSof(), channelIndex + 1) // +1 because of int offset in Wing
+			},
+		},
+		[OtherActionId.SetSelected]: {
+			name: 'Set Selected',
+			description: 'Set Selected Channel Strip',
+			options: [
+				GetDropdown('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+					...state.namedChoices.busses,
+					...state.namedChoices.mains,
+					...state.namedChoices.matrices,
+				]),
+			],
+			callback: async (event) => {
+				// convert channel to index
+				const channelIndex = ActionUtil.getStripIndexFromString(event.options.channel as string)
+				console.log(`Setting SOF for channel index: ${channelIndex}`)
+				// send the SOF command with the channel index
+				send(ControlCommands.SetSelect(), channelIndex)
 			},
 		},
 	}
