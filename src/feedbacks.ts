@@ -9,6 +9,7 @@ import {
 	CompanionBooleanFeedbackDefinition,
 	CompanionFeedbackDefinitions,
 	CompanionFeedbackInfo,
+	CompanionOptionValues,
 } from '@companion-module/base'
 // import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
 import { GetDropdown, GetMuteDropdown } from './choices/common.js'
@@ -74,6 +75,20 @@ export function GetFeedbacksList(
 
 	const allChannelsAndDcas = [...allChannels, ...state.namedChoices.dcas]
 
+	const allSendSources = [
+		...state.namedChoices.channels,
+		...state.namedChoices.auxes,
+		...state.namedChoices.busses,
+		...state.namedChoices.mains,
+	]
+
+	const channelAuxBusSendDestinations = [
+		...state.namedChoices.busses,
+		...state.namedChoices.mains,
+		...state.namedChoices.matrices,
+	]
+	const mainSendDestinations = [...state.namedChoices.matrices]
+
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
 		[FeedbackId.Mute]: {
 			type: 'boolean',
@@ -109,8 +124,21 @@ export function GetFeedbacksList(
 			name: 'Send Mute',
 			description: "React to a change in a channel's send mute state",
 			options: [
-				GetDropdown('From', 'src', allChannels),
-				GetDropdown('To Bus', 'dest', state.namedChoices.busses),
+				GetDropdown('From', 'src', allSendSources),
+				{
+					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
+					isVisible: (options: CompanionOptionValues): boolean => {
+						const source = options.src as string
+						return !source.startsWith('/main')
+					},
+				},
+				{
+					...GetDropdown('To', 'mainDest', mainSendDestinations),
+					isVisible: (options: CompanionOptionValues): boolean => {
+						const source = options.src as string
+						return source.startsWith('/main')
+					},
+				},
 				GetMuteDropdown('mute', 'State', false),
 			],
 			defaultStyle: {
@@ -118,19 +146,37 @@ export function GetFeedbacksList(
 				color: combineRgb(0, 0, 0),
 			},
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const sel = event.options.src as string
-				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				const src = event.options.src as string
+				let dest = ''
+				if (src.startsWith('/main')) {
+					dest = event.options.mainDest as string
+				} else {
+					dest = event.options.dest as string
+				}
+				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue != event.options.mute
 			},
 			subscribe: (event): void => {
-				const sel = event.options.src as string
-				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				const src = event.options.src as string
+				let dest = ''
+				if (src.startsWith('/main')) {
+					dest = event.options.mainDest as string
+				} else {
+					dest = event.options.dest as string
+				}
+				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const sel = event.options.src as string
-				const cmd = ActionUtil.getSendMuteCommand(sel, getNodeNumber(event, 'src'), getNodeNumber(event, 'dest'))
+				const src = event.options.src as string
+				let dest = ''
+				if (src.startsWith('/main')) {
+					dest = event.options.mainDest as string
+				} else {
+					dest = event.options.dest as string
+				}
+				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},

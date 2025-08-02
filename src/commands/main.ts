@@ -80,7 +80,7 @@ export namespace MainCommands {
 		return `${Node(main)}/send/MX${matrix}`
 	}
 
-	export function MatrixSendMute(main: number, matrix: number): string {
+	export function MatrixSendOn(main: number, matrix: number): string {
 		return `${MatrixSendNode(main, matrix)}/on`
 	}
 
@@ -114,6 +114,14 @@ export namespace MainCommands {
 
 	export function EqOn(main: number): string {
 		return `${EqNode(main)}/on`
+	}
+
+	export function DynamicsNode(main: number): string {
+		return `${Node(main)}/dyn`
+	}
+
+	export function DynamicsOn(main: number): string {
+		return `${DynamicsNode(main)}/on`
 	}
 
 	export function PreInsertNode(main: number): string {
