@@ -5,8 +5,8 @@
 	"description": "WING OSC",
 	"version": "0.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/janikwitzig/companion-module-behringer-wing.git",
-	"bugs": "https://github.com/janikwitzig/companion-module-behringer-wing/issues",
+	"repository": "git+https://github.com/bitfocus/companion-module-behringer-wing.git",
+	"bugs": "https://github.com/bitfocus/companion-module-behringer-wing/issues",
 	"maintainers": [
 		{
 			"name": "Janik Witzig",
