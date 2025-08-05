@@ -11,6 +11,8 @@ import { MainCommands } from '../commands/main.js'
 import { DcaCommands } from '../commands/dca.js'
 import { MuteGroupCommands } from '../commands/mutegroup.js'
 import { ConfigurationCommands } from '../commands/config.js'
+import { InstanceBaseExt } from '../types.js'
+import { WingConfig } from '../config.js'
 
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
 	return action.options[id]?.toString().split('/')[2] as unknown as number
@@ -55,6 +57,21 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
 	}
 	const val = rawVal as string
 	return val
+}
+
+export async function getValueWithVariables(
+	self: InstanceBaseExt<WingConfig>,
+	event: CompanionActionInfo | CompanionFeedbackInfo,
+	id: string,
+): Promise<string | number | boolean> {
+	const useVariables = event.options[`${id}-use-variables`] as boolean
+	if (useVariables === false) {
+		return event.options[id] as string | number | boolean
+	} else if (useVariables === true) {
+		return await self.parseVariablesInString(event.options[`${id}-variables`] as string)
+	} else {
+		return ''
+	}
 }
 
 export function runTransition(

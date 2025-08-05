@@ -9,7 +9,7 @@ import {
 	GetDropdown,
 	GetPanoramaSlider,
 	GetMuteDropdown,
-	GetTextField,
+	GetTextFieldWithVariables,
 	GetFaderDeltaInputField,
 	GetPanoramaDeltaSlider,
 	GetColorDropdown,
@@ -17,7 +17,7 @@ import {
 	GetOnOffToggleDropdown,
 	getDelayModes,
 } from '../choices/common.js'
-import { getNodeNumber, getNumber, runTransition } from './utils.js'
+import { getNodeNumber, getNumber, runTransition, getValueWithVariables } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
@@ -153,12 +153,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Set the name of a channel, aux, bus, dca, matrix, main, or a mutegroup.',
 			options: [
 				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
-				GetTextField('Name', 'name'),
+				...GetTextFieldWithVariables('Name', 'name'),
 			],
 			callback: async (event) => {
+				const name = (await getValueWithVariables(self, event, 'name')) as string
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getNameCommand(sel, getNodeNumber(event, 'sel'))
-				send(cmd, event.options.name as string)
+				send(cmd, name)
 			},
 		},
 		////////////////////////////////////////////////////////////////

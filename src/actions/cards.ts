@@ -10,7 +10,8 @@ import {
 	getCardsActionChoices,
 	getCardsChoices,
 } from '../choices/cards.js'
-import { GetDropdown, GetNumberField } from '../choices/common.js'
+import { GetDropdownWithVariables, GetNumberFieldWithVariables, GetTextFieldWithVariables } from '../choices/common.js'
+import { getValueWithVariables } from './utils.js'
 
 export enum CardsActionId {
 	SetLink = 'set-link',
@@ -37,123 +38,137 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.SetLink]: {
 			name: 'WLive: Set Link',
 			description: 'Set whether the USB cards should be linked or unlinked.',
-			options: [GetDropdown('Link', 'link', getCardsLinkChoices())],
+			options: [...GetDropdownWithVariables('Link', 'link', getCardsLinkChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveSDLink()
-				send(cmd, event.options.link as string)
+				const link = (await getValueWithVariables(self, event, 'link')) as string
+				send(cmd, link)
 			},
 		},
 		[CardsActionId.SetAutoInput]: {
 			name: 'WLive: Set Auto Input',
 			description: 'Set which cards should be used for auto input selection.',
-			options: [GetDropdown('Selection', 'selection', getCardsAutoInChoices())],
+			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoInChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoIn()
-				send(cmd, event.options.selection as string)
+				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				send(cmd, selection)
 			},
 		},
 		[CardsActionId.SetAutoStop]: {
 			name: 'WLive: Set Auto Stop',
 			description: 'Set input actions on stop',
-			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
+			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoStop()
-				send(cmd, event.options.selection as string)
+				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				send(cmd, selection)
 			},
 		},
 		[CardsActionId.SetAutoPlay]: {
 			name: 'WLive: Set Auto Play',
 			description: 'Set input actions on play',
-			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
+			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoPlay()
-				send(cmd, event.options.selection as string)
+				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				send(cmd, selection)
 			},
 		},
 		[CardsActionId.SetAutoRecord]: {
 			name: 'WLive: Set Auto Record',
 			description: 'Set input actions on record',
-			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
+			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoRecord()
-				send(cmd, event.options.selection as string)
+				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				send(cmd, selection)
 			},
 		},
 		[CardsActionId.CardAction]: {
 			name: 'WLive: Card Action',
 			description: 'Start, stop, pause or record on a card.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				GetDropdown('Action', 'action', getCardsActionChoices()),
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetDropdownWithVariables('Action', 'action', getCardsActionChoices()),
 			],
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardControl(event.options.card as number)
-				send(cmd, event.options.action as string)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const cmd = Commands.WLiveCardControl(card)
+				const action = (await getValueWithVariables(self, event, 'action')) as string
+				send(cmd, action)
 			},
 		},
 		[CardsActionId.OpenSession]: {
 			name: 'WLive: Open Session',
 			description: 'Open a session on a card.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				GetNumberField('Session Number', 'session', 1, 100, 1, 1),
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetNumberFieldWithVariables('Session Number', 'session', 1, 100, 1, 1),
 			],
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardOpenSession(event.options.card as number)
-				send(cmd, event.options.session as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const session = (await getValueWithVariables(self, event, 'session')) as number
+				const cmd = Commands.WLiveCardOpenSession(card)
+				send(cmd, session)
 			},
 		},
 		[CardsActionId.DeleteSession]: {
 			name: 'WLive: Delete Session',
 			description: 'Delete a session on a card.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				GetNumberField('Session Number', 'session', 1, 100, 1, 1),
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetNumberFieldWithVariables('Session Number', 'session', 1, 100, 1, 1),
 			],
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardDeleteSession(event.options.card as number)
-				send(cmd, event.options.session as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const session = (await getValueWithVariables(self, event, 'session')) as number
+				const cmd = Commands.WLiveCardDeleteSession(card)
+				send(cmd, session)
 			},
 		},
 		[CardsActionId.NameSession]: {
 			name: 'WLive: Name Session',
 			description: 'Name the current session on a card.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				{
-					id: 'name',
-					type: 'textinput',
-					label: 'Session Name',
-					default: '',
-					tooltip: 'The name to set for the current session on the card.',
-					useVariables: true,
-				},
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetTextFieldWithVariables(
+					'Session Name',
+					'name',
+					'',
+					'The name to set for the current session on the card.',
+				),
 			],
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardNameSession(event.options.card as number)
-				send(cmd, event.options.name as string)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const name = (await getValueWithVariables(self, event, 'name')) as string
+				const cmd = Commands.WLiveCardNameSession(card)
+				send(cmd, name)
 			},
 		},
 		[CardsActionId.SetPosition]: {
 			name: 'WLive: Set Position',
 			description: 'Set the position of a recording on a card.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				GetNumberField('Position (ms)', 'position', 0, 36000000, 1, 0),
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetNumberFieldWithVariables('Position (ms)', 'position', 0, 36000000, 1, 0),
 			],
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardTime(event.options.card as number)
-				send(cmd, event.options.position as number, true)
-				const cmd2 = Commands.WLiveCardGotoMarker(event.options.card as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const position = (await getValueWithVariables(self, event, 'position')) as number
+				const cmd = Commands.WLiveCardTime(card)
+				send(cmd, position, true)
+				const cmd2 = Commands.WLiveCardGotoMarker(card)
 				send(cmd2, 101)
 			},
 		},
 		[CardsActionId.AddMarker]: {
 			name: 'WLive: Add Marker',
 			description: 'Add a marker to a recording on a card.',
-			options: [GetDropdown('Card', 'card', getCardsChoices())],
+			options: [...GetDropdownWithVariables('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardSetMarker(event.options.card as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const cmd = Commands.WLiveCardSetMarker(card)
 				send(cmd, 1)
 			},
 		},
@@ -161,47 +176,54 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Edit Marker',
 			description: 'Edit a marker in a recording on a card. Sets the marker number to the current position.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetNumberFieldWithVariables('Marker Number', 'marker', 1, 100, 1, 1),
 			],
 
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardEditMarker(event.options.card as number)
-				send(cmd, event.options.marker as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const marker = (await getValueWithVariables(self, event, 'marker')) as number
+				const cmd = Commands.WLiveCardEditMarker(card)
+				send(cmd, marker)
 			},
 		},
 		[CardsActionId.GotoMarker]: {
 			name: 'WLive: Goto Marker',
 			description: 'Go to a marker in a recording on a card.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetNumberFieldWithVariables('Marker Number', 'marker', 1, 100, 1, 1),
 			],
 
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardGotoMarker(event.options.card as number)
-				send(cmd, event.options.marker as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const marker = (await getValueWithVariables(self, event, 'marker')) as number
+				const cmd = Commands.WLiveCardGotoMarker(card)
+				send(cmd, marker)
 			},
 		},
 		[CardsActionId.DeleteMarker]: {
 			name: 'WLive: Delete Marker',
 			description: 'Delete a marker from a recording on a card.',
 			options: [
-				GetDropdown('Card', 'card', getCardsChoices()),
-				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
+				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
+				...GetNumberFieldWithVariables('Marker Number', 'marker', 1, 100, 1, 1),
 			],
 
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardDeleteMarker(event.options.card as number)
-				send(cmd, event.options.marker as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const marker = (await getValueWithVariables(self, event, 'marker')) as number
+				const cmd = Commands.WLiveCardDeleteMarker(card)
+				send(cmd, marker)
 			},
 		},
 		[CardsActionId.FormatCard]: {
 			name: 'WLive: Format Card',
 			description: 'Format (delete all contents) of a card.',
-			options: [GetDropdown('Card', 'card', getCardsChoices())],
+			options: [...GetDropdownWithVariables('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
-				const cmd = Commands.WLiveCardFormat(event.options.card as number)
+				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const cmd = Commands.WLiveCardFormat(card)
 				send(cmd, 1)
 			},
 		},
