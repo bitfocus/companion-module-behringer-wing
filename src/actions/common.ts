@@ -976,7 +976,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				} else {
 					dest = event.options.dest as string
 				}
-				console.log('Set Send Mute', src, dest, event.options.mute)
 				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				let val = ActionUtil.getNumber(event, 'mute')
 				val = ActionUtil.getSetOrToggleValue(cmd, val, state, true)

@@ -36,6 +36,7 @@ export function GetTextField(
 	id: string,
 	defaultValue?: string,
 	tooltip?: string,
+	useVariables?: boolean,
 ): CompanionInputFieldTextInput {
 	return {
 		type: 'textinput',
@@ -43,6 +44,7 @@ export function GetTextField(
 		id: id,
 		default: defaultValue,
 		tooltip: tooltip,
+		useVariables: useVariables ?? false,
 	}
 }
 

@@ -170,7 +170,6 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			callback: async (event) => {
 				// convert channel to index
 				const channelIndex = ActionUtil.getStripIndexFromString(event.options.channel as string)
-				console.log(`Setting SOF for channel index: ${channelIndex}`)
 				// send the SOF command with the channel index
 				send(ControlCommands.SetSof(), channelIndex + 1) // +1 because of int offset in Wing
 			},
@@ -190,7 +189,6 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			callback: async (event) => {
 				// convert channel to index
 				const channelIndex = ActionUtil.getStripIndexFromString(event.options.channel as string)
-				console.log(`Setting SOF for channel index: ${channelIndex}`)
 				// send the SOF command with the channel index
 				send(ControlCommands.SetSelect(), channelIndex)
 			},

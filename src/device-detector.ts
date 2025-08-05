@@ -95,9 +95,9 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 				lastSeen: Date.now(),
 			}
 
-			if (!this.knownDevices.has(info.address)) {
+			/*if (!this.knownDevices.has(info.address)) {
 				console.log(`Detected new Device: ${JSON.stringify(msg)}`)
-			}
+			}*/
 
 			this.knownDevices.set(info.address, info)
 

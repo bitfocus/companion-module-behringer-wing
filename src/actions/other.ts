@@ -51,7 +51,6 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			callback: async (event) => {
 				const cmd = await self.parseVariablesInString(event.options.cmd as string)
 				const num = await self.parseVariablesInString(event.options.num as string)
-				console.log(`Sending command: ${cmd} with value: ${num}, parsed as ${parseInt(num)}`)
 				send(cmd, parseInt(num))
 			},
 		},
