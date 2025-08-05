@@ -33,7 +33,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	subscriptions: WingSubscriptions
 	connected: boolean = false
 
-	private heartbeatTimer: NodeJS.Timeout | undefined
 	private reconnectTimer: NodeJS.Timeout | undefined
 	private syncInterval: NodeJS.Timeout | undefined
 	private subscribeInterval: NodeJS.Timeout | undefined
@@ -94,7 +93,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.config = config
 		this.model = getDeskModel(this.config.model)
 		this.state = new WingState(this.model)
-		this.log('error', `${this.model.gpio}`)
 
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
 		this.updateStatus(InstanceStatus.Connecting)
@@ -157,11 +155,25 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.subscriptions = new WingSubscriptions()
 		this.state = new WingState(this.model)
 
+		if (this.subscribeInterval) {
+			clearInterval(this.subscribeInterval)
+			this.subscribeInterval = undefined
+		}
+		if (this.variableUpdateInterval) {
+			clearInterval(this.variableUpdateInterval)
+			this.variableUpdateInterval = undefined
+		}
+
+		WingDeviceDetectorInstance.unsubscribe(this.id)
 		this.transitions.stopAll()
+
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
+		this.updateStatus(InstanceStatus.Connecting)
+		this.updateActions()
+		this.updateFeedbacks()
+		this.updateVariableDefinitions()
 
 		if (this.config.host !== undefined) {
-			this.updateStatus(InstanceStatus.Connecting)
 			this.setupOscSocket()
 			this.updateCompanionWithState()
 		}
@@ -169,6 +181,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.variableUpdateInterval = setInterval(() => {
 			this.UpdateVariables()
 		}, this.config.variableUpdateRate)
+
+		WingDeviceDetectorInstance.subscribe(this.id)
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
@@ -228,10 +242,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.requestQueue.clear()
 			this.inFlightRequests = {}
 
-			if (this.heartbeatTimer) {
-				clearInterval(this.heartbeatTimer)
-				this.heartbeatTimer = undefined
-			}
 			if (this.subscribeInterval) {
 				clearInterval(this.subscribeInterval)
 				this.subscribeInterval = undefined
@@ -242,11 +252,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			}
 		})
 		this.osc.on('ready', () => {
-			this.pulse()
-			this.heartbeatTimer = setInterval(() => {
-				this.pulse()
-			}, 1500)
-
 			this.subscribeForUpdates()
 			this.subscribeInterval = setInterval(() => {
 				this.subscribeForUpdates()
@@ -263,11 +268,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.osc.on('close' as any, () => {
-			if (this.heartbeatTimer !== undefined) {
-				clearInterval(this.heartbeatTimer)
-				this.heartbeatTimer = undefined
-			}
-
+			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
+			this.connected = false
 			if (this.subscribeInterval) {
 				clearInterval(this.subscribeInterval)
 				this.subscribeInterval = undefined
@@ -310,14 +312,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		this.osc.open()
 	}
-
-	private pulse(): void {
-		try {
-			this.sendCommand('/WING?')
-		} catch (_e) {
-			// Ignore
-		}
-	}
 	private subscribeForUpdates(): void {
 		if (this.osc) {
 			try {
@@ -329,18 +323,17 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private requestStatusUpdates(): void {
-		// create timeout to verify that the desk is still connected
-		if (this.reconnectTimer) {
-			clearTimeout(this.reconnectTimer)
-			this.reconnectTimer = undefined
-		}
-		this.reconnectTimer = setTimeout(
-			() => {
+		// create timeout to verify that the desk is still connected, if we are actively polling
+		if (this.subscriptions.getPollPaths().length > 0) {
+			if (this.reconnectTimer) {
+				clearTimeout(this.reconnectTimer)
+				this.reconnectTimer = undefined
+			}
+			this.reconnectTimer = setTimeout(() => {
 				this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
 				this.connected = false
-			},
-			(this.config.statusPollUpdateRate ?? 3000) / 2,
-		)
+			}, this.config.statusPollUpdateRate ?? 3000)
+		}
 		this.subscriptions.getPollPaths().forEach((c) => {
 			this.sendCommand(c)
 		})
