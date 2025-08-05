@@ -9,6 +9,50 @@ import {
 import { FadeDurationChoice } from './fades.js'
 import { getIdLabelPair } from '../choices/utils.js'
 
+export function GetCheckbox(
+	label: string,
+	id: string,
+	defaultValue?: boolean,
+	tooltip?: string,
+): CompanionInputFieldCheckbox {
+	return {
+		type: 'checkbox',
+		label: label,
+		id: id,
+		default: defaultValue ?? false,
+		tooltip: tooltip,
+	}
+}
+
+export function GetCheckboxWithVariables(
+	label: string,
+	id: string,
+	defaultValue?: boolean,
+	tooltip?: string,
+): [CompanionInputFieldCheckbox, CompanionInputFieldCheckbox, CompanionInputFieldTextInput] {
+	const checkbox = GetCheckbox(label, id, defaultValue, tooltip)
+	checkbox.isVisibleExpression = `!$(options:${id}-use-variables)`
+	return [
+		{
+			type: 'checkbox',
+			label: 'Use Variables',
+			id: `${id}-use-variables`,
+			default: false,
+			tooltip: 'Enable to use variables',
+		},
+		checkbox,
+		{
+			type: 'textinput',
+			id: `${id}-variables`,
+			label: label,
+			default: '',
+			tooltip: tooltip,
+			useVariables: true,
+			isVisibleExpression: `$(options:${id}-use-variables)`,
+		},
+	]
+}
+
 export function GetNumberField(
 	label: string,
 	id: string,
@@ -42,6 +86,8 @@ export function GetNumberFieldWithVariables(
 	range?: boolean,
 	tooltip?: string,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldNumber, CompanionInputFieldTextInput] {
+	const number = GetNumberField(label, id, min, max, step, defaultValue, range, tooltip)
+	number.isVisibleExpression = `!$(options:${id}-use-variables)`
 	return [
 		{
 			type: 'checkbox',
@@ -50,18 +96,7 @@ export function GetNumberFieldWithVariables(
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
-		{
-			type: 'number',
-			label: label,
-			id: id,
-			default: defaultValue ?? 0,
-			min: min,
-			step: step,
-			max: max,
-			range: range,
-			tooltip: tooltip,
-			isVisibleExpression: `!$(options:${id}-use-variables)`,
-		},
+		number,
 		{
 			type: 'textinput',
 			id: `${id}-variables`,
