@@ -11,7 +11,7 @@ import {
 	getCardsChoices,
 } from '../choices/cards.js'
 import { GetDropdownWithVariables, GetNumberFieldWithVariables, GetTextFieldWithVariables } from '../choices/common.js'
-import { getValueWithVariables } from './utils.js'
+import { getStringWithVariables, getNumberWithVariables } from './utils.js'
 
 export enum CardsActionId {
 	SetLink = 'set-link',
@@ -41,7 +41,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			options: [...GetDropdownWithVariables('Link', 'link', getCardsLinkChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveSDLink()
-				const link = (await getValueWithVariables(self, event, 'link')) as string
+				const link = await getStringWithVariables(self, event, 'link')
 				send(cmd, link)
 			},
 		},
@@ -51,7 +51,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoInChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoIn()
-				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				const selection = await getStringWithVariables(self, event, 'selection')
 				send(cmd, selection)
 			},
 		},
@@ -61,7 +61,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoStop()
-				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				const selection = await getStringWithVariables(self, event, 'selection')
 				send(cmd, selection)
 			},
 		},
@@ -71,7 +71,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoPlay()
-				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				const selection = await getStringWithVariables(self, event, 'selection')
 				send(cmd, selection)
 			},
 		},
@@ -81,7 +81,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoRecord()
-				const selection = (await getValueWithVariables(self, event, 'selection')) as string
+				const selection = await getStringWithVariables(self, event, 'selection')
 				send(cmd, selection)
 			},
 		},
@@ -93,9 +93,9 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				...GetDropdownWithVariables('Action', 'action', getCardsActionChoices()),
 			],
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
 				const cmd = Commands.WLiveCardControl(card)
-				const action = (await getValueWithVariables(self, event, 'action')) as string
+				const action = await getStringWithVariables(self, event, 'action')
 				send(cmd, action)
 			},
 		},
@@ -107,8 +107,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				...GetNumberFieldWithVariables('Session Number', 'session', 1, 100, 1, 1),
 			],
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
-				const session = (await getValueWithVariables(self, event, 'session')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
+				const session = await getNumberWithVariables(self, event, 'session')
 				const cmd = Commands.WLiveCardOpenSession(card)
 				send(cmd, session)
 			},
@@ -121,8 +121,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				...GetNumberFieldWithVariables('Session Number', 'session', 1, 100, 1, 1),
 			],
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
-				const session = (await getValueWithVariables(self, event, 'session')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
+				const session = await getNumberWithVariables(self, event, 'session')
 				const cmd = Commands.WLiveCardDeleteSession(card)
 				send(cmd, session)
 			},
@@ -140,8 +140,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				),
 			],
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
-				const name = (await getValueWithVariables(self, event, 'name')) as string
+				const card = await getNumberWithVariables(self, event, 'card')
+				const name = await getStringWithVariables(self, event, 'name')
 				const cmd = Commands.WLiveCardNameSession(card)
 				send(cmd, name)
 			},
@@ -154,8 +154,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				...GetNumberFieldWithVariables('Position (ms)', 'position', 0, 36000000, 1, 0),
 			],
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
-				const position = (await getValueWithVariables(self, event, 'position')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
+				const position = await getNumberWithVariables(self, event, 'position')
 				const cmd = Commands.WLiveCardTime(card)
 				send(cmd, position, true)
 				const cmd2 = Commands.WLiveCardGotoMarker(card)
@@ -167,7 +167,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			description: 'Add a marker to a recording on a card.',
 			options: [...GetDropdownWithVariables('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
 				const cmd = Commands.WLiveCardSetMarker(card)
 				send(cmd, 1)
 			},
@@ -181,8 +181,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			],
 
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
-				const marker = (await getValueWithVariables(self, event, 'marker')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
+				const marker = await getNumberWithVariables(self, event, 'marker')
 				const cmd = Commands.WLiveCardEditMarker(card)
 				send(cmd, marker)
 			},
@@ -196,8 +196,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			],
 
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
-				const marker = (await getValueWithVariables(self, event, 'marker')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
+				const marker = await getNumberWithVariables(self, event, 'marker')
 				const cmd = Commands.WLiveCardGotoMarker(card)
 				send(cmd, marker)
 			},
@@ -211,8 +211,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			],
 
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
-				const marker = (await getValueWithVariables(self, event, 'marker')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
+				const marker = await getNumberWithVariables(self, event, 'marker')
 				const cmd = Commands.WLiveCardDeleteMarker(card)
 				send(cmd, marker)
 			},
@@ -222,7 +222,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			description: 'Format (delete all contents) of a card.',
 			options: [...GetDropdownWithVariables('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
-				const card = (await getValueWithVariables(self, event, 'card')) as number
+				const card = await getNumberWithVariables(self, event, 'card')
 				const cmd = Commands.WLiveCardFormat(card)
 				send(cmd, 1)
 			},

@@ -3,7 +3,7 @@ import { CompanionActionWithCallback } from './common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { GetTextFieldWithVariables } from '../choices/common.js'
-import { getValueWithVariables } from './utils.js'
+import { getStringWithVariables } from './utils.js'
 
 export enum OtherActionId {
 	SendCommand = 'send-command',
@@ -20,7 +20,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			description: 'Send an OSC command with no argument to the console.',
 			options: [...GetTextFieldWithVariables('Command', 'cmd', '')],
 			callback: async (event) => {
-				const cmd = (await getValueWithVariables(self, event, 'cmd')) as string
+				const cmd = await getStringWithVariables(self, event, 'cmd')
 				send(cmd)
 			},
 		},
@@ -39,7 +39,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 				},
 			],
 			callback: async (event) => {
-				const cmd = (await getValueWithVariables(self, event, 'cmd')) as string
+				const cmd = await getStringWithVariables(self, event, 'cmd')
 				const num = await self.parseVariablesInString(event.options.num as string)
 				send(cmd, parseInt(num))
 			},
@@ -52,8 +52,8 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 				...GetTextFieldWithVariables('Value', 'val', '', 'The value to send as a string. This can include variables.'),
 			],
 			callback: async (event) => {
-				const cmd = (await getValueWithVariables(self, event, 'cmd')) as string
-				const val = (await getValueWithVariables(self, event, 'val')) as string
+				const cmd = await getStringWithVariables(self, event, 'cmd')
+				const val = await getStringWithVariables(self, event, 'val')
 				send(cmd, val)
 			},
 		},

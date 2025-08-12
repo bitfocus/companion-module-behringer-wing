@@ -3,7 +3,7 @@ import { CompanionActionWithCallback } from './common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { IoCommands } from '../commands/io.js'
-import { GetDropdown } from '../choices/common.js'
+import { GetDropdownWithVariables } from '../choices/common.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import * as ActionUtil from './utils.js'
 
@@ -13,31 +13,22 @@ export enum IoActionId {
 
 export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
 	const send = self.sendCommand
-	const state = self.state
-	const ensureLoaded = self.ensureLoaded
 
 	const actions: { [id in IoActionId]: CompanionActionWithCallback | undefined } = {
 		[IoActionId.MainAltSwitch]: {
 			name: 'Set Main/Alt Switch',
 			description: 'Sets the desk to use the configured main/alt input sources.',
 			options: [
-				GetDropdown('Selection', 'sel', [
+				...GetDropdownWithVariables('Selection', 'sel', [
 					getIdLabelPair('0', 'Alt'),
 					getIdLabelPair('1', 'Main'),
-					getIdLabelPair('2', 'Toggle'),
+					getIdLabelPair('-1', 'Toggle'),
 				]),
 			],
 			callback: async (event) => {
 				const cmd = IoCommands.MainAltSwitch()
-				let val = ActionUtil.getNumber(event, 'sel')
-				val = Number(ActionUtil.getSetOrToggleValue(cmd, val, state, true))
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'sel')
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.mute ?? 0 >= 2) {
-					const cmd = IoCommands.MainAltSwitch()
-					ensureLoaded(cmd)
-				}
 			},
 		},
 	}

@@ -5,7 +5,7 @@ import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { getUsbPlayerActionChoices, getUsbRecorderActionChoices } from '../choices/usbplayer.js'
 import { GetCheckboxWithVariables, GetDropdownWithVariables } from '../choices/common.js'
-import { getValueWithVariables } from './utils.js'
+import { getStringWithVariables, getNumberWithVariables } from './utils.js'
 
 export enum UsbPlayerActionId {
 	PlaybackAction = 'playback-action',
@@ -22,7 +22,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 			description: 'Start, stop, pause, jump to previous or next in the USB player.',
 			options: [...GetDropdownWithVariables('Action', 'action', getUsbPlayerActionChoices())],
 			callback: async (event) => {
-				const action = (await getValueWithVariables(self, event, 'action')) as string
+				const action = await getStringWithVariables(self, event, 'action')
 				const cmd = Commands.PlayerAction()
 				send(cmd, action)
 			},
@@ -32,9 +32,9 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 			description: 'Enable the repeat functionality of the USB player',
 			options: [...GetCheckboxWithVariables('Repeat', 'repeat', false, 'Enable or disable repeat functionality')],
 			callback: async (event) => {
-				const repeat = (await getValueWithVariables(self, event, 'repeat')) as boolean
+				const repeat = await getNumberWithVariables(self, event, 'repeat')
 				const cmd = Commands.PlayerRepeat()
-				send(cmd, repeat ? 1 : 0)
+				send(cmd, repeat == 1 ? 1 : 0)
 			},
 		},
 		[UsbPlayerActionId.RecordAction]: {
@@ -42,7 +42,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 			description: 'Start, stop, pause or create a new file in the USB recorder.',
 			options: [...GetDropdownWithVariables('Action', 'action', getUsbRecorderActionChoices())],
 			callback: async (event) => {
-				const action = (await getValueWithVariables(self, event, 'action')) as string
+				const action = await getStringWithVariables(self, event, 'action')
 				const cmd = Commands.RecorderAction()
 				send(cmd, action)
 			},

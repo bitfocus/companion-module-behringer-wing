@@ -17,7 +17,7 @@ import {
 	GetOnOffToggleDropdown,
 	getDelayModes,
 } from '../choices/common.js'
-import { getNodeNumber, getNumber, runTransition, getValueWithVariables } from './utils.js'
+import { getNodeNumber, getNumber, runTransition, getStringWithVariables } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
@@ -156,7 +156,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetTextFieldWithVariables('Name', 'name'),
 			],
 			callback: async (event) => {
-				const name = (await getValueWithVariables(self, event, 'name')) as string
+				const name = await getStringWithVariables(self, event, 'name')
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getNameCommand(sel, getNodeNumber(event, 'sel'))
 				send(cmd, name)

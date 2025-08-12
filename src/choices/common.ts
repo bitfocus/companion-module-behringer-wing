@@ -31,24 +31,24 @@ export function GetCheckboxWithVariables(
 	tooltip?: string,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldCheckbox, CompanionInputFieldTextInput] {
 	const checkbox = GetCheckbox(label, id, defaultValue, tooltip)
-	checkbox.isVisibleExpression = `!$(options:${id}-use-variables)`
+	checkbox.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${label}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		checkbox,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: label,
 			default: '',
 			tooltip: tooltip,
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -87,24 +87,24 @@ export function GetNumberFieldWithVariables(
 	tooltip?: string,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldNumber, CompanionInputFieldTextInput] {
 	const number = GetNumberField(label, id, min, max, step, defaultValue, range, tooltip)
-	number.isVisibleExpression = `!$(options:${id}-use-variables)`
+	number.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${label}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		number,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: label,
 			default: '',
 			tooltip: tooltip,
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -131,24 +131,24 @@ export function GetTextFieldWithVariables(
 	tooltip?: string,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldTextInput, CompanionInputFieldTextInput] {
 	const text = getTextField(label, id, defaultValue, tooltip)
-	text.isVisibleExpression = `!$(options:${id}-use-variables)`
+	text.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${label}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		text,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: label,
 			default: '',
 			tooltip: tooltip,
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -175,24 +175,24 @@ export function getSliderWithVariables(
 	tooltip?: string,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldNumber, CompanionInputFieldTextInput] {
 	const slider = GetSlider(label, id, min, max, step, defaultValue, tooltip)
-	slider.isVisibleExpression = `!$(options:${id}-use-variables)`
+	slider.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${label}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		slider,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: label,
 			default: '',
 			tooltip: tooltip,
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -242,24 +242,24 @@ export function GetDropdownWithVariables(
 		defaultChoice,
 		tooltip ?? `Available choices: ${choiceList}`,
 	)
-	dropdown.isVisibleExpression = `!$(options:${id}-use-variables)`
+	dropdown.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${label}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		dropdown,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: label,
 			default: '',
 			tooltip: tooltip ?? `Available choices: ${choiceList}`,
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -274,7 +274,7 @@ export function GetMuteDropdown(id: string, label?: string, includeToggle?: bool
 	)
 	if (includeToggle == false) return dropdown
 
-	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('2', 'Toggle')], default: '2' }
+	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('-1', 'Toggle')], default: '-1' }
 }
 
 export function GetMuteDropdownWithVariables(
@@ -283,24 +283,24 @@ export function GetMuteDropdownWithVariables(
 	includeToggle?: boolean,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldDropdown, CompanionInputFieldTextInput] {
 	const dropdown = GetMuteDropdown(id, label, includeToggle)
-	dropdown.isVisibleExpression = `!$(options:${id}-use-variables)`
+	dropdown.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${label}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		dropdown,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: label ?? 'Mute',
 			default: '',
-			tooltip: 'Mute: 1, Unmute: 0, Toggle: 2',
+			tooltip: 'Mute: 1, Unmute: 0, Toggle: -1',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -319,7 +319,7 @@ export function GetOnOffToggleDropdown(
 	)
 	if (includeToggle == false) return dropdown
 
-	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('2', 'Toggle')] }
+	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('-1', 'Toggle')] }
 }
 
 export function GetOnOffToggleDropdownWithVariables(
@@ -328,24 +328,24 @@ export function GetOnOffToggleDropdownWithVariables(
 	includeToggle?: boolean,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldDropdown, CompanionInputFieldTextInput] {
 	const dropdown = GetOnOffToggleDropdown(id, label, includeToggle)
-	dropdown.isVisibleExpression = `!$(options:${id}-use-variables)`
+	dropdown.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${label}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		dropdown,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: label ?? 'Selection',
 			default: '',
-			tooltip: 'On: 1, Off: 0, Toggle: 2',
+			tooltip: 'On: 1, Off: 0, Toggle: -1',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -388,24 +388,24 @@ export function GetPanoramaSliderWithVariables(
 		0,
 		'Set the panorama of the selected target between -100 (Left) and +100 (Right)',
 	)
-	slider.isVisibleExpression = `!$(options:${id}-use-variables)`
+	slider.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${name ?? 'Panorama'}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		slider,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: name ?? 'Panorama',
 			default: '',
 			tooltip: 'Set the panorama of the selected target between -100 (Left) and +100 (Right)',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 		...FadeDurationChoice,
 	]
@@ -430,23 +430,23 @@ export function GetPanoramaDeltaSliderWithVariables(
 	CompanionInputFieldDropdown,
 ] {
 	const slider = GetSlider(name ?? 'Panorama', id, -200, 200, 1, 0)
-	slider.isVisibleExpression = `!$(options:${id}-use-variables)`
+	slider.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${name ?? 'Panorama'}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		slider,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: name ?? 'Panorama',
 			default: '',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 		...FadeDurationChoice,
 	]
@@ -461,24 +461,24 @@ export function GetGainSliderWithVariables(
 	name?: string,
 ): [CompanionInputFieldCheckbox, CompanionInputFieldNumber, CompanionInputFieldTextInput] {
 	const slider = GetSlider(name ?? 'Gain (dB)', id, -3, 45.5, 0.5, 10, 'Set the input gain of the selected target')
-	slider.isVisibleExpression = `!$(options:${id}-use-variables)`
+	slider.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${name ?? 'Gain (dB)'}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		slider,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: name ?? 'Gain (dB)',
 			default: '',
 			tooltip: 'Set the input gain of the selected target',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 	]
 }
@@ -514,24 +514,24 @@ export function GetFaderInputFieldWithVariables(
 		true,
 		'Set the fader level of the selected target',
 	)
-	number.isVisibleExpression = `!$(options:${id}-use-variables)`
+	number.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
 			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		number,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: name ?? 'Level (dB)',
 			default: '',
 			tooltip: 'Set the fader level of the selected target',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 		...FadeDurationChoice,
 	]
@@ -556,23 +556,23 @@ export function GetFaderDeltaInputFieldWithVariables(
 	CompanionInputFieldDropdown,
 ] {
 	const number = GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0, true)
-	number.isVisibleExpression = `!$(options:${id}-use-variables)`
+	number.isVisibleExpression = `!$(options:${id}_use_variables)`
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
-			id: `${id}-use-variables`,
+			label: `Use Variables for ${name ?? 'Level (dB)'}`,
+			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
 		number,
 		{
 			type: 'textinput',
-			id: `${id}-variables`,
+			id: `${id}_variables`,
 			label: name ?? 'Level (dB)',
 			default: '',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}-use-variables)`,
+			isVisibleExpression: `$(options:${id}_use_variables)`,
 		},
 		...FadeDurationChoice,
 	]

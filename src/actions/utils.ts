@@ -59,19 +59,64 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
 	return val
 }
 
-export async function getValueWithVariables(
+/**
+ * Retrieves a string value from the provided event options, optionally parsing variables if specified.
+ *
+ * @param self - The instance of the module, providing access to parseVariablesInString.
+ * @param event - The action or feedback event containing the options to extract the value from.
+ * @param id - The identifier for the option to retrieve.
+ * @param defaultValue - An optional default value to return if the result is undefined or empty.
+ * @returns A promise that resolves to the resulting string
+ */
+export async function getStringWithVariables(
 	self: InstanceBaseExt<WingConfig>,
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
-): Promise<string | number | boolean> {
-	const useVariables = event.options[`${id}-use-variables`] as boolean
-	if (useVariables === false) {
-		return event.options[id] as string | number | boolean
+	defaultValue?: string,
+): Promise<string> {
+	const useVariables = event.options[`${id}_use_variables`] as boolean
+	let res = ''
+	if (useVariables === false || useVariables === undefined) {
+		res = event.options[id] as string
 	} else if (useVariables === true) {
-		return await self.parseVariablesInString(event.options[`${id}-variables`] as string)
-	} else {
-		return ''
+		res = await self.parseVariablesInString(event.options[`${id}_variables`] as string)
 	}
+
+	return res ?? defaultValue ?? ''
+}
+
+/**
+ * Retrieves a numeric value from the provided event options, supporting both direct input and variable substitution.
+ *
+ * @param self - The instance of the module, providing access to parseVariablesInString
+ * @param event - The action or feedback event containing the options to extract the value from.
+ * @param id - The identifier for the option to retrieve.
+ * @param defaultValue - An optional default value to return if the extracted value is invalid.
+ * @returns A promise that resolves to the resulting number
+ * @throws If the value is invalid and no default value is provided.
+ */
+export async function getNumberWithVariables(
+	self: InstanceBaseExt<WingConfig>,
+	event: CompanionActionInfo | CompanionFeedbackInfo,
+	id: string,
+	defaultValue?: number,
+): Promise<number> {
+	const useVariables = event.options[`${id}_use_variables`] as boolean
+	let res = 0
+	if (useVariables === false || useVariables === undefined) {
+		res = Number(event.options[id])
+	} else if (useVariables === true) {
+		const val = await self.parseVariablesInString(event.options[`${id}_variables`] as string)
+		res = Number(val)
+	}
+	if (isNaN(res)) {
+		if (defaultValue !== undefined) {
+			return defaultValue
+		} else {
+			throw new Error(`Invalid option '${id}'`)
+		}
+	}
+	return res
 }
 
 export function runTransition(
@@ -442,7 +487,7 @@ export function getDynamicsEnableCommand(sel: string, val: number): string {
 
 export function getSetOrToggleValue(cmd: string, val: number, state: WingState, invert?: boolean): number {
 	const inv = invert ?? false
-	if (val >= 2) {
+	if (val <= -1) {
 		const currentVal = StateUtil.getBooleanFromState(cmd, state)
 		return Number(!currentVal)
 	}

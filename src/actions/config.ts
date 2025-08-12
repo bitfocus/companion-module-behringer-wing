@@ -5,11 +5,11 @@ export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition,
 
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
-	GetDropdown,
-	GetFaderInputField,
-	GetMuteDropdown,
-	GetNumberField,
-	GetOnOffToggleDropdown,
+	GetDropdownWithVariables,
+	GetFaderInputFieldWithVariables,
+	GetMuteDropdownWithVariables,
+	GetNumberFieldWithVariables,
+	GetOnOffToggleDropdownWithVariables,
 } from '../choices/common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
@@ -40,7 +40,6 @@ export enum ConfigActions {
 
 export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
 	const send = self.sendCommand
-	const ensureLoaded = self.ensureLoaded
 	const state = self.state
 	const transitions = self.transitions
 	const model = self.model
@@ -52,86 +51,48 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 		[ConfigActions.SetSoloMute]: {
 			name: 'Set Solo Mute',
 			description: 'Set or toggle the mute state of the solo output.',
-			options: [GetMuteDropdown('mute')],
+			options: [...GetMuteDropdownWithVariables('mute', 'Mute', true)],
 			callback: async (event) => {
+				const mute = await ActionUtil.getNumberWithVariables(self, event, 'mute')
 				const cmd = ConfigurationCommands.SoloMute()
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state)
-				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.mute ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloMute()
-					ensureLoaded(cmd)
-				}
+				send(cmd, mute)
 			},
 		},
 		[ConfigActions.SetSoloDim]: {
 			name: 'Set Solo Dim',
 			description: 'Set or toggle the dim state of the solo output.',
-			options: [
-				GetDropdown(
-					'Dim',
-					'dim',
-					[getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off'), getIdLabelPair('2', 'Toggle')],
-					'1',
-				),
-			],
+			options: [...GetOnOffToggleDropdownWithVariables('dim', 'Dim', true)],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloDim()
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'dim'), state)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'dim')
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.dim ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloDim()
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		[ConfigActions.SetSoloMono]: {
 			name: 'Set Solo Mono',
 			description: 'Set or toggle the mono state of the solo output.',
-			options: [
-				GetDropdown(
-					'Mono',
-					'mono',
-					[getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off'), getIdLabelPair('2', 'Toggle')],
-					'1',
-				),
-			],
+			options: [...GetOnOffToggleDropdownWithVariables('mono', 'Mono', true)],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloMono()
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mono'), state)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'mono')
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.mono ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloMono()
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		[ConfigActions.SetSoloLRSwap]: {
 			name: 'Set Solo LR Swap',
 			description: 'Set the left-right channel swap of the solo channel.',
 			options: [
-				GetDropdown(
+				...GetDropdownWithVariables(
 					'Swap',
 					'swap',
-					[getIdLabelPair('1', 'Swap'), getIdLabelPair('0', "Don't Swap"), getIdLabelPair('2', 'Toggle')],
+					[getIdLabelPair('1', 'Swap'), getIdLabelPair('0', "Don't Swap"), getIdLabelPair('-1', 'Toggle')],
 					'1',
 				),
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloLRSwap()
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'swap'), state)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'swap')
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.swap ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloLRSwap()
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		[ConfigActions.SetMonitorLevel]:
@@ -141,18 +102,19 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 						description:
 							'Set the level of a monitor channel. ATTENTION: This command only works on the Rack and Compact Model, due to the full-size Wing having potentiometers as control knobs.',
 						options: [
-							GetDropdown('Monitor', 'mon', [getIdLabelPair('1', 'Monitor 1'), getIdLabelPair('2', 'Monitor 2')], '1'),
-							...GetFaderInputField('level'),
+							...GetDropdownWithVariables(
+								'Monitor',
+								'mon',
+								[getIdLabelPair('1', 'Monitor 1'), getIdLabelPair('2', 'Monitor 2')],
+								'1',
+							),
+							...GetFaderInputFieldWithVariables('level'),
 						],
 						callback: async (event) => {
-							const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
-							ActionUtil.runTransition(cmd, 'level', event, state, transitions)
-						},
-						subscribe: (event) => {
-							if (event.options.swap ?? 0 >= 2) {
-								const cmd = ConfigurationCommands.MonitorLevel(event.options.mon as number)
-								ensureLoaded(cmd)
-							}
+							const monitor = await ActionUtil.getNumberWithVariables(self, event, 'mon')
+							const level = await ActionUtil.getNumberWithVariables(self, event, 'level')
+							const cmd = ConfigurationCommands.MonitorLevel(monitor)
+							ActionUtil.runTransition(cmd, 'level', event, state, transitions, level)
 						},
 					}
 				: undefined,
@@ -162,10 +124,13 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 		[ConfigActions.TalkbackOn]: {
 			name: 'Talkback On',
 			description: 'Enable or disable the on state of a talkback.',
-			options: [GetDropdown('Talkback', 'tb', getTalkbackOptions()), GetOnOffToggleDropdown('solo', 'Solo')],
+			options: [
+				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
+				...GetOnOffToggleDropdownWithVariables('solo', 'Solo', true),
+			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'solo'), state)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'solo')
 				send(cmd, val)
 			},
 		},
@@ -173,12 +138,13 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			name: 'Talkback Mode',
 			description: 'Set the mode of a talkback channel.',
 			options: [
-				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
-				GetDropdown('Mode', 'mode', getTalkbackModeOptions()),
+				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
+				...GetDropdownWithVariables('Mode', 'mode', getTalkbackModeOptions()),
 			],
 			callback: async (event) => {
-				const cmd = ConfigurationCommands.TalkbackMode(event.options.tb as string)
-				const val = event.options.mode as string
+				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const cmd = ConfigurationCommands.TalkbackMode(tb)
+				const val = await ActionUtil.getStringWithVariables(self, event, 'mode')
 				send(cmd, val)
 			},
 		},
@@ -186,12 +152,13 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			name: 'Talkback Monitor Dim',
 			description: 'Set the the monitor dim amount of a talkback channel.',
 			options: [
-				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
-				GetNumberField('Dim [dB]', 'dim', 0, 40, 1, 10, true),
+				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
+				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10, true),
 			],
 			callback: async (event) => {
-				const cmd = ConfigurationCommands.TalkbackMonitorDim(event.options.tb as string)
-				const val = event.options.dim as number
+				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const cmd = ConfigurationCommands.TalkbackMonitorDim(tb)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'dim')
 				send(cmd, val, true)
 			},
 		},
@@ -199,12 +166,13 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			name: 'Talkback Bus Dim',
 			description: 'Set the the bus dim amount of a talkback channel.',
 			options: [
-				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
-				GetNumberField('Dim [dB]', 'dim', 0, 40, 1, 10, true),
+				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
+				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10, true),
 			],
 			callback: async (event) => {
-				const cmd = ConfigurationCommands.TalkbackBusDim(event.options.tb as string)
-				const val = event.options.dim as number
+				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const cmd = ConfigurationCommands.TalkbackBusDim(tb)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'dim')
 				send(cmd, val, true)
 			},
 		},
@@ -212,44 +180,37 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			name: 'Talkback Assign',
 			description: 'Enable, disable or toggle the assignment of a talkback to a bus, matrix or main.',
 			options: [
-				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
-				GetDropdown('Destination', 'dest', [
+				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
+				...GetDropdownWithVariables('Destination', 'dest', [
 					...state.namedChoices.busses,
 					...state.namedChoices.matrices,
 					...state.namedChoices.mains,
 				]),
-				GetDropdown('Assign', 'assign', [
+				...GetDropdownWithVariables('Assign', 'assign', [
 					getIdLabelPair('1', 'Assign'),
 					getIdLabelPair('0', 'Not Assign'),
-					getIdLabelPair('2', 'Toggle'),
+					getIdLabelPair('-1', 'Toggle'),
 				]),
 			],
 			callback: async (event) => {
-				const talkback = event.options.tb as string
-				const destination = event.options.dest as string
+				const talkback = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const destination = await ActionUtil.getStringWithVariables(self, event, 'dest')
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
-				const val = ActionUtil.getSetOrToggleValue(cmd, event.options.assign as number, state)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'assign')
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.mode ?? 0 >= 2) {
-					const talkback = event.options.tb as string
-					const destination = event.options.dest as string
-					const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		[ConfigActions.TalkbackIndividualLevels]: {
 			name: 'Talkback Individual Levels',
 			description: 'Enable or disable individual bus and main talkback levels.',
 			options: [
-				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
-				GetDropdown('Mode', 'mode', getTalkbackIndividualOptions()),
+				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
+				...GetDropdownWithVariables('Mode', 'mode', getTalkbackIndividualOptions()),
 			],
 			callback: async (event) => {
-				const cmd = ConfigurationCommands.TalkbackIndividual(event.options.tb as string)
-				const val = event.options.mode as number
+				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const cmd = ConfigurationCommands.TalkbackIndividual(tb)
+				const val = await ActionUtil.getNumberWithVariables(self, event, 'mode')
 				send(cmd, val)
 			},
 		},
