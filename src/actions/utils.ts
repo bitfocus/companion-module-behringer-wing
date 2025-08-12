@@ -180,6 +180,24 @@ export function getNameCommand(sel: string, val: number): string {
 	return cmd
 }
 
+export function getIconCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.Icon(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.Icon(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.Icon(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.Icon(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.Icon(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.Icon(val)
+	}
+	return cmd
+}
+
 export function getGainCommand(sel: string, val: number): string {
 	let cmd = ''
 	if (sel.startsWith('/ch')) {

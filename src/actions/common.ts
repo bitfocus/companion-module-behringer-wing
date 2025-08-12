@@ -7,6 +7,7 @@ import { CompanionActionDefinitions } from '@companion-module/base'
 import {
 	GetFaderInputField,
 	GetDropdown,
+	GetDropdownWithVariables,
 	GetPanoramaSlider,
 	GetMuteDropdown,
 	GetTextFieldWithVariables,
@@ -16,6 +17,7 @@ import {
 	GetNumberField,
 	GetOnOffToggleDropdown,
 	getDelayModes,
+	getIconChoices,
 } from '../choices/common.js'
 import { getNodeNumber, getNumber, runTransition, getStringWithVariables } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
@@ -29,6 +31,7 @@ export enum CommonActions {
 	SetScribbleLight = 'set-scribble-light',
 	SetScribbleLightColor = 'set-scribble-light-color',
 	SetName = 'set-name',
+	SetIcon = 'set-icon',
 	SetSolo = 'set-solo',
 	ClearSolo = 'clear-solo',
 	// Gain
@@ -160,6 +163,20 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getNameCommand(sel, getNodeNumber(event, 'sel'))
 				send(cmd, name)
+			},
+		},
+		[CommonActions.SetIcon]: {
+			name: 'Set Channel Icon',
+			description: 'Set the icon displayed for a channel.',
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetDropdownWithVariables('Icon', 'icon', getIconChoices()),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const icon = await ActionUtil.getNumberWithVariables(self, event, 'icon')
+				const cmd = ActionUtil.getIconCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, icon)
 			},
 		},
 		////////////////////////////////////////////////////////////////

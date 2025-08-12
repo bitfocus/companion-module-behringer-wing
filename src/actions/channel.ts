@@ -1,5 +1,5 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { GetDropdown, GetNumberField, getIconChoices } from '../choices/common.js'
+import { GetDropdown, GetDropdownWithVariables, GetNumberFieldWithVariables } from '../choices/common.js'
 import { getSourceGroupChoices } from '../choices/common.js'
 import { getChannelProcessOrderChoices, getFilterModelOptions } from '../choices/channel.js'
 import { ChannelCommands as Commands } from '../commands/channel.js'
@@ -17,7 +17,6 @@ export enum ChannelActions {
 	SetChannelEqType = 'set-channel-eq-type',
 	SetChannelEqParameter = 'set-channel-eq-parameter',
 	SetChannelProcessOrder = 'set-channel-process-order',
-	SetChannelIcon = 'set-channel-icon',
 }
 
 export function createChannelActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -30,39 +29,46 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set Channel Main Connection',
 			description: 'Set the index of the main connection of a channel',
 			options: [
-				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				GetDropdown('Group', 'group', getSourceGroupChoices()),
-				GetNumberField('Index', 'index', 1, 64, 1, 1),
+				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
+				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
+				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
 			],
 			callback: async (event) => {
-				let cmd = Commands.MainInputConnectionGroup(ActionUtil.getNodeNumber(event, 'channel'))
-				send(cmd, event.options.group as string)
-				cmd = Commands.MainInputConnectionIndex(ActionUtil.getNodeNumber(event, 'channel'))
-				send(cmd, ActionUtil.getNumber(event, 'index'))
+				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const group = await ActionUtil.getStringWithVariables(self, event, 'group')
+				const index = await ActionUtil.getNumberWithVariables(self, event, 'index')
+				let cmd = Commands.MainInputConnectionGroup(ActionUtil.getNodeNumberFromID(channel))
+				send(cmd, group)
+				cmd = Commands.MainInputConnectionIndex(ActionUtil.getNodeNumberFromID(channel))
+				send(cmd, index)
 			},
 		},
 		[ChannelActions.SetChannelFilterModel]: {
 			name: 'Set Channel Filter Model',
 			description: 'Set the filter model for a channel.',
 			options: [
-				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				GetDropdown('Filter', 'filter', getFilterModelOptions()),
+				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
+				...GetDropdownWithVariables('Filter', 'filter', getFilterModelOptions()),
 			],
 			callback: async (event) => {
-				const cmd = Commands.FilterModel(ActionUtil.getNodeNumber(event, 'channel'))
-				send(cmd, ActionUtil.getString(event, 'filter'))
+				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const filter = await ActionUtil.getStringWithVariables(self, event, 'filter')
+				const cmd = Commands.FilterModel(ActionUtil.getNodeNumberFromID(channel))
+				send(cmd, filter)
 			},
 		},
 		[ChannelActions.SetChannelEqType]: {
 			name: 'Set Channel EQ Model',
 			description: 'Set the EQ model for a channel.',
 			options: [
-				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				GetDropdown('EQ Model', 'model', EqModelChoice),
+				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
+				...GetDropdownWithVariables('EQ Model', 'model', EqModelChoice),
 			],
 			callback: async (event) => {
-				const cmd = Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel'))
-				send(cmd, ActionUtil.getString(event, 'model'))
+				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const model = await ActionUtil.getStringWithVariables(self, event, 'model')
+				const cmd = Commands.EqModel(ActionUtil.getNodeNumberFromID(channel))
+				send(cmd, model)
 			},
 		},
 		[ChannelActions.SetChannelEqParameter]: {
@@ -91,24 +97,14 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set Channel Process Order',
 			description: 'Set the process order of EQ, gate, dynamics and insert of a channel.',
 			options: [
-				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				GetDropdown('Order', 'order', getChannelProcessOrderChoices()),
+				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
+				...GetDropdownWithVariables('Order', 'order', getChannelProcessOrderChoices()),
 			],
 			callback: async (event) => {
-				const cmd = Commands.ProcessOrder(ActionUtil.getNodeNumber(event, 'channel'))
-				send(cmd, ActionUtil.getString(event, 'order'))
-			},
-		},
-		[ChannelActions.SetChannelIcon]: {
-			name: 'Set Channel Icon',
-			description: 'Set the icon displayed for a channel.',
-			options: [
-				GetDropdown('Channel', 'channel', state.namedChoices.channels),
-				GetDropdown('Icon', 'icon', getIconChoices()),
-			],
-			callback: async (event) => {
-				const cmd = Commands.Icon(ActionUtil.getNodeNumber(event, 'channel'))
-				send(cmd, ActionUtil.getNumber(event, 'icon'))
+				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const order = await ActionUtil.getStringWithVariables(self, event, 'order')
+				const cmd = Commands.ProcessOrder(ActionUtil.getNodeNumberFromID(channel))
+				send(cmd, order)
 			},
 		},
 	}
