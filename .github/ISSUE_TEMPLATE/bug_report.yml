@@ -7,7 +7,7 @@ body:
   - type: input
     id: companion-version
     attributes:
-      label: Version
+      label: Companion Version
       description: What version of Companion are you seeing this issue on? (you can see find this on the top left corner of the Companion interface)
       placeholder: v4.0.0
     validations:
@@ -15,7 +15,7 @@ body:
   - type: input
     id: module-version
     attributes:
-      label: Version
+      label: Module Version
       description: What version of the module are you seeing this issue on? (you can find this in the module's settings by clicking the help icon)
       placeholder: v2.0.1
     validations:
@@ -23,7 +23,7 @@ body:
   - type: input
     id: firmware-version
     attributes:
-      label: Version
+      label: Firmware Version
       description: What version of WING Firmware are you seeing this issue on? (you can see find this in the WING settings)
       placeholder: v3.0.6
     validations:
