@@ -1,39 +1,70 @@
-name: Bug Report
-description: File a bug report.
-title: '[Bug]: '
-labels: ['bug']
-
+name: Bug report
+description: Create a bug report to help us improve.
+labels:
+  - BUG
+title: '[BUG] '
 body:
-  - type: input
-    id: companion-version
+  - type: checkboxes
     attributes:
-      label: Companion Version
-      description: What version of Companion are you seeing this issue on? (you can see find this on the top left corner of the Companion interface)
-      placeholder: v4.0.0
-    validations:
-      required: true
-  - type: input
-    id: module-version
+      label: Make sure you're on the latest stable or beta build of both Companion and the module
+      description: Bugs are usually fixed in the beta builds before being put into a stable release. Make sure to test your bug in the latest stable or beta build, in case it has already been fixed.
+      options:
+        - label: I have tested this on the latest stable or beta release
+          required: true
+  - type: checkboxes
     attributes:
-      label: Module Version
-      description: What version of the module are you seeing this issue on? (you can find this in the module's settings by clicking the help icon)
-      placeholder: v2.0.1
-    validations:
-      required: true
-  - type: input
-    id: firmware-version
-    attributes:
-      label: Firmware Version
-      description: What version of WING Firmware are you seeing this issue on? (you can see find this in the WING settings)
-      placeholder: v3.0.6
-    validations:
-      required: true
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
   - type: textarea
-    id: details
     attributes:
       label: Describe the bug
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: 'A bug happened!'
+      description: A clear and concise description of what the bug is. Screenshots are always helpful to understand the problem.
     validations:
-      required: true
+      required: false
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Environment (please complete the following information)
+      description: |
+        examples:
+          - **OS**: Windows 10
+          - **Browser**: Chrome 94
+          - **Companion Version**: 2.2.0-b177f8fb-3722
+          - **Module Version**: 1.0.0
+          - **WING Firmware Version**: 3.0.6
+          - **WING Model**: Compact
+      value: |
+        - OS: 
+        - Browser: 
+        - Companion Version: 
+        - Module Version: 
+        - WING Firmware Version: 
+        - WING Model: 
+      render: markdown
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
