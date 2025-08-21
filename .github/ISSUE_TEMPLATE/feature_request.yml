@@ -6,6 +6,13 @@ labels:
 body:
   - type: checkboxes
     attributes:
+      label: Make sure you've checked the latest beta build
+      description: Features are usually tested in the beta builds before being put into a stable release. Make sure to check for your feature in the latest stable or beta build, in case it has already been added.
+      options:
+        - label: I have checked this on the latest beta release
+          required: true
+  - type: checkboxes
+    attributes:
       label: Is there an existing issue for this?
       description: Please search to see if an issue already exists for the feature.
       options:
