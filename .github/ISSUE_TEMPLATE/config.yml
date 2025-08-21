@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Bog or Feature for Companion itself
+  - name: Bug or Feature for Companion itself
     url: https://github.com/bitfocus/companion/issues
     about: Report it against the companion itself, to get the relevant people notified.
+  - name: Bug or Feature for WING itself
+    url: https://ideas.behringer.com/roadmap/b/wing?type=
+    about: Report it in the Behringer Ideas page
