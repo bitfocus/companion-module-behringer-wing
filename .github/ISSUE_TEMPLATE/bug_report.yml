@@ -21,7 +21,7 @@ body:
     validations:
       required: true
   - type: input
-    id: companion-version
+    id: firmware-version
     attributes:
       label: Version
       description: What version of WING Firmware are you seeing this issue on? (you can see find this in the WING settings)
