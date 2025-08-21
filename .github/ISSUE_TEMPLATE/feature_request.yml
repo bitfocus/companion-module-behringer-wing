@@ -1,12 +1,25 @@
 name: Feature Request
-description: Request a new Feature or Enhancement.
+description: Request a new feature within this module
 title: '[Feature]: '
-labels: ['enhancement']
-
+labels:
+  - enhancement
 body:
-  - type: textarea
-    id: details
+  - type: checkboxes
     attributes:
-      label: Describe the Feature or Enhancement
-      description: Also tell us, what root problem are you trying to solve?
-      placeholder: Describe the feature or enhancement you would like to see.
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the feature.
+      options:
+        - label: I have searched for similiar existing issues
+          required: true
+  - type: textarea
+    attributes:
+      label: Describe the feature
+      description: A clear and concise description of what the feature does. Mocked up screenshots (no matter how rough) are always helpful in understanding.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Usecases
+      description: Add a couple of usecases for why this should be implemented and when/why to use it.
+    validations:
+      required: false
