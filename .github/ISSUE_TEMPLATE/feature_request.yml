@@ -16,7 +16,7 @@ body:
       label: Is there an existing issue for this?
       description: Please search to see if an issue already exists for the feature.
       options:
-        - label: I have searched for similiar existing issues
+        - label: I have searched for similar existing issues
           required: true
   - type: textarea
     attributes:
