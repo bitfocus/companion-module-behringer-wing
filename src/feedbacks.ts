@@ -24,6 +24,7 @@ import { StatusCommands } from './commands/status.js'
 import { getGpios } from './choices/control.js'
 import { ControlCommands } from './commands/control.js'
 import { CardsCommands } from './commands/cards.js'
+import { IoCommands } from './commands/io.js'
 
 import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
 
@@ -44,6 +45,7 @@ export enum FeedbackId {
 	Talkback = 'talkback',
 	TalkbackAssign = 'talkback-assign',
 	InsertOn = 'insert-on',
+	MainAltSwitch = 'main-alt-switch',
 }
 
 function subscribeFeedback(
@@ -90,6 +92,38 @@ export function GetFeedbacksList(
 	const mainSendDestinations = [...state.namedChoices.matrices]
 
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
+		[FeedbackId.MainAltSwitch]: {
+			type: 'advanced',
+			name: 'Main/Alt Input Source',
+			description: 'Style a button differently when Main vs Alt input sources are active.',
+			options: [
+				{ type: 'colorpicker', id: 'mainBg', label: 'Main Background', default: combineRgb(74, 143, 243) },
+				{ type: 'colorpicker', id: 'mainFg', label: 'Main Text', default: combineRgb(0, 0, 0) },
+				{ type: 'colorpicker', id: 'altBg', label: 'Alt Background', default: combineRgb(255, 128, 0) },
+				{ type: 'colorpicker', id: 'altFg', label: 'Alt Text', default: combineRgb(0, 0, 0) },
+				{ type: 'checkbox', id: 'stateText', label: 'Display State Text', default: true },
+			],
+			callback: (event): CompanionAdvancedFeedbackResult => {
+				const cmd = IoCommands.MainAltSwitch()
+				const val = StateUtil.getNumberFromState(cmd, state)
+				const isMain = typeof val === 'number' ? val === 0 : false // Wing: 0=Main, 1=Alt
+				const style = isMain
+					? { color: event.options.mainFg as number, bgcolor: event.options.mainBg as number }
+					: { color: event.options.altFg as number, bgcolor: event.options.altBg as number }
+				if (event.options.stateText) {
+					return { text: isMain ? 'MAIN' : 'ALT', ...style }
+				}
+				return style
+			},
+			subscribe: (event): void => {
+				const cmd = IoCommands.MainAltSwitch()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = IoCommands.MainAltSwitch()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
 		[FeedbackId.Mute]: {
 			type: 'boolean',
 			name: 'Mute',
