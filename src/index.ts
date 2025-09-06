@@ -24,6 +24,7 @@ import { WingDeviceDetectorInstance } from './device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets.js'
+import { IoCommands } from './commands/io.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
@@ -261,6 +262,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			}, this.config.statusPollUpdateRate ?? 3000)
 
 			this.state.requestNames(this.model, this.ensureLoaded)
+			// Ensure Main/Alt state is loaded so variables/feedbacks have data
+			this.ensureLoaded(IoCommands.MainAltSwitch())
 			this.requestQueue.clear()
 			this.inFlightRequests = {}
 
