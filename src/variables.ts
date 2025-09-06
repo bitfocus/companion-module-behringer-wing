@@ -2,6 +2,7 @@ import { OscMessage } from 'osc'
 import type { WingInstance } from './index.js'
 import { OSCMetaArgument } from '@companion-module/base/dist/index.js' // eslint-disable-line n/no-missing-import
 import { ControlCommands } from './commands/control.js'
+import { IoCommands } from './commands/io.js'
 import * as ActionUtil from './actions/utils.js'
 
 export function UpdateVariableDefinitions(self: WingInstance): void {
@@ -11,6 +12,9 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 
 	variables.push({ variableId: 'desk_ip', name: 'Desk IP Address' })
 	variables.push({ variableId: 'desk_name', name: 'Desk Name' })
+
+	// IO
+	variables.push({ variableId: 'main_alt_status', name: 'Main/Alt Input Source' })
 
 	for (let ch = 1; ch <= model.channels; ch++) {
 		variables.push({
@@ -312,7 +316,32 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		UpdateTalkbackVariables(self, path, args[0])
 		UpdateGpioVariables(self, path, args[0]?.value as number)
 		UpdateControlVariables(self, path, args[0])
+		UpdateIoVariables(self, path, args[0])
 	}
+}
+
+function UpdateIoVariables(self: WingInstance, path: string, arg: OSCMetaArgument): void {
+	const altsw = IoCommands.MainAltSwitch()
+	if (path !== altsw) return
+
+	let isMain = false
+	const raw = arg?.value as unknown
+	if (typeof raw === 'number') {
+		// Wing: 0=Main, 1=Alt
+		isMain = raw === 0
+	} else if (typeof raw === 'string') {
+		const s = raw.trim().toLowerCase()
+		if (s === 'main') isMain = true
+		else if (s === 'alt') isMain = false
+		else if (s === '0') isMain = true
+		else if (s === '1') isMain = false
+		else {
+			const n = Number.parseFloat(s)
+			if (!Number.isNaN(n)) isMain = n === 0
+		}
+	}
+
+	self.setVariableValues({ main_alt_status: isMain ? 'Main' : 'Alt' })
 }
 
 function UpdateNameVariables(self: WingInstance, path: string, value: string): void {

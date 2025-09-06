@@ -24,6 +24,7 @@ import { StatusCommands } from './commands/status.js'
 import { getGpios } from './choices/control.js'
 import { ControlCommands } from './commands/control.js'
 import { CardsCommands } from './commands/cards.js'
+import { IoCommands } from './commands/io.js'
 
 import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
 
@@ -44,6 +45,7 @@ export enum FeedbackId {
 	Talkback = 'talkback',
 	TalkbackAssign = 'talkback-assign',
 	InsertOn = 'insert-on',
+	MainAltSwitch = 'main-alt-switch',
 }
 
 function subscribeFeedback(
@@ -90,6 +92,30 @@ export function GetFeedbacksList(
 	const mainSendDestinations = [...state.namedChoices.matrices]
 
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
+		[FeedbackId.MainAltSwitch]: {
+			type: 'boolean',
+			name: 'Main/Alt Input Source',
+			description: 'React to the selected input source group (Main or Alt).',
+			options: [GetDropdown('Selected', 'sel', [getIdLabelPair('1', 'Main'), getIdLabelPair('0', 'Alt')])],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = IoCommands.MainAltSwitch()
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				// Wing reports 0 for Main, 1 for Alt; invert to match UI labels
+				return typeof currentValue === 'number' && `${Number(!currentValue)}` === (event.options.sel as string)
+			},
+			subscribe: (event): void => {
+				const cmd = IoCommands.MainAltSwitch()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = IoCommands.MainAltSwitch()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
 		[FeedbackId.Mute]: {
 			type: 'boolean',
 			name: 'Mute',
