@@ -4,6 +4,18 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.2.0
+
+### Added
+
+- Added variable support for action inputs
+- Add more main/alt actions
+
+### Changed
+
+- Switched to wing-internal toggle action to save on traffic
+- Fixed variable matching issues for send mutes
+
 ## 2.1.0
 
 ### Added
