@@ -32,14 +32,21 @@ import * as ActionUtil from './utils.js'
 import { StateUtil } from '../state/index.js'
 import { FadeDurationChoice } from '../choices/fades.js'
 import { getIdLabelPair } from '../choices/utils.js'
+import { getSourceGroupChoices } from '../choices/common.js'
 
 export enum CommonActions {
+	// Setup
+	SetMainConnection = 'set-main-connection',
+	SetAltConnection = 'set-alt-connection',
+	SetAutoSourceSwitch = 'set-auto-source-switch',
+	SetMainAlt = 'set-main-alt',
 	SetScribbleLight = 'set-scribble-light',
 	SetScribbleLightColor = 'set-scribble-light-color',
 	SetName = 'set-name',
 	SetIcon = 'set-icon',
 	SetSolo = 'set-solo',
 	ClearSolo = 'clear-solo',
+
 	// Gain
 	SetGain = 'set-gain',
 	StoreGain = 'store-gain',
@@ -118,6 +125,93 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 	const mainSendDestinations = [...state.namedChoices.matrices]
 
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
+		////////////////////////////////////////////////////////////////
+		// Setup
+		/////////////////////////////////////////////////////////////////
+		[CommonActions.SetMainConnection]: {
+			name: 'Set Channel/Aux Main Connection',
+			description: 'Set the index of the main connection of a channel or aux',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
+				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const group = await ActionUtil.getStringWithVariables(self, event, 'group')
+				const index = await ActionUtil.getNumberWithVariables(self, event, 'index')
+				let cmd = ActionUtil.getMainInputConnectionGroupCommand(sel)
+				send(cmd, group)
+				cmd = ActionUtil.getMainInputConnectionIndexCommand(sel)
+				send(cmd, index)
+			},
+		},
+		[CommonActions.SetAltConnection]: {
+			name: 'Set Channel/Aux Alt Connection',
+			description: 'Set the index of the alt connection of a channel or aux',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
+				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const group = await ActionUtil.getStringWithVariables(self, event, 'group')
+				const index = await ActionUtil.getNumberWithVariables(self, event, 'index')
+				let cmd = ActionUtil.getAltInputConnectionGroupCommand(sel)
+				send(cmd, group)
+				cmd = ActionUtil.getAltInputConnectionIndexCommand(sel)
+				send(cmd, index)
+			},
+		},
+		[CommonActions.SetAutoSourceSwitch]: {
+			name: 'Set Channel/Aux Auto Source Switch',
+			description: 'Enable or disable the global switching between main and alt inputs on a channel or aux',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Auto Source Switch', 'auto_source', [
+					getIdLabelPair('0', 'Individual'),
+					getIdLabelPair('1', 'Global'),
+					getIdLabelPair('-1', 'Toggle'),
+				]),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const autoSource = await ActionUtil.getNumberWithVariables(self, event, 'auto_source')
+				const cmd = ActionUtil.getInputAutoSourceSwitchCommand(sel)
+				send(cmd, autoSource)
+			},
+		},
+		[CommonActions.SetMainAlt]: {
+			name: 'Set Channel/Aux Main/Alt',
+			description: 'Set whether a channel or aux is using the main or alt input',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Source', 'main_alt', [
+					getIdLabelPair('0', 'Main'),
+					getIdLabelPair('1', 'Alt'),
+					getIdLabelPair('-1', 'Toggle'),
+				]),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
+				const mainAlt = await ActionUtil.getNumberWithVariables(self, event, 'main_alt')
+				const cmd = ActionUtil.getInputAltSourceCommand(sel)
+				send(cmd, mainAlt)
+			},
+		},
 		[CommonActions.SetScribbleLight]: {
 			name: 'Set Scribble Light',
 			description: 'Set or toggle the scribble light state of a channel, aux, bus, dca, matrix, or main.',

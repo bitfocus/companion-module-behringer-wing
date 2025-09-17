@@ -142,6 +142,66 @@ export function runTransition(
 	state.set(cmd, [{ type: 'f', value: target }])
 }
 
+export function getInputAutoSourceSwitchCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.InputAutoSourceSwitch(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.InputAutoSourceSwitch(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getInputAltSourceCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.InputAltSource(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.InputAltSource(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getMainInputConnectionGroupCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainInputConnectionGroup(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainInputConnectionGroup(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getMainInputConnectionIndexCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainInputConnectionIndex(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainInputConnectionIndex(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getAltInputConnectionGroupCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.AltInputConnectionGroup(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.AltInputConnectionGroup(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getAltInputConnectionIndexCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.AltInputConnectionIndex(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.AltInputConnectionIndex(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
 export function getColorCommand(sel: string, val: number): string {
 	let cmd = ''
 	if (sel.startsWith('/ch')) {

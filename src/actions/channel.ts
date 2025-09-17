@@ -1,6 +1,5 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { GetDropdown, GetDropdownWithVariables, GetNumberFieldWithVariables } from '../choices/common.js'
-import { getSourceGroupChoices } from '../choices/common.js'
+import { GetDropdown, GetDropdownWithVariables } from '../choices/common.js'
 import { getChannelProcessOrderChoices, getFilterModelOptions } from '../choices/channel.js'
 import { ChannelCommands as Commands } from '../commands/channel.js'
 import * as ActionUtil from './utils.js'
@@ -12,7 +11,6 @@ import { WingConfig } from '../config.js'
 import { getStringFromState } from '../state/utils.js'
 
 export enum ChannelActions {
-	SetChannelMainConnection = 'set-channel-main-connection',
 	SetChannelFilterModel = 'set-channel-filter-model',
 	SetChannelEqType = 'set-channel-eq-type',
 	SetChannelEqParameter = 'set-channel-eq-parameter',
@@ -25,24 +23,6 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 	const state = self.state
 
 	const actions: { [id in ChannelActions]: CompanionActionWithCallback | undefined } = {
-		[ChannelActions.SetChannelMainConnection]: {
-			name: 'Set Channel Main Connection',
-			description: 'Set the index of the main connection of a channel',
-			options: [
-				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
-				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
-				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
-			],
-			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const group = await ActionUtil.getStringWithVariables(self, event, 'group')
-				const index = await ActionUtil.getNumberWithVariables(self, event, 'index')
-				let cmd = Commands.MainInputConnectionGroup(ActionUtil.getNodeNumberFromID(channel))
-				send(cmd, group)
-				cmd = Commands.MainInputConnectionIndex(ActionUtil.getNodeNumberFromID(channel))
-				send(cmd, index)
-			},
-		},
 		[ChannelActions.SetChannelFilterModel]: {
 			name: 'Set Channel Filter Model',
 			description: 'Set the filter model for a channel.',
