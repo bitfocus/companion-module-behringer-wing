@@ -207,7 +207,7 @@ export function GetFeedbacksList(
 			},
 		},
 		[FeedbackId.AesStatus]: {
-			type: 'advanced',
+			type: 'boolean',
 			name: 'AES Status',
 			description: 'Status of an AES Connection',
 			options: [
@@ -216,38 +216,21 @@ export function GetFeedbacksList(
 					getIdLabelPair('B', 'AES B'),
 					getIdLabelPair('C', 'AES C'),
 				]),
-				{
-					type: 'colorpicker',
-					id: 'okcolor',
-					label: 'Ok',
-					tooltip: 'Color of the button when an AES connection is OK',
-					default: combineRgb(0, 255, 0),
-				},
-				{
-					type: 'colorpicker',
-					id: 'errcolor',
-					label: 'Error',
-					tooltip: 'Color of the button when an AES connection is not OK',
-					default: combineRgb(255, 0, 0),
-				},
-				{
-					type: 'colorpicker',
-					id: 'nccolor',
-					label: 'Not Connected',
-					tooltip: 'Color of the button when the status of an AES connection is unknown/not connected.',
-					default: combineRgb(0, 0, 0),
-				},
+				GetDropdown('Status', 'status', [
+					getIdLabelPair('OK', 'OK'),
+					getIdLabelPair('ERR', 'Error'),
+					getIdLabelPair('UPD', 'Updating'),
+					getIdLabelPair('-', 'Not Connected'),
+				]),
 			],
-			callback: (event: CompanionFeedbackInfo): CompanionAdvancedFeedbackResult => {
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
-				const val = StateUtil.getStringFromState(cmd, state)
-				if (val == 'OK') {
-					return event.options.okcolor as CompanionAdvancedFeedbackResult
-				} else if (val == 'ERR') {
-					return event.options.errcolor as CompanionAdvancedFeedbackResult
-				} else {
-					return event.options.nccolor as CompanionAdvancedFeedbackResult
-				}
+				const val = StateUtil.getStringFromState(cmd, state) as string
+				return val === event.options.status
 			},
 			subscribe: (event): void => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
