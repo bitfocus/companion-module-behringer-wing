@@ -302,7 +302,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		const path = msg.address
 		const args = msg.args as OSCMetaArgument[]
 
-		self.log('debug', `'Updating variable:', ${path}, ${JSON.stringify(args)}`)
+		self.log('debug', `Updating variable: ${path}, ${JSON.stringify(args)}`)
 		UpdateNameVariables(self, path, args[0]?.value as string)
 		UpdateMuteVariables(self, path, args[0]?.value as number)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
@@ -348,7 +348,7 @@ function UpdateMuteVariables(self: WingInstance, path: string, value: number): v
 	const action = match[7] ?? match[8]
 
 	// Invert to get mute
-	if (action === 'on') value = Number(!value)
+	if (action === 'on') value = Number(!(value == 1))
 
 	if (dest == null) {
 		const varName = `${source}${srcnum}_mute`
