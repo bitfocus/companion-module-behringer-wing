@@ -24,6 +24,7 @@ import { StatusCommands } from './commands/status.js'
 import { getGpios } from './choices/control.js'
 import { ControlCommands } from './commands/control.js'
 import { CardsCommands } from './commands/cards.js'
+import { IoCommands } from './commands/io.js'
 
 import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
 
@@ -44,6 +45,7 @@ export enum FeedbackId {
 	Talkback = 'talkback',
 	TalkbackAssign = 'talkback-assign',
 	InsertOn = 'insert-on',
+	MainAltSwitch = 'main-alt-switch',
 }
 
 function subscribeFeedback(
@@ -90,6 +92,30 @@ export function GetFeedbacksList(
 	const mainSendDestinations = [...state.namedChoices.matrices]
 
 	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
+		[FeedbackId.MainAltSwitch]: {
+			type: 'boolean',
+			name: 'Main/Alt Input Source',
+			description: 'React to the selected input source group (Main or Alt).',
+			options: [GetDropdown('Selected', 'sel', [getIdLabelPair('1', 'Main'), getIdLabelPair('0', 'Alt')])],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = IoCommands.MainAltSwitch()
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				// Wing reports 0 for Main, 1 for Alt; invert to match UI labels
+				return typeof currentValue === 'number' && `${Number(!currentValue)}` === (event.options.sel as string)
+			},
+			subscribe: (event): void => {
+				const cmd = IoCommands.MainAltSwitch()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = IoCommands.MainAltSwitch()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
 		[FeedbackId.Mute]: {
 			type: 'boolean',
 			name: 'Mute',
@@ -181,7 +207,7 @@ export function GetFeedbacksList(
 			},
 		},
 		[FeedbackId.AesStatus]: {
-			type: 'advanced',
+			type: 'boolean',
 			name: 'AES Status',
 			description: 'Status of an AES Connection',
 			options: [
@@ -190,38 +216,21 @@ export function GetFeedbacksList(
 					getIdLabelPair('B', 'AES B'),
 					getIdLabelPair('C', 'AES C'),
 				]),
-				{
-					type: 'colorpicker',
-					id: 'okcolor',
-					label: 'Ok',
-					tooltip: 'Color of the button when an AES connection is OK',
-					default: combineRgb(0, 255, 0),
-				},
-				{
-					type: 'colorpicker',
-					id: 'errcolor',
-					label: 'Error',
-					tooltip: 'Color of the button when an AES connection is not OK',
-					default: combineRgb(255, 0, 0),
-				},
-				{
-					type: 'colorpicker',
-					id: 'nccolor',
-					label: 'Not Connected',
-					tooltip: 'Color of the button when the status of an AES connection is unknown/not connected.',
-					default: combineRgb(0, 0, 0),
-				},
+				GetDropdown('Status', 'status', [
+					getIdLabelPair('OK', 'OK'),
+					getIdLabelPair('ERR', 'Error'),
+					getIdLabelPair('UPD', 'Updating'),
+					getIdLabelPair('-', 'Not Connected'),
+				]),
 			],
-			callback: (event: CompanionFeedbackInfo): CompanionAdvancedFeedbackResult => {
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
-				const val = StateUtil.getStringFromState(cmd, state)
-				if (val == 'OK') {
-					return event.options.okcolor as CompanionAdvancedFeedbackResult
-				} else if (val == 'ERR') {
-					return event.options.errcolor as CompanionAdvancedFeedbackResult
-				} else {
-					return event.options.nccolor as CompanionAdvancedFeedbackResult
-				}
+				const val = StateUtil.getStringFromState(cmd, state) as string
+				return val === event.options.status
 			},
 			subscribe: (event): void => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
