@@ -27,6 +27,7 @@ import { CardsCommands } from './commands/cards.js'
 import { IoCommands } from './commands/io.js'
 
 import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
+import { getUsbPlayerActionChoices, getUsbRecorderActionChoices } from './choices/usbplayer.js'
 
 type CompanionFeedbackWithCallback = SetRequired<
 	CompanionBooleanFeedbackDefinition | CompanionAdvancedFeedbackDefinition,
@@ -38,6 +39,8 @@ export enum FeedbackId {
 	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
 	RecorderState = 'recorder-state',
+	UsbPlayerState = 'usb-player-state',
+	UsbRecorderState = 'usb-recorder-state',
 	WLiveSDState = 'wlive-sd-state',
 	WLivePlaybackState = 'wlive-playback-state',
 	GpioState = 'gpio-state',
@@ -280,6 +283,52 @@ export function GetFeedbacksList(
 				} else {
 					return result
 				}
+			},
+			subscribe: (event): void => {
+				const cmd = UsbPlayerCommands.RecorderActiveState()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = UsbPlayerCommands.RecorderActiveState()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.UsbPlayerState]: {
+			type: 'boolean',
+			name: 'USB Player State',
+			description: 'React to the playback state of the USB Player.',
+			options: [GetDropdown('State', 'state', getUsbPlayerActionChoices())],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				const currentValue = StateUtil.getStringFromState(cmd, state)
+				return currentValue == event.options.state
+			},
+			subscribe: (event): void => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.UsbRecorderState]: {
+			type: 'boolean',
+			name: 'USB Recorder State',
+			description: 'React to the recording state of the USB Recorder.',
+			options: [GetDropdown('State', 'state', getUsbRecorderActionChoices())],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = UsbPlayerCommands.RecorderActiveState()
+				const currentValue = StateUtil.getStringFromState(cmd, state)
+				return currentValue == event.options.state
 			},
 			subscribe: (event): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
