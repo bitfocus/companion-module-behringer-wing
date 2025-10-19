@@ -4,8 +4,6 @@ import { WingConfig } from './config.js'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
 import {
 	combineRgb,
-	CompanionAdvancedFeedbackDefinition,
-	CompanionAdvancedFeedbackResult,
 	CompanionBooleanFeedbackDefinition,
 	CompanionFeedbackDefinitions,
 	CompanionFeedbackInfo,
@@ -29,7 +27,7 @@ import { IoCommands } from './commands/io.js'
 import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
 
 type CompanionFeedbackWithCallback = SetRequired<
-	CompanionBooleanFeedbackDefinition | CompanionAdvancedFeedbackDefinition,
+	CompanionBooleanFeedbackDefinition,
 	'callback' | 'subscribe' | 'unsubscribe'
 >
 
@@ -242,44 +240,24 @@ export function GetFeedbacksList(
 			},
 		},
 		[FeedbackId.RecorderState]: {
-			type: 'advanced',
+			type: 'boolean',
 			name: 'USB Recorder State',
-			description: 'Current State of the USB Recorder',
+			description: 'React to the current state of the USB Recorder',
 			options: [
-				{
-					type: 'checkbox',
-					label: 'Display State Text',
-					id: 'stateText',
-					default: false,
-				},
+				GetDropdown('State', 'state', [
+					getIdLabelPair('REC', 'Recording'),
+					getIdLabelPair('PAUSE', 'Paused'),
+					getIdLabelPair('STOP', 'Stopped'),
+				]),
 			],
-			callback: (event): CompanionAdvancedFeedbackResult => {
+			defaultStyle: {
+				bgcolor: combineRgb(255, 0, 0),
+				color: combineRgb(255, 255, 255),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
 				const recState = StateUtil.getStringFromState(cmd, state)
-				let textColor = combineRgb(255, 255, 255)
-				let buttonColor = combineRgb(0, 255, 0)
-				if (recState == 'REC') {
-					buttonColor = combineRgb(255, 0, 0)
-				} else if (recState == 'PAUSE') {
-					buttonColor = combineRgb(128, 128, 128)
-				} else if (recState == 'STOP') {
-					buttonColor = combineRgb(0, 0, 0)
-				} else {
-					buttonColor = combineRgb(255, 255, 0)
-					textColor = combineRgb(0, 0, 0)
-				}
-				const result = {
-					color: textColor,
-					bgcolor: buttonColor,
-				}
-				if (event.options.stateText) {
-					return {
-						text: `${recState ?? 'N/A'}`,
-						...result,
-					}
-				} else {
-					return result
-				}
+				return recState === event.options.state
 			},
 			subscribe: (event): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
