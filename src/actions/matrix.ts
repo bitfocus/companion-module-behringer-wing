@@ -102,7 +102,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 		[MatrixActions.MatrixDirectInUndoDeltaFader]: {
 			name: 'Undo Direct Input Level Adjustment',
 			description: 'Undo the previous level adjustment of a direct input on a matrix',
-			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
@@ -121,7 +121,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 		[MatrixActions.MatrixDirectInRecallFader]: {
 			name: 'Recall Direct Input Level',
 			description: 'Recall the level of a direct input on a matrix',
-			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))

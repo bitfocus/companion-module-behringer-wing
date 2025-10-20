@@ -283,7 +283,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					...state.namedChoices.auxes,
 				]),
 				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0, true),
-				...FadeDurationChoice,
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
@@ -320,7 +320,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.RestoreGain]: {
 			name: 'Restore Gain',
 			description: 'Restore the gain of a channel or aux.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -355,7 +355,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.UndoDeltaGain]: {
 			name: 'Undo Gain Adjust',
 			description: 'Undo the previous input gain adjustment on a channel or aux.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -440,7 +440,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Restore the fader level of a channel, aux, bus, dca, matrix or main.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...FadeDurationChoice,
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
@@ -481,7 +481,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Undo the previous level adjustment on a channel, aux, bus, dca, matrix or main.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...FadeDurationChoice,
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
@@ -542,7 +542,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.RestorePanorama]: {
 			name: 'Restore Panorama',
 			description: 'Restore the panorama of a channel, aux, bus, matrix or main.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -577,7 +577,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.UndoDeltaPanorama]: {
 			name: 'Undo Panorama Adjust',
 			description: 'Undo the previous adjustment on the panorama of a channel, aux, bus, matrix or main.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -914,7 +914,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 						return source.startsWith('/main')
 					},
 				},
-				...FadeDurationChoice,
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
@@ -998,7 +998,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 						return source.startsWith('/main')
 					},
 				},
-				...FadeDurationChoice,
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
@@ -1126,7 +1126,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [
 				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
 				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...FadeDurationChoice,
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
@@ -1169,7 +1169,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [
 				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
 				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...FadeDurationChoice,
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const src = event.options.src as string
