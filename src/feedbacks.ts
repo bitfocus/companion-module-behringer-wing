@@ -36,6 +36,7 @@ export enum FeedbackId {
 	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
 	RecorderState = 'recorder-state',
+	PlayerState = 'player-state',
 	WLiveSDState = 'wlive-sd-state',
 	WLivePlaybackState = 'wlive-playback-state',
 	GpioState = 'gpio-state',
@@ -265,6 +266,35 @@ export function GetFeedbacksList(
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.PlayerState]: {
+			type: 'boolean',
+			name: 'USB Player State',
+			description: 'React to the current state of the USB Player',
+			options: [
+				GetDropdown('State', 'state', [
+					getIdLabelPair('PLAY', 'Playing'),
+					getIdLabelPair('PAUSE', 'Paused'),
+					getIdLabelPair('STOP', 'Stopped'),
+				]),
+			],
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				const playerState = StateUtil.getStringFromState(cmd, state)
+				return playerState === event.options.state
+			},
+			subscribe: (event): void => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
