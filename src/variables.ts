@@ -232,6 +232,8 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	variables.push({ variableId: 'usb_play_playlist_index', name: 'USB Player Playlist Index' })
 	variables.push({ variableId: 'usb_play_repeat', name: 'USB Player Repeat Playlist' })
 
+	variables.push({ variableId: 'wlive_link_status', name: 'Wing Live SD Cards Link Status' })
+
 	for (let card = 1; card <= 2; card++) {
 		variables.push({ variableId: `wlive_${card}_state`, name: `Wing Live Card ${card} State` })
 		variables.push({ variableId: `wlive_${card}_sdstate`, name: `Wing Live Card ${card} SD State` })
@@ -466,10 +468,22 @@ function UpdateUsbVariables(self: WingInstance, path: string, args: OSCMetaArgum
 	if (direction == 'rec') {
 		if (command == '$time') {
 			const seconds = args.value as number
+			const totalSeconds = seconds.toString()
+			const totalMinutes = Math.floor(seconds / 60)
+				.toString()
+				.padStart(3, '0')
+			const remainderSeconds = (seconds % 60).toString().padStart(2, '0')
+			const hours = Math.floor(seconds / 3600)
+				.toString()
+				.padStart(2, '0')
+			const minutesWithinHour = Math.floor((seconds % 3600) / 60)
+				.toString()
+				.padStart(2, '0')
+			const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
 			self.setVariableValues({
-				usb_record_time_ss: seconds,
-				usb_record_time_mm_ss: `${Math.floor(seconds / 60)}:${seconds % 60}`,
-				usb_record_time_hh_mm_ss: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+				usb_record_time_ss: totalSeconds,
+				usb_record_time_mm_ss: `${totalMinutes}:${remainderSeconds}`,
+				usb_record_time_hh_mm_ss: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
 			})
 		} else if (command == '$actfile') {
 			const filename = args.value as string
@@ -500,10 +514,22 @@ function UpdateUsbVariables(self: WingInstance, path: string, args: OSCMetaArgum
 			})
 		} else if (command == '$total') {
 			const seconds = args.value as number
+			const totalSeconds = seconds.toString()
+			const totalMinutes = Math.floor(seconds / 60)
+				.toString()
+				.padStart(3, '0')
+			const remainderSeconds = (seconds % 60).toString().padStart(2, '0')
+			const hours = Math.floor(seconds / 3600)
+				.toString()
+				.padStart(2, '0')
+			const minutesWithinHour = Math.floor((seconds % 3600) / 60)
+				.toString()
+				.padStart(2, '0')
+			const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
 			self.setVariableValues({
-				usb_play_total_ss: seconds,
-				usb_play_total_mm_ss: `${Math.floor(seconds / 60)}:${seconds % 60}`,
-				usb_play_total_hh_mm_ss: `${Math.floor(seconds / 3600)}:${Math.floor((seconds % 3600) / 60)}:${seconds % 60}`,
+				usb_play_total_ss: totalSeconds,
+				usb_play_total_mm_ss: `${totalMinutes}:${remainderSeconds}`,
+				usb_play_total_hh_mm_ss: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
 			})
 		} else if (command == '$actfile') {
 			const filename = args.value as string
@@ -531,6 +557,13 @@ function UpdateUsbVariables(self: WingInstance, path: string, args: OSCMetaArgum
 }
 
 function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
+	// Check for SD link status first
+	if (path === '/cards/wlive/$actlink' || path === '/cards/wlive/sdlink') {
+		const linkStatus = args.value as string
+		self.setVariableValues({ wlive_link_status: linkStatus })
+		return
+	}
+
 	const match = path.match(/^\/cards\/wlive\/(\d)\/(\$?\w+)\/(\$?\w+)$/)
 	if (!match) {
 		return
