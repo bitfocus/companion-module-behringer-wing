@@ -19,7 +19,7 @@
 		"url": "git+https://github.com/bitfocus/companion-module-wing-companion.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.12",
+		"@companion-module/base": "~1.13",
 		"debounce-fn": "^6.0.0",
 		"osc": "^2.4.5",
 		"p-queue": "^8.0.1",
