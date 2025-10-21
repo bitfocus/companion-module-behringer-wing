@@ -53,7 +53,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			description: 'Set or toggle the mute state of the solo output.',
 			options: [...GetMuteDropdownWithVariables('mute', 'Mute', true)],
 			callback: async (event) => {
-				const mute = await ActionUtil.getNumberWithVariables(self, event, 'mute')
+				const mute = await ActionUtil.getNumberWithVariables(event, 'mute')
 				const cmd = ConfigurationCommands.SoloMute()
 				send(cmd, mute)
 			},
@@ -64,7 +64,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			options: [...GetOnOffToggleDropdownWithVariables('dim', 'Dim', true)],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloDim()
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'dim')
+				const val = await ActionUtil.getNumberWithVariables(event, 'dim')
 				send(cmd, val)
 			},
 		},
@@ -74,7 +74,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			options: [...GetOnOffToggleDropdownWithVariables('mono', 'Mono', true)],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloMono()
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'mono')
+				const val = await ActionUtil.getNumberWithVariables(event, 'mono')
 				send(cmd, val)
 			},
 		},
@@ -91,7 +91,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.SoloLRSwap()
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'swap')
+				const val = await ActionUtil.getNumberWithVariables(event, 'swap')
 				send(cmd, val)
 			},
 		},
@@ -111,8 +111,8 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 							...GetFaderInputFieldWithVariables('level'),
 						],
 						callback: async (event) => {
-							const monitor = await ActionUtil.getNumberWithVariables(self, event, 'mon')
-							const level = await ActionUtil.getNumberWithVariables(self, event, 'level')
+							const monitor = await ActionUtil.getNumberWithVariables(event, 'mon')
+							const level = await ActionUtil.getNumberWithVariables(event, 'level')
 							const cmd = ConfigurationCommands.MonitorLevel(monitor)
 							ActionUtil.runTransition(cmd, 'level', event, state, transitions, level)
 						},
@@ -130,7 +130,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			],
 			callback: async (event) => {
 				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'solo')
+				const val = await ActionUtil.getNumberWithVariables(event, 'solo')
 				send(cmd, val)
 			},
 		},
@@ -142,9 +142,9 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				...GetDropdownWithVariables('Mode', 'mode', getTalkbackModeOptions()),
 			],
 			callback: async (event) => {
-				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const tb = await ActionUtil.getStringWithVariables(event, 'tb')
 				const cmd = ConfigurationCommands.TalkbackMode(tb)
-				const val = await ActionUtil.getStringWithVariables(self, event, 'mode')
+				const val = await ActionUtil.getStringWithVariables(event, 'mode')
 				send(cmd, val)
 			},
 		},
@@ -156,9 +156,9 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10, true),
 			],
 			callback: async (event) => {
-				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const tb = await ActionUtil.getStringWithVariables(event, 'tb')
 				const cmd = ConfigurationCommands.TalkbackMonitorDim(tb)
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'dim')
+				const val = await ActionUtil.getNumberWithVariables(event, 'dim')
 				send(cmd, val, true)
 			},
 		},
@@ -170,9 +170,9 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10, true),
 			],
 			callback: async (event) => {
-				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const tb = await ActionUtil.getStringWithVariables(event, 'tb')
 				const cmd = ConfigurationCommands.TalkbackBusDim(tb)
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'dim')
+				const val = await ActionUtil.getNumberWithVariables(event, 'dim')
 				send(cmd, val, true)
 			},
 		},
@@ -193,10 +193,10 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				]),
 			],
 			callback: async (event) => {
-				const talkback = await ActionUtil.getStringWithVariables(self, event, 'tb')
-				const destination = await ActionUtil.getStringWithVariables(self, event, 'dest')
+				const talkback = await ActionUtil.getStringWithVariables(event, 'tb')
+				const destination = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'assign')
+				const val = await ActionUtil.getNumberWithVariables(event, 'assign')
 				send(cmd, val)
 			},
 		},
@@ -208,9 +208,9 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				...GetDropdownWithVariables('Mode', 'mode', getTalkbackIndividualOptions()),
 			],
 			callback: async (event) => {
-				const tb = await ActionUtil.getStringWithVariables(self, event, 'tb')
+				const tb = await ActionUtil.getStringWithVariables(event, 'tb')
 				const cmd = ConfigurationCommands.TalkbackIndividual(tb)
-				const val = await ActionUtil.getNumberWithVariables(self, event, 'mode')
+				const val = await ActionUtil.getNumberWithVariables(event, 'mode')
 				send(cmd, val)
 			},
 		},

@@ -125,31 +125,13 @@ export function GetTextFieldWithVariables(
 	defaultValue?: string,
 	tooltip?: string,
 	isVisibleExpression?: string,
-): [CompanionInputFieldCheckbox, CompanionInputFieldTextInput, CompanionInputFieldTextInput] {
+): [CompanionInputFieldTextInput] {
 	// if no isVisibleExpression is provided, default to always visible
 	isVisibleExpression = isVisibleExpression ?? 'true'
 	const text = getTextField(label, id, defaultValue, tooltip)
-	text.isVisibleExpression = `!$(options:${id}_use_variables) && (${isVisibleExpression})`
-	return [
-		{
-			type: 'checkbox',
-			label: `Use Variables for ${label}`,
-			id: `${id}_use_variables`,
-			default: false,
-			tooltip: 'Enable to use variables',
-			isVisibleExpression: isVisibleExpression,
-		},
-		text,
-		{
-			type: 'textinput',
-			id: `${id}_variables`,
-			label: label,
-			default: '',
-			tooltip: tooltip,
-			useVariables: true,
-			isVisibleExpression: `$(options:${id}_use_variables) && (${isVisibleExpression})`,
-		},
-	]
+	text.isVisibleExpression = isVisibleExpression
+	text.useVariables = true
+	return [text]
 }
 
 export function GetSlider(
@@ -550,7 +532,7 @@ export function GetFaderInputFieldWithVariables(
 			label: name ?? 'Level (dB)',
 			default: '',
 			tooltip: 'Set the fader level of the selected target',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `$(options:${id}_use_variables) && (${isVisibleExpression})`,
 		},
 		...FadeDurationChoice(isVisibleExpression),

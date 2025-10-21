@@ -31,8 +31,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('Filter', 'filter', getFilterModelOptions()),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const filter = await ActionUtil.getStringWithVariables(self, event, 'filter')
+				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const filter = await ActionUtil.getStringWithVariables(event, 'filter')
 				const cmd = Commands.FilterModel(ActionUtil.getNodeNumberFromID(channel))
 				send(cmd, filter)
 			},
@@ -45,8 +45,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('EQ Model', 'model', EqModelChoice),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const model = await ActionUtil.getStringWithVariables(self, event, 'model')
+				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const model = await ActionUtil.getStringWithVariables(event, 'model')
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumberFromID(channel))
 				send(cmd, model)
 			},
@@ -81,8 +81,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('Order', 'order', getChannelProcessOrderChoices()),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const order = await ActionUtil.getStringWithVariables(self, event, 'order')
+				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const order = await ActionUtil.getStringWithVariables(event, 'order')
 				const cmd = Commands.ProcessOrder(ActionUtil.getNodeNumberFromID(channel))
 				send(cmd, order)
 			},

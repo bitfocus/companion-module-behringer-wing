@@ -11,8 +11,6 @@ import { MainCommands } from '../commands/main.js'
 import { DcaCommands } from '../commands/dca.js'
 import { MuteGroupCommands } from '../commands/mutegroup.js'
 import { ConfigurationCommands } from '../commands/config.js'
-import { InstanceBaseExt } from '../types.js'
-import { WingConfig } from '../config.js'
 
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
 	return action.options[id]?.toString().split('/')[2] as unknown as number
@@ -69,7 +67,6 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
  * @returns A promise that resolves to the resulting string
  */
 export async function getStringWithVariables(
-	self: InstanceBaseExt<WingConfig>,
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
 	defaultValue?: string,
@@ -79,7 +76,7 @@ export async function getStringWithVariables(
 	if (useVariables === false || useVariables === undefined) {
 		res = event.options[id] as string
 	} else if (useVariables === true) {
-		res = await self.parseVariablesInString(event.options[`${id}_variables`] as string)
+		res = event.options[`${id}_variables`] as string
 	}
 
 	return res ?? defaultValue ?? ''
@@ -96,7 +93,6 @@ export async function getStringWithVariables(
  * @throws If the value is invalid and no default value is provided.
  */
 export async function getNumberWithVariables(
-	self: InstanceBaseExt<WingConfig>,
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
 	defaultValue?: number,
@@ -106,7 +102,7 @@ export async function getNumberWithVariables(
 	if (useVariables === false || useVariables === undefined) {
 		res = Number(event.options[id])
 	} else if (useVariables === true) {
-		const val = await self.parseVariablesInString(event.options[`${id}_variables`] as string)
+		const val = event.options[`${id}_variables`] as string
 		res = Number(val)
 	}
 	if (isNaN(res)) {
