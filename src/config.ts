@@ -22,6 +22,9 @@ export interface WingConfig {
 	variableUpdateRate?: number
 	/** When enabled, the module will request values for all variables on startup */
 	prefetchVariablesOnStartup?: boolean
+	enableOscForwarding?: boolean
+	oscForwardingHost?: string
+	oscForwardingPort?: number
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
@@ -122,6 +125,34 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'Request values for all variables when establishing a connection to a desk.',
 			width: 6,
 			default: true,
+		},
+		{
+			type: 'checkbox',
+			id: 'enableOscForwarding',
+			label: 'Enable OSC Forwarding',
+			tooltip: 'Forward all received OSC messages to another OSC endpoint',
+			width: 12,
+			default: false,
+		},
+		{
+			type: 'textinput',
+			id: 'oscForwardingHost',
+			label: 'OSC Forwarding Host',
+			tooltip: 'IP address or hostname to forward OSC messages to',
+			width: 6,
+			default: '',
+			isVisible: (config) => config.enableOscForwarding === true,
+		},
+		{
+			type: 'number',
+			id: 'oscForwardingPort',
+			label: 'OSC Forwarding Port',
+			tooltip: 'Port number to forward OSC messages to',
+			width: 6,
+			min: 1,
+			max: 65535,
+			default: 2223,
+			isVisible: (config) => config.enableOscForwarding === true,
 		},
 	]
 }
