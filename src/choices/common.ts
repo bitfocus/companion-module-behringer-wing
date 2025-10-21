@@ -509,7 +509,7 @@ export function GetFaderInputFieldWithVariables(
 	return [
 		{
 			type: 'checkbox',
-			label: 'Use Variables',
+			label: 'Use Variables for ' + (name ?? 'Level (dB)'),
 			id: `${id}_use_variables`,
 			default: false,
 			tooltip: 'Enable to use variables',
@@ -570,6 +570,63 @@ export function GetFaderDeltaInputFieldWithVariables(
 			isVisibleExpression: `$(options:${id}_use_variables) && (${isVisibleExpression})`,
 		},
 		...FadeDurationChoice(isVisibleExpression),
+	]
+}
+
+export function GetSendSourceDestinationFieldsWithVariables(
+	sendSources: DropdownChoice[],
+	channelAuxBusSendDestinations: DropdownChoice[],
+	mainSendDestinations: DropdownChoice[],
+): [
+	CompanionInputFieldCheckbox, // Source Use Variables
+	CompanionInputFieldDropdown, // Source Dropdown
+	CompanionInputFieldDropdown, // Destination Dropdown (source != main)
+	CompanionInputFieldDropdown, // Destination Dropdown (source == main)
+	CompanionInputFieldTextInput, // Source Variables
+	CompanionInputFieldTextInput, // Destination Variables
+] {
+	// create comma-separated list of choice IDs for tooltip using format id:name
+	const sendSourceChoices = sendSources.map((choice) => `${choice.id}=${choice.label}`).join(', ')
+	const sendDestChoices = channelAuxBusSendDestinations.map((choice) => `${choice.id}=${choice.label}`).join(', ')
+
+	return [
+		{
+			type: 'checkbox',
+			label: 'Use Variables for Source and Destination',
+			id: `send_src_dest_use_variables`,
+			default: false,
+			tooltip: 'Enable to use variables',
+		},
+		{
+			...GetDropdown('From', 'src', sendSources),
+			isVisibleExpression: `!$(options:send_src_dest_use_variables)`,
+		},
+		{
+			...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
+			isVisibleExpression: `!$(options:send_src_dest_use_variables) && indexOf($(options:src), '/main') != 0`,
+		},
+		{
+			...GetDropdown('To', 'mainDest', mainSendDestinations),
+			isVisibleExpression: `!$(options:send_src_dest_use_variables) && indexOf($(options:src), '/main') == 0`,
+		},
+		{
+			type: 'textinput',
+			id: `send_src_variables`,
+			label: 'From',
+			default: '',
+			tooltip: `Available choices: ${sendSourceChoices}`,
+			useVariables: true,
+			isVisibleExpression: `$(options:send_src_dest_use_variables)`,
+		},
+		{
+			type: 'textinput',
+			id: `send_dest_variables`,
+			label: 'To',
+			default: '',
+			tooltip: `Available choices: ${sendDestChoices}`,
+			useVariables: true,
+			isVisibleExpression: `$(options:send_src_dest_use_variables)`,
+		},
 	]
 }
 

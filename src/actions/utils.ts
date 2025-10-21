@@ -115,6 +115,33 @@ export async function getNumberWithVariables(
 	return res
 }
 
+export async function GetSendSourceDestinationFieldsWithVariables(
+	event: CompanionActionInfo | CompanionFeedbackInfo,
+): Promise<{ src: string; dest: string }> {
+	const useVariables = event.options.send_src_dest_use_variables as boolean
+	let src = ''
+	let dest = ''
+	// print options for debugging
+	console.log('Event options:', JSON.stringify(event.options))
+	// log useVariables value
+	console.log('useVariables:', useVariables, typeof useVariables, useVariables === true)
+	if (useVariables === true) {
+		src = event.options.send_src_variables as string
+		dest = event.options.send_dest_variables as string
+	} else {
+		src = event.options.src as string
+		if (src.startsWith('/main')) {
+			dest = event.options.mainDest as string
+		} else {
+			dest = event.options.dest as string
+		}
+	}
+	// log final src and dest values
+	console.log('Final src:', src)
+	console.log('Final dest:', dest)
+	return { src, dest }
+}
+
 export function runTransition(
 	cmd: string,
 	valueId: string,
