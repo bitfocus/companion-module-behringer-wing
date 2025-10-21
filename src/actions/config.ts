@@ -153,7 +153,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			description: 'Set the the monitor dim amount of a talkback channel.',
 			options: [
 				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
-				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10, true),
+				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10),
 			],
 			callback: async (event) => {
 				const tb = await ActionUtil.getStringWithVariables(event, 'tb')
@@ -167,7 +167,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			description: 'Set the the bus dim amount of a talkback channel.',
 			options: [
 				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
-				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10, true),
+				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10),
 			],
 			callback: async (event) => {
 				const tb = await ActionUtil.getStringWithVariables(event, 'tb')

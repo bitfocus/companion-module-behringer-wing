@@ -15,7 +15,6 @@ import {
 	GetPanoramaDeltaSlider,
 	GetColorDropdown,
 	GetNumberFieldWithVariables,
-	GetOnOffToggleDropdown,
 	getDelayModes,
 	getIconChoices,
 	GetOnOffToggleDropdownWithVariables,
@@ -25,7 +24,7 @@ import {
 	GetPanoramaSliderWithVariables,
 	GetPanoramaDeltaSliderWithVariables,
 } from '../choices/common.js'
-import { getNodeNumber, runTransition } from './utils.js'
+import { runTransition } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
@@ -140,9 +139,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const group = await ActionUtil.getStringWithVariables(self, event, 'group')
-				const index = await ActionUtil.getNumberWithVariables(self, event, 'index')
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const group = await ActionUtil.getStringWithVariables(event, 'group')
+				const index = await ActionUtil.getNumberWithVariables(event, 'index')
 				let cmd = ActionUtil.getMainInputConnectionGroupCommand(sel)
 				send(cmd, group)
 				cmd = ActionUtil.getMainInputConnectionIndexCommand(sel)
@@ -161,9 +160,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const group = await ActionUtil.getStringWithVariables(self, event, 'group')
-				const index = await ActionUtil.getNumberWithVariables(self, event, 'index')
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const group = await ActionUtil.getStringWithVariables(event, 'group')
+				const index = await ActionUtil.getNumberWithVariables(event, 'index')
 				let cmd = ActionUtil.getAltInputConnectionGroupCommand(sel)
 				send(cmd, group)
 				cmd = ActionUtil.getAltInputConnectionIndexCommand(sel)
@@ -185,8 +184,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				]),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const autoSource = await ActionUtil.getNumberWithVariables(self, event, 'auto_source')
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const autoSource = await ActionUtil.getNumberWithVariables(event, 'auto_source')
 				const cmd = ActionUtil.getInputAutoSourceSwitchCommand(sel)
 				send(cmd, autoSource)
 			},
@@ -206,8 +205,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				]),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'channel')
-				const mainAlt = await ActionUtil.getNumberWithVariables(self, event, 'main_alt')
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const mainAlt = await ActionUtil.getNumberWithVariables(event, 'main_alt')
 				const cmd = ActionUtil.getInputAltSourceCommand(sel)
 				send(cmd, mainAlt)
 			},
@@ -220,8 +219,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetOnOffToggleDropdownWithVariables('Scribble Light', 'led', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const led = await ActionUtil.getNumberWithVariables(self, event, 'led')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const led = await ActionUtil.getNumberWithVariables(event, 'led')
 				const cmd = ActionUtil.getScribblelightCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				send(cmd, led)
 			},
@@ -234,7 +233,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				GetColorDropdown('color', 'Color'),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getColorCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				send(cmd, ActionUtil.getNumber(event, 'color'))
 			},
@@ -251,8 +250,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetTextFieldWithVariables('Name', 'name'),
 			],
 			callback: async (event) => {
-				const name = await ActionUtil.getStringWithVariables(self, event, 'name')
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const name = await ActionUtil.getStringWithVariables(event, 'name')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getNameCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				send(cmd, name)
 			},
@@ -265,8 +264,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetDropdownWithVariables('Icon', 'icon', getIconChoices()),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const icon = await ActionUtil.getNumberWithVariables(self, event, 'icon')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const icon = await ActionUtil.getNumberWithVariables(event, 'icon')
 				const cmd = ActionUtil.getIconCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				send(cmd, icon)
 			},
@@ -282,22 +281,22 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					...state.namedChoices.channels,
 					...state.namedChoices.auxes,
 				]),
-				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0, true),
+				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0),
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const gain = await ActionUtil.getNumberWithVariables(self, event, 'gain')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const gain = await ActionUtil.getNumberWithVariables(event, 'gain')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, gain, false)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 			learn: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				return { gain: StateUtil.getNumberFromState(cmd, state), gain_use_variables: false }
 			},
@@ -307,12 +306,12 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Store the gain of a channel or aux.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels)],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -322,7 +321,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Restore the gain of a channel or aux.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, restoreVal, false)
@@ -333,13 +332,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Adjust the input gain of a channel or aux.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', allChannels),
-				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0, true),
+				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = await ActionUtil.getNumberWithVariables(self, event, 'gain')
+				const delta = await ActionUtil.getNumberWithVariables(event, 'gain')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
@@ -347,7 +346,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -357,7 +356,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Undo the previous input gain adjustment on a channel or aux.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
@@ -367,7 +366,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -387,8 +386,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetMuteDropdownWithVariables('mute', 'Mute', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const mute = await ActionUtil.getNumberWithVariables(self, event, 'mute')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const mute = await ActionUtil.getNumberWithVariables(event, 'mute')
 				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				send(cmd, mute)
 			},
@@ -404,18 +403,18 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetFaderInputFieldWithVariables('level'),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const level = await ActionUtil.getNumberWithVariables(self, event, 'level')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const level = await ActionUtil.getNumberWithVariables(event, 'level')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				runTransition(cmd, 'level', event, state, transitions, level)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 			learn: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				return { level: StateUtil.getNumberFromState(cmd, state), level_use_variables: false }
 			},
@@ -425,12 +424,12 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Store the fader level of a channel, aux, bus, dca, matrix or main.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -443,7 +442,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
@@ -457,10 +456,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = await ActionUtil.getNumberWithVariables(self, event, 'delta')
+				const delta = await ActionUtil.getNumberWithVariables(event, 'delta')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					if (targetValue < -90) {
@@ -471,7 +470,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -484,7 +483,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
@@ -494,7 +493,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -508,18 +507,18 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Set the panorama of a channel, aux, bus, matrix or main.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...GetPanoramaSliderWithVariables('pan')],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const pan = await ActionUtil.getNumberWithVariables(self, event, 'pan')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const pan = await ActionUtil.getNumberWithVariables(event, 'pan')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				runTransition(cmd, 'pan', event, state, transitions, pan, false)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 			learn: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				return { pan: StateUtil.getNumberFromState(cmd, state), pan_use_variables: false }
 			},
@@ -529,12 +528,12 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Store the panorama of a channel, aux, bus, matrix or main.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels)],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -544,7 +543,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Restore the panorama of a channel, aux, bus, matrix or main.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal, false)
@@ -558,10 +557,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetPanoramaDeltaSliderWithVariables('pan', 'Panorama'),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = await ActionUtil.getNumberWithVariables(self, event, 'pan')
+				const delta = await ActionUtil.getNumberWithVariables(event, 'pan')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
@@ -569,7 +568,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -579,7 +578,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Undo the previous adjustment on the panorama of a channel, aux, bus, matrix or main.',
 			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
@@ -589,7 +588,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
@@ -605,8 +604,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetOnOffToggleDropdownWithVariables('solo', 'Solo', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const solo = await ActionUtil.getNumberWithVariables(self, event, 'solo')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const solo = await ActionUtil.getNumberWithVariables(event, 'solo')
 				const cmd = ActionUtil.getSoloCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				send(cmd, solo)
 			},
@@ -647,9 +646,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetOnOffToggleDropdownWithVariables('delay', 'Delay', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getDelayOnCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				const delay = await ActionUtil.getNumberWithVariables(self, event, 'delay')
+				const delay = await ActionUtil.getNumberWithVariables(event, 'delay')
 				send(cmd, delay)
 			},
 		},
@@ -664,63 +663,24 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					...state.namedChoices.busses,
 					...state.namedChoices.mains,
 				]),
-				...GetDropdownWithVariables('Delay Mode', 'mode', getDelayModes()),
-				{
-					type: 'number',
-					label: 'Amount (meters)',
-					id: 'amount_m',
-					min: 0,
-					max: 150,
-					step: 0.1,
-					default: 0,
-					range: true,
-					isVisible: (options) => {
-						return (options.mode as string) === 'M'
-					},
-				},
-				{
-					type: 'number',
-					label: 'Amount (ft)',
-					id: 'amount_ft',
-					min: 0.5,
-					max: 500,
-					step: 0.5,
-					default: 0.5,
-					range: true,
-					isVisible: (options) => {
-						return options.mode === 'FT'
-					},
-				},
-				{
-					type: 'number',
-					label: 'Amount (ms)',
-					id: 'amount_ms',
-					min: 0.5,
-					max: 500,
-					step: 0.1,
-					default: 0.5,
-					range: true,
-					isVisible: (options) => {
-						return options.mode === 'MS'
-					},
-				},
-				{
-					type: 'number',
-					label: 'Amount (samples)',
-					id: 'amount_samples',
-					min: 16,
-					max: 500,
-					step: 1,
-					default: 16,
-					range: true,
-					isVisible: (options) => {
-						return options.mode === 'SMP'
-					},
-				},
+				GetDropdown('Delay Mode', 'mode', getDelayModes()),
+				...GetNumberFieldWithVariables('Amount (meters)', 'amount_m', 0, 150, 0.1, 0, '', `$(options:mode) == 'M'`),
+				...GetNumberFieldWithVariables('Amount (ft)', 'amount_ft', 0.5, 500, 0.5, 0.5, '', `$(options:mode) == 'FT'`),
+				...GetNumberFieldWithVariables('Amount (ms)', 'amount_ms', 0.5, 500, 0.1, 0.5, '', `$(options:mode) == 'MS'`),
+				...GetNumberFieldWithVariables(
+					'Amount (samples)',
+					'amount_samples',
+					16,
+					500,
+					1,
+					16,
+					'',
+					`$(options:mode) == 'SMP'`,
+				),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const mode = await ActionUtil.getStringWithVariables(self, event, 'mode')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const mode = await ActionUtil.getStringWithVariables(event, 'mode')
 				send(ActionUtil.getDelayModeCommand(sel, ActionUtil.getNodeNumberFromID(sel)), mode)
 				switch (mode) {
 					case 'M':
@@ -765,8 +725,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
-				const enable = await ActionUtil.getNumberWithVariables(self, event, 'enable')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
 				const cmd = ActionUtil.getGateEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				send(cmd, enable)
 			},
@@ -782,9 +742,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getEqEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				const enable = await ActionUtil.getNumberWithVariables(self, event, 'enable')
+				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
 				send(cmd, enable)
 			},
 		},
@@ -799,9 +759,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(self, event, 'sel')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getDynamicsEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				const enable = await ActionUtil.getNumberWithVariables(self, event, 'enable')
+				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
 				send(cmd, enable)
 			},
 		},
@@ -1193,20 +1153,21 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Insert On',
 			description: 'Enable or disable an insert for a channel, aux, bus, matrix or main.',
 			options: [
-				GetDropdown('Insert', 'insert', [
+				...GetDropdownWithVariables('Insert', 'insert', [
 					getIdLabelPair('pre', 'Pre-Insert'),
 					getIdLabelPair('post', 'Post-Insert'),
 					getIdLabelPair('pre-post', 'Both'),
 				]),
-				GetDropdown('Selection', 'sel', [...allChannels]),
-				GetOnOffToggleDropdown('enable', 'Enable'),
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels]),
+				...GetOnOffToggleDropdownWithVariables('enable', 'Enable'),
 			],
 			callback: async (event) => {
-				const insert = event.options.insert as string
-				const sel = event.options.sel as string
-				const val = ActionUtil.getNumber(event, 'enable')
+				const insert = await ActionUtil.getStringWithVariables(event, 'insert')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const val = await ActionUtil.getNumberWithVariables(event, 'enable')
+				const nodeNum = ActionUtil.getNodeNumberFromID(sel)
 				if (insert.includes('pre')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					const currentVal = StateUtil.getBooleanFromState(cmd, state)
 					if (val < 2) {
 						send(cmd, val)
@@ -1215,7 +1176,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					}
 				}
 				if (insert.includes('post')) {
-					const cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPostInsertCommand(sel, nodeNum)
 					if (cmd == '') return // if an aux is requested
 					const currentVal = StateUtil.getBooleanFromState(cmd, state)
 					if (val < 2) {
@@ -1225,15 +1186,16 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					}
 				}
 			},
-			subscribe: (event) => {
-				const insert = event.options.insert as string
-				const sel = event.options.sel as string
+			subscribe: async (event) => {
+				const insert = await ActionUtil.getStringWithVariables(event, 'insert')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const nodeNum = ActionUtil.getNodeNumberFromID(sel)
 				if (insert.includes('pre')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					ensureLoaded(cmd)
 				}
 				if (insert.includes('post')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					ensureLoaded(cmd)
 				}
 			},

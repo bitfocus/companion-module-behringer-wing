@@ -5,6 +5,7 @@ import {
 	CompanionInputFieldTextInput,
 	DropdownChoice,
 	InputValue,
+	Regex,
 } from '@companion-module/base'
 import { FadeDurationChoice } from './fades.js'
 import { getIdLabelPair } from '../choices/utils.js'
@@ -80,32 +81,21 @@ export function GetNumberFieldWithVariables(
 	max: number,
 	step?: number,
 	defaultValue?: number,
-	range?: boolean,
 	tooltip?: string,
 	isVisibleExpression?: string,
-): [CompanionInputFieldCheckbox, CompanionInputFieldNumber, CompanionInputFieldTextInput] {
+): [CompanionInputFieldTextInput] {
 	// if no isVisibleExpression is provided, default to always visible
 	isVisibleExpression = isVisibleExpression ?? 'true'
-	const number = GetNumberField(label, id, min, max, step, defaultValue, range, tooltip)
-	number.isVisibleExpression = `!$(options:${id}_use_variables) && (${isVisibleExpression})`
 	return [
 		{
-			type: 'checkbox',
-			label: `Use Variables for ${label}`,
-			id: `${id}_use_variables`,
-			default: false,
-			tooltip: 'Enable to use variables',
-			isVisibleExpression: isVisibleExpression,
-		},
-		number,
-		{
 			type: 'textinput',
-			id: `${id}_variables`,
+			id: id,
 			label: label,
-			default: '',
-			tooltip: tooltip,
+			default: defaultValue?.toString() ?? '',
+			tooltip: tooltip + ' (Min: ' + min + ', Max: ' + max + ')',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}_use_variables) && (${isVisibleExpression})`,
+			regex: (step ?? 1) % 1 === 0 ? Regex.SIGNED_NUMBER : Regex.SIGNED_FLOAT,
+			isVisibleExpression: isVisibleExpression,
 		},
 	]
 }
