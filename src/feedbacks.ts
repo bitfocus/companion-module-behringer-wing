@@ -4,8 +4,6 @@ import { WingConfig } from './config.js'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
 import {
 	combineRgb,
-	CompanionAdvancedFeedbackDefinition,
-	CompanionAdvancedFeedbackResult,
 	CompanionBooleanFeedbackDefinition,
 	CompanionFeedbackDefinitions,
 	CompanionFeedbackInfo,
@@ -29,7 +27,7 @@ import { IoCommands } from './commands/io.js'
 import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
 
 type CompanionFeedbackWithCallback = SetRequired<
-	CompanionBooleanFeedbackDefinition | CompanionAdvancedFeedbackDefinition,
+	CompanionBooleanFeedbackDefinition,
 	'callback' | 'subscribe' | 'unsubscribe'
 >
 
@@ -38,6 +36,7 @@ export enum FeedbackId {
 	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
 	RecorderState = 'recorder-state',
+	PlayerState = 'player-state',
 	WLiveSDState = 'wlive-sd-state',
 	WLivePlaybackState = 'wlive-playback-state',
 	GpioState = 'gpio-state',
@@ -97,10 +96,7 @@ export function GetFeedbacksList(
 			name: 'Main/Alt Input Source',
 			description: 'React to the selected input source group (Main or Alt).',
 			options: [GetDropdown('Selected', 'sel', [getIdLabelPair('1', 'Main'), getIdLabelPair('0', 'Alt')])],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = IoCommands.MainAltSwitch()
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
@@ -124,10 +120,7 @@ export function GetFeedbacksList(
 				GetDropdown('Selection', 'sel', [...allChannelsAndDcas, ...state.namedChoices.mutegroups]),
 				GetMuteDropdown('mute', 'State', false),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
@@ -167,10 +160,7 @@ export function GetFeedbacksList(
 				},
 				GetMuteDropdown('mute', 'State', false),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const src = event.options.src as string
 				let dest = ''
@@ -223,10 +213,7 @@ export function GetFeedbacksList(
 					getIdLabelPair('-', 'Not Connected'),
 				]),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
 				const val = StateUtil.getStringFromState(cmd, state) as string
@@ -242,44 +229,21 @@ export function GetFeedbacksList(
 			},
 		},
 		[FeedbackId.RecorderState]: {
-			type: 'advanced',
+			type: 'boolean',
 			name: 'USB Recorder State',
-			description: 'Current State of the USB Recorder',
+			description: 'React to the current state of the USB Recorder',
 			options: [
-				{
-					type: 'checkbox',
-					label: 'Display State Text',
-					id: 'stateText',
-					default: false,
-				},
+				GetDropdown('State', 'state', [
+					getIdLabelPair('REC', 'Recording'),
+					getIdLabelPair('PAUSE', 'Paused'),
+					getIdLabelPair('STOP', 'Stopped'),
+				]),
 			],
-			callback: (event): CompanionAdvancedFeedbackResult => {
+			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(255, 255, 255) },
+			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
 				const recState = StateUtil.getStringFromState(cmd, state)
-				let textColor = combineRgb(255, 255, 255)
-				let buttonColor = combineRgb(0, 255, 0)
-				if (recState == 'REC') {
-					buttonColor = combineRgb(255, 0, 0)
-				} else if (recState == 'PAUSE') {
-					buttonColor = combineRgb(128, 128, 128)
-				} else if (recState == 'STOP') {
-					buttonColor = combineRgb(0, 0, 0)
-				} else {
-					buttonColor = combineRgb(255, 255, 0)
-					textColor = combineRgb(0, 0, 0)
-				}
-				const result = {
-					color: textColor,
-					bgcolor: buttonColor,
-				}
-				if (event.options.stateText) {
-					return {
-						text: `${recState ?? 'N/A'}`,
-						...result,
-					}
-				} else {
-					return result
-				}
+				return recState === event.options.state
 			},
 			subscribe: (event): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
@@ -290,15 +254,38 @@ export function GetFeedbacksList(
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
+		[FeedbackId.PlayerState]: {
+			type: 'boolean',
+			name: 'USB Player State',
+			description: 'React to the current state of the USB Player',
+			options: [
+				GetDropdown('State', 'state', [
+					getIdLabelPair('PLAY', 'Playing'),
+					getIdLabelPair('PAUSE', 'Paused'),
+					getIdLabelPair('STOP', 'Stopped'),
+				]),
+			],
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				const playerState = StateUtil.getStringFromState(cmd, state)
+				return playerState === event.options.state
+			},
+			subscribe: (event): void => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = UsbPlayerCommands.PlayerActiveState()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
 		[FeedbackId.WLiveSDState]: {
 			type: 'boolean',
 			name: 'WLive SD State',
 			description: 'React to the state of the WLive SD Cards.',
 			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsStatusChoices())],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
 				const currentValue = StateUtil.getStringFromState(cmd, state)
@@ -318,10 +305,7 @@ export function GetFeedbacksList(
 			name: 'WLive Playback State',
 			description: 'React to the playback state of a WLive Card.',
 			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsActionChoices())],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
 				const currentValue = StateUtil.getStringFromState(cmd, state)
@@ -344,10 +328,7 @@ export function GetFeedbacksList(
 				GetDropdown('Selection', 'sel', getGpios(4)),
 				GetDropdown('State', 'state', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const sel = event.options.sel as number
 				const cmd = ControlCommands.GpioReadState(sel)
@@ -377,10 +358,7 @@ export function GetFeedbacksList(
 				]),
 				GetDropdown('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(255, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const sel = event.options.sel as string
 				if (sel == 'any') {
@@ -438,10 +416,7 @@ export function GetFeedbacksList(
 				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
 				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(255, 0, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
@@ -469,10 +444,7 @@ export function GetFeedbacksList(
 				]),
 				GetDropdown('Assign', 'assign', [getIdLabelPair('1', 'Assigned'), getIdLabelPair('0', 'Not Assigned')]),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(0, 255, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const talkback = event.options.tb as string
 				const destination = event.options.dest as string
@@ -507,10 +479,7 @@ export function GetFeedbacksList(
 				GetDropdown('Selection', 'sel', [...allChannels]),
 				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
-			defaultStyle: {
-				bgcolor: combineRgb(255, 0, 0),
-				color: combineRgb(0, 0, 0),
-			},
+			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const insert = event.options.insert as string
 				let preOn = false
