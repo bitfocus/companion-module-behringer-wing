@@ -623,7 +623,6 @@ function UpdateUsbVariables(self: WingInstance, path: string, args: OSCMetaArgum
 }
 
 function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
-
 	// Check for SD link status first
 	if (path === '/cards/wlive/$actlink' || path === '/cards/wlive/sdlink') {
 		const linkStatus = args.value as string
@@ -632,7 +631,7 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 	}
 
 	const match = path.match(RE_SD)
-  
+
 	if (!match) {
 		return
 	}
