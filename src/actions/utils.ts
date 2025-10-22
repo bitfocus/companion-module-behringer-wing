@@ -1,5 +1,5 @@
 import { WingTransitions } from '../transitions.js'
-import { StateUtil, WingState } from '../state/index.js'
+import { WingState } from '../state/index.js'
 import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
 import { Easing } from '../easings.js'
 import * as StateUtils from '../state/utils.js'
@@ -577,16 +577,6 @@ export function getDynamicsEnableCommand(sel: string, val: number): string {
 		cmd = MainCommands.DynamicsOn(val)
 	}
 	return cmd
-}
-
-export function getSetOrToggleValue(cmd: string, val: number, state: WingState, invert?: boolean): number {
-	const inv = invert ?? false
-	if (val <= -1) {
-		const currentVal = StateUtil.getBooleanFromState(cmd, state)
-		return Number(!currentVal)
-	}
-	if (inv) return Number(!val)
-	else return Number(val)
 }
 
 export function getMatrixSendLevelCommand(sel: string, src: number, dest: number): string {

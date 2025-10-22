@@ -896,7 +896,10 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				let val = await ActionUtil.getNumberWithVariables(event, 'mute')
-				val = ActionUtil.getSetOrToggleValue(cmd, val, state, true)
+				// Mute states are inverted for sends
+				if (val != -1) {
+					val = val == 0 ? 1 : 0
+				}
 				send(cmd, val)
 			},
 		},
