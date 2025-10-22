@@ -14,7 +14,6 @@ export enum IoActionId {
 export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
 	const send = self.sendCommand
 	const state = self.state
-	const ensureLoaded = self.ensureLoaded
 
 	const actions: { [id in IoActionId]: CompanionActionWithCallback | undefined } = {
 		[IoActionId.MainAltSwitch]: {
@@ -32,12 +31,6 @@ export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 				let val = ActionUtil.getNumber(event, 'sel')
 				val = Number(ActionUtil.getSetOrToggleValue(cmd, val, state, true))
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.mute ?? 0 >= 2) {
-					const cmd = IoCommands.MainAltSwitch()
-					ensureLoaded(cmd)
-				}
 			},
 		},
 	}

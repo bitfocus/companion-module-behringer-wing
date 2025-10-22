@@ -1,5 +1,5 @@
 import { WingTransitions } from '../transitions.js'
-import { StateUtil, WingState } from '../state/index.js'
+import { WingState } from '../state/index.js'
 import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
 import { Easing } from '../easings.js'
 import * as StateUtils from '../state/utils.js'
@@ -423,11 +423,11 @@ export function getDynamicsEnableCommand(sel: string, val: number): string {
 	return cmd
 }
 
-export function getSetOrToggleValue(cmd: string, val: number, state: WingState, invert?: boolean): number {
+export function getSetOrToggleValue(_cmd: string, val: number, _state: WingState, invert?: boolean): number {
 	const inv = invert ?? false
 	if (val >= 2) {
-		const currentVal = StateUtil.getBooleanFromState(cmd, state)
-		return Number(!currentVal)
+		// WING supports sending -1 to toggle automatically
+		return -1
 	}
 	if (inv) return Number(!val)
 	else return Number(val)

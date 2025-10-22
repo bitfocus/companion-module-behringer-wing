@@ -58,12 +58,6 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state)
 				send(cmd, val)
 			},
-			subscribe: (event) => {
-				if (event.options.mute ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloMute()
-					ensureLoaded(cmd)
-				}
-			},
 		},
 		[ConfigActions.SetSoloDim]: {
 			name: 'Set Solo Dim',
@@ -80,12 +74,6 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				const cmd = ConfigurationCommands.SoloDim()
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'dim'), state)
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.dim ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloDim()
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		[ConfigActions.SetSoloMono]: {
@@ -104,12 +92,6 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mono'), state)
 				send(cmd, val)
 			},
-			subscribe: (event) => {
-				if (event.options.mono ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloMono()
-					ensureLoaded(cmd)
-				}
-			},
 		},
 		[ConfigActions.SetSoloLRSwap]: {
 			name: 'Set Solo LR Swap',
@@ -126,12 +108,6 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				const cmd = ConfigurationCommands.SoloLRSwap()
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'swap'), state)
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.swap ?? 0 >= 2) {
-					const cmd = ConfigurationCommands.SoloLRSwap()
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		[ConfigActions.SetMonitorLevel]:
@@ -230,14 +206,6 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
 				const val = ActionUtil.getSetOrToggleValue(cmd, event.options.assign as number, state)
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.mode ?? 0 >= 2) {
-					const talkback = event.options.tb as string
-					const destination = event.options.dest as string
-					const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		[ConfigActions.TalkbackIndividualLevels]: {

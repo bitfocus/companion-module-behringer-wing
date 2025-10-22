@@ -127,13 +127,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'led'), state)
 				send(cmd, val)
 			},
-			subscribe: (event) => {
-				if (event.options.led ?? 0 >= 2) {
-					const sel = event.options.sel as string
-					const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
-				}
-			},
 		},
 		[CommonActions.SetScribbleLightColor]: {
 			name: 'Set Scribble Light Color',
@@ -273,13 +266,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state)
 				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.sel ?? 0 >= 2) {
-					const sel = event.options.sel as string
-					const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
-				}
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -488,13 +474,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'solo'), state)
 				send(cmd, val)
 			},
-			subscribe: (event) => {
-				if (event.options.sel ?? 0 >= 2) {
-					const sel = event.options.sel as string
-					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
-				}
-			},
 		},
 		[CommonActions.ClearSolo]: {
 			name: 'Clear Solo',
@@ -534,18 +513,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getDelayOnCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'delay')
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					const currentVal = StateUtil.getBooleanFromState(cmd, state)
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getDelayOnCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'delay'), state)
+				send(cmd, val)
 			},
 		},
 
@@ -662,18 +631,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getGateEnableCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'enable')
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					const currentVal = StateUtil.getBooleanFromState(cmd, state)
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGateEnableCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'enable'), state)
+				send(cmd, val)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -686,18 +645,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getEqEnableCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'enable')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'enable'), state)
+				send(cmd, val)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -710,18 +659,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getDynamicsEnableCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'enable')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getDynamicsEnableCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'enable'), state)
+				send(cmd, val)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -981,19 +920,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				val = ActionUtil.getSetOrToggleValue(cmd, val, state, true)
 				send(cmd, val)
 			},
-			subscribe: (event) => {
-				if (event.options.sel ?? 0 >= 2) {
-					const src = event.options.src as string
-					let dest = ''
-					if (src.startsWith('/main')) {
-						dest = event.options.mainDest as string
-					} else {
-						dest = event.options.dest as string
-					}
-					const cmd = ActionUtil.getSendMuteCommand(src, dest)
-					ensureLoaded(cmd)
-				}
-			},
 		},
 		////////////////////////////////////////////////////////////////
 		// Send Panorama
@@ -1126,34 +1052,14 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const val = ActionUtil.getNumber(event, 'enable')
 				if (insert.includes('pre')) {
 					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
-					const currentVal = StateUtil.getBooleanFromState(cmd, state)
-					if (val < 2) {
-						send(cmd, val)
-					} else {
-						send(cmd, Number(!currentVal))
-					}
+					const cmdVal = ActionUtil.getSetOrToggleValue(cmd, val, state)
+					send(cmd, cmdVal)
 				}
 				if (insert.includes('post')) {
 					const cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
 					if (cmd == '') return // if an aux is requested
-					const currentVal = StateUtil.getBooleanFromState(cmd, state)
-					if (val < 2) {
-						send(cmd, val)
-					} else {
-						send(cmd, Number(!currentVal))
-					}
-				}
-			},
-			subscribe: (event) => {
-				const insert = event.options.insert as string
-				const sel = event.options.sel as string
-				if (insert.includes('pre')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
-				}
-				if (insert.includes('post')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
+					const cmdVal = ActionUtil.getSetOrToggleValue(cmd, val, state)
+					send(cmd, cmdVal)
 				}
 			},
 		},
