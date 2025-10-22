@@ -133,6 +133,18 @@ export class WingState implements IStoredChannelSubject {
 	}
 
 	public updateNames(model: ModelSpec): void {
+		// Reset cached name arrays to avoid unbounded growth between updates
+		this.names = {
+			channels: [],
+			auxes: [],
+			busses: [],
+			matrices: [],
+			mains: [],
+			dcas: [],
+			mutegroups: [],
+			scenes: [],
+		}
+
 		this.namedChoices.channels = []
 		for (let ch = 1; ch <= model.channels; ch++) {
 			this.names.channels.push(this.getRealName(Commands.Channel.RealName(ch)) ?? `Channel ${ch}`)
@@ -143,7 +155,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.auxes = []
 		for (let aux = 1; aux <= model.auxes; aux++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(aux)) ?? `Aux ${aux}`)
+			this.names.auxes.push(this.getRealName(Commands.Aux.RealName(aux)) ?? `Aux ${aux}`)
 			this.namedChoices.auxes.push(
 				this.getNameForChoice(aux, Commands.Aux.Node(aux), Commands.Aux.RealName(aux), 'Aux', 'A'),
 			)
@@ -151,7 +163,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.busses = []
 		for (let bus = 1; bus <= model.busses; bus++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(bus)) ?? `Bus ${bus}`)
+			this.names.busses.push(this.getRealName(Commands.Bus.Name(bus)) ?? `Bus ${bus}`)
 			this.namedChoices.busses.push(
 				this.getNameForChoice(bus, Commands.Bus.Node(bus), Commands.Bus.Name(bus), 'Bus', 'B'),
 			)
@@ -159,7 +171,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.matrices = []
 		for (let matrix = 1; matrix <= model.matrices; matrix++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(matrix)) ?? `Matrix ${matrix}`)
+			this.names.matrices.push(this.getRealName(Commands.Matrix.RealName(matrix)) ?? `Matrix ${matrix}`)
 			this.namedChoices.matrices.push(
 				this.getNameForChoice(matrix, Commands.Matrix.Node(matrix), Commands.Matrix.RealName(matrix), 'Matrix', 'MX'),
 			)
@@ -167,7 +179,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.mains = []
 		for (let main = 1; main <= model.mains; main++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(main)) ?? `Main ${main}`)
+			this.names.mains.push(this.getRealName(Commands.Main.RealName(main)) ?? `Main ${main}`)
 			this.namedChoices.mains.push(
 				this.getNameForChoice(main, Commands.Main.Node(main), Commands.Main.RealName(main), 'Main', 'M'),
 			)
@@ -175,7 +187,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.dcas = []
 		for (let dca = 1; dca <= model.dcas; dca++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(dca)) ?? `DCA ${dca}`)
+			this.names.dcas.push(this.getRealName(Commands.Dca.Name(dca)) ?? `DCA ${dca}`)
 			this.namedChoices.dcas.push(
 				this.getNameForChoice(dca, Commands.Dca.Node(dca), Commands.Dca.Name(dca), 'DCA', 'DCA'),
 			)
@@ -183,7 +195,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.mutegroups = []
 		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(mgrp)) ?? `Mute Group ${mgrp}`)
+			this.names.mutegroups.push(this.getRealName(Commands.MuteGroup.Name(mgrp)) ?? `Mute Group ${mgrp}`)
 			this.namedChoices.mutegroups.push(
 				this.getNameForChoice(mgrp, Commands.MuteGroup.Node(mgrp), Commands.MuteGroup.Name(mgrp), 'Mute Group', 'MGRP'),
 			)

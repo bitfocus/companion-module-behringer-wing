@@ -121,10 +121,6 @@ export async function GetSendSourceDestinationFieldsWithVariables(
 	const useVariables = event.options.send_src_dest_use_variables as boolean
 	let src = ''
 	let dest = ''
-	// print options for debugging
-	console.log('Event options:', JSON.stringify(event.options))
-	// log useVariables value
-	console.log('useVariables:', useVariables, typeof useVariables, useVariables === true)
 	if (useVariables === true) {
 		src = event.options.send_src_variables as string
 		dest = event.options.send_dest_variables as string
@@ -136,9 +132,6 @@ export async function GetSendSourceDestinationFieldsWithVariables(
 			dest = event.options.dest as string
 		}
 	}
-	// log final src and dest values
-	console.log('Final src:', src)
-	console.log('Final dest:', dest)
 	return { src, dest }
 }
 

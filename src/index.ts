@@ -24,7 +24,6 @@ import { WingDeviceDetectorInstance } from './device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets.js'
-import { IoCommands } from './commands/io.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
@@ -57,6 +56,14 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	private readonly debounceMessageFeedbacks: () => void
 
 	private variableMessages: { [path: string]: OscMessage } = {}
+
+	// Precompiled regexes to avoid per-message allocations
+	private readonly reCtlLib = /\/\$ctl\/lib/
+	private readonly reChName = /\/ch\/\d+\/\$name/
+	private readonly reAuxName = /\/aux\/\d+\/\$name/
+	private readonly reBusName = /\/bus\/\d+\/\$name/
+	private readonly reMtxName = /\/mtx\/\d+\/\$name/
+	private readonly reMainName = /\/main\/\d+\/\$name/
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -262,8 +269,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			}, this.config.statusPollUpdateRate ?? 3000)
 
 			this.state.requestNames(this.model, this.ensureLoaded)
-			// Ensure Main/Alt state is loaded so variables/feedbacks have data
-			this.ensureLoaded(IoCommands.MainAltSwitch())
 			this.requestQueue.clear()
 			this.inFlightRequests = {}
 
@@ -345,8 +350,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	private updateLists(msg: osc.OscMessage): void {
 		const args = msg.args as osc.MetaArgument[]
 
-		const libRe = /\/\$ctl\/lib/
-		if (libRe.test(msg.address)) {
+		if (this.reCtlLib.test(msg.address)) {
 			const content = String(args[0]?.value ?? '')
 			const scenes = content.match(/\$scenes\s+list\s+\[([^\]]+)\]/)
 			UpdateShowControlVariables(this)
@@ -355,7 +359,15 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				const newScenes = sceneList.map((s) => ({ id: s, label: s }))
 				const newSceneNameToIdMap = new Map(sceneList.map((s, i) => [s, i + 1]))
 
-				if (newSceneNameToIdMap != this.state.sceneNameToIdMap) {
+				const mapsEqual = (a: Map<string, number>, b: Map<string, number>): boolean => {
+					if (a.size !== b.size) return false
+					for (const [k, v] of a.entries()) {
+						if (b.get(k) !== v) return false
+					}
+					return true
+				}
+
+				if (!mapsEqual(this.state.sceneNameToIdMap, newSceneNameToIdMap)) {
 					this.log('info', 'Updating scene map')
 					this.state.namedChoices.scenes = newScenes
 					this.state.sceneNameToIdMap = newSceneNameToIdMap
@@ -372,17 +384,12 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.debounceMessageFeedbacks()
 		}
 
-		const channelNameRe = /\/ch\/\d+\/\$name/
-		const auxNameRe = /\/aux\/\d+\/\$name/
-		const busNameRe = /\/bus\/\d+\/\$name/
-		const mtxNameRe = /\/mtx\/\d+\/\$name/
-		const mainNameRe = /\/main\/\d+\/\$name/
 		if (
-			channelNameRe.test(msg.address) ||
-			busNameRe.test(msg.address) ||
-			auxNameRe.test(msg.address) ||
-			mtxNameRe.test(msg.address) ||
-			mainNameRe.test(msg.address)
+			this.reChName.test(msg.address) ||
+			this.reBusName.test(msg.address) ||
+			this.reAuxName.test(msg.address) ||
+			this.reMtxName.test(msg.address) ||
+			this.reMainName.test(msg.address)
 		) {
 			// this.log('info', 'Would update now')
 
