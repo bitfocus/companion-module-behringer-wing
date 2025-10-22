@@ -899,14 +899,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				val = ActionUtil.getSetOrToggleValue(cmd, val, state, true)
 				send(cmd, val)
 			},
-			subscribe: async (event) => {
-				const mute = await ActionUtil.getNumberWithVariables(event, 'mute')
-				if (mute >= 2) {
-					const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
-					const cmd = ActionUtil.getSendMuteCommand(src, dest)
-					ensureLoaded(cmd)
-				}
-			},
 		},
 		////////////////////////////////////////////////////////////////
 		// Send Panorama
