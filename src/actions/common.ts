@@ -1033,7 +1033,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					getIdLabelPair('pre-post', 'Both'),
 				]),
 				...GetDropdownWithVariables('Selection', 'sel', [...allChannels]),
-				...GetOnOffToggleDropdownWithVariables('enable', 'Enable'),
+				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
 			],
 			callback: async (event) => {
 				const insert = await ActionUtil.getStringWithVariables(event, 'insert')
