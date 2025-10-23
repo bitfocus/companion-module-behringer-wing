@@ -103,7 +103,12 @@ export async function getNumberWithVariables(
 		res = Number(event.options[id])
 	} else if (useVariables === true) {
 		const val = event.options[`${id}_variables`] as string
-		res = Number(val)
+		// check for infinity
+		if (val == '-oo') {
+			res = -144
+		} else {
+			res = Number(val)
+		}
 	}
 	if (isNaN(res)) {
 		if (defaultValue !== undefined) {
