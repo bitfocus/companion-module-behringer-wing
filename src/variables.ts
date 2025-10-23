@@ -7,6 +7,7 @@ import * as ActionUtil from './actions/utils.js'
 
 // Precompiled regex patterns to reduce allocations during frequent variable updates
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
+const RE_GAIN = /\/(\w+)\/(\d+)\/in\/set\/\$g/
 const RE_MUTE = /^\/(ch|aux|bus|mtx|main|dca|mgrp)\/(\d+)(?:\/(send|main)\/(?:(MX)(\d+)|(\d+))\/(mute|on)|\/(mute))$/
 const RE_FADER = /^\/(\w+)\/(\w+)(?:\/(\w+)\/(\w+))?\/(fdr|lvl|\$fdr|\$lvl)$/
 const RE_PAN = /^\/(\w+)\/(\w+)(?:\/(\w+)\/(\w+))?\/(pan|\$pan)$/
@@ -378,6 +379,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 
 		self.log('debug', 'Updating variables')
 		UpdateNameVariables(self, path, args[0]?.value as string)
+		UpdateGainVariables(self, path, args[0]?.value as number)
 		UpdateMuteVariables(self, path, args[0]?.value as number)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
 		UpdatePanoramaVariables(self, path, args[0]?.value as number)
@@ -423,6 +425,17 @@ function UpdateNameVariables(self: WingInstance, path: string, value: string): v
 	const base = match[1]
 	const num = match[2]
 	self.setVariableValues({ [`${base}${num}_name`]: value })
+}
+
+function UpdateGainVariables(self: WingInstance, path: string, value: number): void {
+	const match = path.match(RE_GAIN)
+	if (!match) {
+		return
+	}
+
+	const base = match[1]
+	const num = match[2]
+	self.setVariableValues({ [`${base}${num}_gain`]: value })
 }
 
 function UpdateMuteVariables(self: WingInstance, path: string, value: number): void {

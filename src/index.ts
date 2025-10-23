@@ -260,6 +260,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			}
 		})
 		this.osc.on('ready', () => {
+			this.updateStatus(InstanceStatus.Connecting)
+
 			this.subscribeForUpdates()
 			this.subscribeInterval = setInterval(() => {
 				this.subscribeForUpdates()
@@ -268,11 +270,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				this.requestStatusUpdates()
 			}, this.config.statusPollUpdateRate ?? 3000)
 
-			this.state.requestNames(this.model, this.ensureLoaded)
-			this.requestQueue.clear()
-			this.inFlightRequests = {}
-
-			this.updateStatus(InstanceStatus.Connecting)
+			this.state.requestNames(this)
+			if (this.config.prefetchVariablesOnStartup) {
+				this.state.requestAllVariables(this)
+			}
 		})
 
 		this.osc.on('close' as any, () => {
@@ -481,7 +482,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			})
 			.catch((_e: unknown) => {
 				delete this.inFlightRequests[path]
-				// this.log('error', `Request failed for ${path}`)
+				this.log('warn', `Request failed (${_e}) for ${path}`)
 			})
 	}
 }
