@@ -76,6 +76,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			choices: ModelChoices,
 			default: WingModel.Full.toString(),
 		},
+		spacer,
 		{
 			type: 'static-text',
 			id: 'update-rate-info',
@@ -125,6 +126,16 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'Request values for all variables when establishing a connection to a desk.',
 			width: 6,
 			default: true,
+		},
+		spacer,
+		{
+			type: 'static-text',
+			id: 'osc-forwarding-info',
+			width: 12,
+			label: 'OSC Forwarding',
+			value:
+				'Allows forwarding all received OSC messages to another OSC endpoint. </br>' +
+				'This can be useful if you want to use multiple OSC clients that rely on subscription data.',
 		},
 		{
 			type: 'checkbox',
