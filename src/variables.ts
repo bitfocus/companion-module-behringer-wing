@@ -5,6 +5,18 @@ import { ControlCommands } from './commands/control.js'
 import { IoCommands } from './commands/io.js'
 import * as ActionUtil from './actions/utils.js'
 
+// Precompiled regex patterns to reduce allocations during frequent variable updates
+const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
+const RE_GAIN = /\/(\w+)\/(\d+)\/in\/set\/\$g/
+const RE_MUTE = /^\/(ch|aux|bus|mtx|main|dca|mgrp)\/(\d+)(?:\/(send|main)\/(?:(MX)(\d+)|(\d+))\/(mute|on)|\/(mute))$/
+const RE_FADER = /^\/(\w+)\/(\w+)(?:\/(\w+)\/(\w+))?\/(fdr|lvl|\$fdr|\$lvl)$/
+const RE_PAN = /^\/(\w+)\/(\w+)(?:\/(\w+)\/(\w+))?\/(pan|\$pan)$/
+const RE_USB = /^\/(rec|play)\/(\$?\w+)$/
+const RE_SD = /^\/cards\/wlive\/(\d)\/(\$?\w+)\/(\$?\w+)$/
+const RE_TALKBACK = /^\/cfg\/talk\/(A|B)\/(B|MX|M)(\d+)$/
+const RE_GPIO = /^\/\$ctl\/gpio\/(\d+)\/\$state$/
+const RE_CONTROL = /^\/\$ctl\/(lib|\$stat)\/(\$?\w+)/
+
 export function UpdateVariableDefinitions(self: WingInstance): void {
 	const model = self.model
 
@@ -51,6 +63,16 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 				name: `Channel ${ch} to Bus ${bus} Pan`,
 			})
 		}
+		for (let main = 1; main <= model.mains; main++) {
+			variables.push({
+				variableId: `ch${ch}_main${main}_mute`,
+				name: `Channel ${ch} to Main ${main} Mute`,
+			})
+			variables.push({
+				variableId: `ch${ch}_main${main}_level`,
+				name: `Channel ${ch} to Main ${main} Level`,
+			})
+		}
 		for (let mtx = 1; mtx <= model.matrices; mtx++) {
 			variables.push({
 				variableId: `ch${ch}_mtx${mtx}_mute`,
@@ -59,6 +81,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			variables.push({
 				variableId: `ch${ch}_mtx${mtx}_level`,
 				name: `Channel ${ch} to Matrix ${mtx} Level`,
+			})
+			variables.push({
+				variableId: `ch${ch}_mtx${mtx}_pan`,
+				name: `Channel ${ch} to Matrix ${mtx} Pan`,
 			})
 		}
 	}
@@ -84,6 +110,16 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			variableId: `aux${aux}_pan`,
 			name: `Aux ${aux} Pan`,
 		})
+		for (let main = 1; main <= model.mains; main++) {
+			variables.push({
+				variableId: `aux${aux}_main${main}_mute`,
+				name: `Aux ${aux} to Main ${main} Mute`,
+			})
+			variables.push({
+				variableId: `aux${aux}_main${main}_level`,
+				name: `Aux ${aux} to Main ${main} Level`,
+			})
+		}
 		for (let bus = 1; bus <= model.busses; bus++) {
 			variables.push({
 				variableId: `aux${aux}_bus${bus}_mute`,
@@ -102,6 +138,14 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			variables.push({
 				variableId: `aux${aux}_mtx${mtx}_mute`,
 				name: `Aux ${aux} to Matrix ${mtx} Mute`,
+			})
+			variables.push({
+				variableId: `aux${aux}_mtx${mtx}_level`,
+				name: `Aux ${aux} to Matrix ${mtx} Level`,
+			})
+			variables.push({
+				variableId: `aux${aux}_mtx${mtx}_pan`,
+				name: `Aux ${aux} to Matrix ${mtx} Pan`,
 			})
 		}
 	}
@@ -123,6 +167,16 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			variableId: `bus${bus}_pan`,
 			name: `Bus ${bus} Pan`,
 		})
+		for (let main = 1; main <= model.mains; main++) {
+			variables.push({
+				variableId: `bus${bus}_main${main}_mute`,
+				name: `Bus ${bus} to Main ${main} Mute`,
+			})
+			variables.push({
+				variableId: `bus${bus}_main${main}_level`,
+				name: `Bus ${bus} to Main ${main} Level`,
+			})
+		}
 		for (let send = 1; send <= model.busses; send++) {
 			if (bus == send) {
 				continue
@@ -144,6 +198,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			variables.push({
 				variableId: `bus${bus}_mtx${mtx}_mute`,
 				name: `Bus ${bus} to Matrix ${mtx} Mute`,
+			})
+			variables.push({
+				variableId: `bus${bus}_mtx${mtx}_level`,
+				name: `Bus ${bus} to Matrix ${mtx} Level`,
 			})
 		}
 	}
@@ -184,8 +242,17 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			variableId: `main${main}_pan`,
 			name: `Main ${main} Pan`,
 		})
+		for (let send = 1; send <= model.matrices; send++) {
+			variables.push({
+				variableId: `main${main}_mtx${send}_mute`,
+				name: `Main ${main} to Matrix ${send} Mute`,
+			})
+			variables.push({
+				variableId: `main${main}_mtx${send}_level`,
+				name: `Main ${main} to Matrix ${send} Level`,
+			})
+		}
 	}
-
 	for (let dca = 1; dca <= model.dcas; dca++) {
 		variables.push({
 			variableId: `dca${dca}_name`,
@@ -301,6 +368,8 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 	variables.push({ variableId: 'sel_string', name: 'Selected Channel Strip String' })
 
 	self.setVariableDefinitions(variables)
+	// log number of defined variables for debugging
+	self.log('info', `Defined ${variables.length} variables`)
 }
 
 export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
@@ -308,8 +377,9 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 		const path = msg.address
 		const args = msg.args as OSCMetaArgument[]
 
-		self.log('debug', `'Updating variable:', ${path}, ${JSON.stringify(args)}`)
+		self.log('debug', 'Updating variables')
 		UpdateNameVariables(self, path, args[0]?.value as string)
+		UpdateGainVariables(self, path, args[0]?.value as number)
 		UpdateMuteVariables(self, path, args[0]?.value as number)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
 		UpdatePanoramaVariables(self, path, args[0]?.value as number)
@@ -347,7 +417,7 @@ function UpdateIoVariables(self: WingInstance, path: string, arg: OSCMetaArgumen
 }
 
 function UpdateNameVariables(self: WingInstance, path: string, value: string): void {
-	const match = path.match(/\/(\w+)\/(\d+)\/\$?name/)
+	const match = path.match(RE_NAME)
 	if (!match) {
 		return
 	}
@@ -357,10 +427,19 @@ function UpdateNameVariables(self: WingInstance, path: string, value: string): v
 	self.setVariableValues({ [`${base}${num}_name`]: value })
 }
 
+function UpdateGainVariables(self: WingInstance, path: string, value: number): void {
+	const match = path.match(RE_GAIN)
+	if (!match) {
+		return
+	}
+
+	const base = match[1]
+	const num = match[2]
+	self.setVariableValues({ [`${base}${num}_gain`]: value })
+}
+
 function UpdateMuteVariables(self: WingInstance, path: string, value: number): void {
-	const match = path.match(
-		/^\/(ch|aux|bus|mtx|main|dca|mgrp)\/(\d+)(?:\/(send|main)\/(?:(MX)(\d+)|(\d+))\/(mute|on)|\/(mute))$/,
-	)
+	const match = path.match(RE_MUTE)
 
 	if (!match) return
 
@@ -379,7 +458,7 @@ function UpdateMuteVariables(self: WingInstance, path: string, value: number): v
 	const action = match[7] ?? match[8]
 
 	// Invert to get mute
-	if (action === 'on') value = Number(!value)
+	if (action === 'on') value = Number(!(value == 1))
 
 	if (dest == null) {
 		const varName = `${source}${srcnum}_mute`
@@ -397,7 +476,7 @@ function UpdateMuteVariables(self: WingInstance, path: string, value: number): v
 
 function UpdateFaderVariables(self: WingInstance, path: string, value: number): void {
 	// const match = path.match(/^\/(\w+)\/(\w+)(?:\/(\w+)\/(\w+))?/);
-	const match = path.match(/^\/(\w+)\/(\w+)(?:\/(\w+)\/(\w+))?\/(fdr|lvl|\$fdr|\$lvl)$/)
+	const match = path.match(RE_FADER)
 
 	if (!match) {
 		return
@@ -430,7 +509,7 @@ function UpdateFaderVariables(self: WingInstance, path: string, value: number): 
 }
 
 function UpdatePanoramaVariables(self: WingInstance, path: string, value: number): void {
-	const match = path.match(/^\/(\w+)\/(\w+)(?:\/(\w+)\/(\w+))?\/(pan|\$pan)$/)
+	const match = path.match(RE_PAN)
 
 	if (!match) {
 		return
@@ -459,7 +538,7 @@ function UpdatePanoramaVariables(self: WingInstance, path: string, value: number
 }
 
 function UpdateUsbVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
-	const match = path.match(/^\/(rec|play)\/(\$?\w+)$/)
+	const match = path.match(RE_USB)
 	if (!match) {
 		return
 	}
@@ -564,7 +643,8 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 		return
 	}
 
-	const match = path.match(/^\/cards\/wlive\/(\d)\/(\$?\w+)\/(\$?\w+)$/)
+	const match = path.match(RE_SD)
+
 	if (!match) {
 		return
 	}
@@ -662,7 +742,7 @@ function UpdateSdVariables(self: WingInstance, path: string, args: OSCMetaArgume
 }
 
 function UpdateTalkbackVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
-	const match = path.match(/^\/cfg\/talk\/(A|B)\/(B|MX|M)(\d+)$/)
+	const match = path.match(RE_TALKBACK)
 	if (!match) {
 		return
 	}
@@ -686,7 +766,7 @@ function UpdateTalkbackVariables(self: WingInstance, path: string, args: OSCMeta
 }
 
 function UpdateGpioVariables(self: WingInstance, path: string, value: number): void {
-	const match = path.match(/^\/\$ctl\/gpio\/(\d+)\/\$state$/)
+	const match = path.match(RE_GPIO)
 	if (!match) {
 		return
 	}
@@ -696,7 +776,7 @@ function UpdateGpioVariables(self: WingInstance, path: string, value: number): v
 }
 
 function UpdateControlVariables(self: WingInstance, path: string, args: OSCMetaArgument): void {
-	const pathMatch = path.match(/^\/\$ctl\/(lib|\$stat)\/(\$?\w+)/)
+	const pathMatch = path.match(RE_CONTROL)
 	if (!pathMatch) return
 
 	const command = pathMatch[1]

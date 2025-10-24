@@ -1,6 +1,6 @@
 {
 	"name": "wing-companion",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"main": "dist/index.js",
 	"type": "module",
 	"scripts": {
@@ -19,7 +19,7 @@
 		"url": "git+https://github.com/bitfocus/companion-module-wing-companion.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.12",
+		"@companion-module/base": "~1.13",
 		"debounce-fn": "^6.0.0",
 		"osc": "^2.4.5",
 		"p-queue": "^8.0.1",

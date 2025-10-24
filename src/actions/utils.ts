@@ -1,5 +1,5 @@
 import { WingTransitions } from '../transitions.js'
-import { StateUtil, WingState } from '../state/index.js'
+import { WingState } from '../state/index.js'
 import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
 import { Easing } from '../easings.js'
 import * as StateUtils from '../state/utils.js'
@@ -57,6 +57,89 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
 	return val
 }
 
+/**
+ * Retrieves a string value from the provided event options, optionally parsing variables if specified.
+ *
+ * @param self - The instance of the module, providing access to parseVariablesInString.
+ * @param event - The action or feedback event containing the options to extract the value from.
+ * @param id - The identifier for the option to retrieve.
+ * @param defaultValue - An optional default value to return if the result is undefined or empty.
+ * @returns A promise that resolves to the resulting string
+ */
+export async function getStringWithVariables(
+	event: CompanionActionInfo | CompanionFeedbackInfo,
+	id: string,
+	defaultValue?: string,
+): Promise<string> {
+	const useVariables = event.options[`${id}_use_variables`] as boolean
+	let res = ''
+	if (useVariables === false || useVariables === undefined) {
+		res = event.options[id] as string
+	} else if (useVariables === true) {
+		res = event.options[`${id}_variables`] as string
+	}
+
+	return res ?? defaultValue ?? ''
+}
+
+/**
+ * Retrieves a numeric value from the provided event options, supporting both direct input and variable substitution.
+ *
+ * @param self - The instance of the module, providing access to parseVariablesInString
+ * @param event - The action or feedback event containing the options to extract the value from.
+ * @param id - The identifier for the option to retrieve.
+ * @param defaultValue - An optional default value to return if the extracted value is invalid.
+ * @returns A promise that resolves to the resulting number
+ * @throws If the value is invalid and no default value is provided.
+ */
+export async function getNumberWithVariables(
+	event: CompanionActionInfo | CompanionFeedbackInfo,
+	id: string,
+	defaultValue?: number,
+): Promise<number> {
+	const useVariables = event.options[`${id}_use_variables`] as boolean
+	let res = 0
+	if (useVariables === false || useVariables === undefined) {
+		res = Number(event.options[id])
+	} else if (useVariables === true) {
+		const val = event.options[`${id}_variables`] as string
+		// check for infinity
+		if (val == '-oo') {
+			res = -144
+		} else {
+			res = Number(val)
+		}
+	}
+	if (isNaN(res)) {
+		if (defaultValue !== undefined) {
+			return defaultValue
+		} else {
+			throw new Error(`Invalid option '${id}'`)
+		}
+	}
+	return res
+}
+
+export async function GetSendSourceDestinationFieldsWithVariables(
+	event: CompanionActionInfo | CompanionFeedbackInfo,
+): Promise<{ src: string; dest: string }> {
+	const useVariables = event.options.send_src_dest_use_variables as boolean
+	let src = ''
+	let dest = ''
+	if (useVariables === true) {
+		src = event.options.send_src_variables as string
+		dest = event.options.send_dest_variables as string
+	} else {
+		src = event.options.src as string
+		if (src.startsWith('/main')) {
+			dest = event.options.mainDest as string
+		} else {
+			dest = event.options.dest as string
+		}
+	}
+	return { src, dest }
+}
+
 export function runTransition(
 	cmd: string,
 	valueId: string,
@@ -78,6 +161,66 @@ export function runTransition(
 		mapLinearToDb,
 	)
 	state.set(cmd, [{ type: 'f', value: target }])
+}
+
+export function getInputAutoSourceSwitchCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.InputAutoSourceSwitch(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.InputAutoSourceSwitch(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getInputAltSourceCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.InputAltSource(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.InputAltSource(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getMainInputConnectionGroupCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainInputConnectionGroup(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainInputConnectionGroup(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getMainInputConnectionIndexCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.MainInputConnectionIndex(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.MainInputConnectionIndex(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getAltInputConnectionGroupCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.AltInputConnectionGroup(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.AltInputConnectionGroup(getNodeNumberFromID(sel))
+	}
+	return cmd
+}
+
+export function getAltInputConnectionIndexCommand(sel: string): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.AltInputConnectionIndex(getNodeNumberFromID(sel))
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.AltInputConnectionIndex(getNodeNumberFromID(sel))
+	}
+	return cmd
 }
 
 export function getColorCommand(sel: string, val: number): string {
@@ -114,6 +257,24 @@ export function getNameCommand(sel: string, val: number): string {
 		cmd = DcaCommands.Name(val)
 	} else if (sel.startsWith('/mute')) {
 		cmd = MuteGroupCommands.Name(val)
+	}
+	return cmd
+}
+
+export function getIconCommand(sel: string, val: number): string {
+	let cmd = ''
+	if (sel.startsWith('/ch')) {
+		cmd = ChannelCommands.Icon(val)
+	} else if (sel.startsWith('/aux')) {
+		cmd = AuxCommands.Icon(val)
+	} else if (sel.startsWith('/bus')) {
+		cmd = BusCommands.Icon(val)
+	} else if (sel.startsWith('/mtx')) {
+		cmd = MatrixCommands.Icon(val)
+	} else if (sel.startsWith('/main')) {
+		cmd = MainCommands.Icon(val)
+	} else if (sel.startsWith('/dca')) {
+		cmd = DcaCommands.Icon(val)
 	}
 	return cmd
 }
@@ -421,16 +582,6 @@ export function getDynamicsEnableCommand(sel: string, val: number): string {
 		cmd = MainCommands.DynamicsOn(val)
 	}
 	return cmd
-}
-
-export function getSetOrToggleValue(cmd: string, val: number, state: WingState, invert?: boolean): number {
-	const inv = invert ?? false
-	if (val >= 2) {
-		const currentVal = StateUtil.getBooleanFromState(cmd, state)
-		return Number(!currentVal)
-	}
-	if (inv) return Number(!val)
-	else return Number(val)
 }
 
 export function getMatrixSendLevelCommand(sel: string, src: number, dest: number): string {

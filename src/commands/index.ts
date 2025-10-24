@@ -5,5 +5,11 @@ import { MatrixCommands as Matrix } from './matrix.js'
 import { MainCommands as Main } from './main.js'
 import { DcaCommands as Dca } from './dca.js'
 import { MuteGroupCommands as MuteGroup } from './mutegroup.js'
+import { IoCommands as Io } from './io.js'
+import { ControlCommands as Control } from './control.js'
+import { UsbPlayerCommands as UsbPlayer } from './usbplayer.js'
+import { CardsCommands as Cards } from './cards.js'
+import { ConfigurationCommands as Configuration } from './config.js'
+import { StatusCommands as Status } from './status.js'
 
-export { Aux, Channel, Bus, Matrix, Main, Dca, MuteGroup }
+export { Aux, Channel, Bus, Matrix, Main, Dca, MuteGroup, Io, Control, UsbPlayer, Cards, Configuration, Status }

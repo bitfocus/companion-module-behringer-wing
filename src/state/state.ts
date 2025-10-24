@@ -1,4 +1,5 @@
 import osc from 'osc'
+import type { WingInstance } from '../index.js'
 import { FeedbackId } from '../feedbacks.js'
 import { DropdownChoice } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'
@@ -133,6 +134,18 @@ export class WingState implements IStoredChannelSubject {
 	}
 
 	public updateNames(model: ModelSpec): void {
+		// Reset cached name arrays to avoid unbounded growth between updates
+		this.names = {
+			channels: [],
+			auxes: [],
+			busses: [],
+			matrices: [],
+			mains: [],
+			dcas: [],
+			mutegroups: [],
+			scenes: [],
+		}
+
 		this.namedChoices.channels = []
 		for (let ch = 1; ch <= model.channels; ch++) {
 			this.names.channels.push(this.getRealName(Commands.Channel.RealName(ch)) ?? `Channel ${ch}`)
@@ -143,7 +156,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.auxes = []
 		for (let aux = 1; aux <= model.auxes; aux++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(aux)) ?? `Aux ${aux}`)
+			this.names.auxes.push(this.getRealName(Commands.Aux.RealName(aux)) ?? `Aux ${aux}`)
 			this.namedChoices.auxes.push(
 				this.getNameForChoice(aux, Commands.Aux.Node(aux), Commands.Aux.RealName(aux), 'Aux', 'A'),
 			)
@@ -151,7 +164,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.busses = []
 		for (let bus = 1; bus <= model.busses; bus++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(bus)) ?? `Bus ${bus}`)
+			this.names.busses.push(this.getRealName(Commands.Bus.Name(bus)) ?? `Bus ${bus}`)
 			this.namedChoices.busses.push(
 				this.getNameForChoice(bus, Commands.Bus.Node(bus), Commands.Bus.Name(bus), 'Bus', 'B'),
 			)
@@ -159,7 +172,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.matrices = []
 		for (let matrix = 1; matrix <= model.matrices; matrix++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(matrix)) ?? `Matrix ${matrix}`)
+			this.names.matrices.push(this.getRealName(Commands.Matrix.RealName(matrix)) ?? `Matrix ${matrix}`)
 			this.namedChoices.matrices.push(
 				this.getNameForChoice(matrix, Commands.Matrix.Node(matrix), Commands.Matrix.RealName(matrix), 'Matrix', 'MX'),
 			)
@@ -167,7 +180,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.mains = []
 		for (let main = 1; main <= model.mains; main++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(main)) ?? `Main ${main}`)
+			this.names.mains.push(this.getRealName(Commands.Main.RealName(main)) ?? `Main ${main}`)
 			this.namedChoices.mains.push(
 				this.getNameForChoice(main, Commands.Main.Node(main), Commands.Main.RealName(main), 'Main', 'M'),
 			)
@@ -175,7 +188,7 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.dcas = []
 		for (let dca = 1; dca <= model.dcas; dca++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(dca)) ?? `DCA ${dca}`)
+			this.names.dcas.push(this.getRealName(Commands.Dca.Name(dca)) ?? `DCA ${dca}`)
 			this.namedChoices.dcas.push(
 				this.getNameForChoice(dca, Commands.Dca.Node(dca), Commands.Dca.Name(dca), 'DCA', 'DCA'),
 			)
@@ -183,34 +196,205 @@ export class WingState implements IStoredChannelSubject {
 
 		this.namedChoices.mutegroups = []
 		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
-			this.names.channels.push(this.getRealName(Commands.Channel.RealName(mgrp)) ?? `Mute Group ${mgrp}`)
+			this.names.mutegroups.push(this.getRealName(Commands.MuteGroup.Name(mgrp)) ?? `Mute Group ${mgrp}`)
 			this.namedChoices.mutegroups.push(
 				this.getNameForChoice(mgrp, Commands.MuteGroup.Node(mgrp), Commands.MuteGroup.Name(mgrp), 'Mute Group', 'MGRP'),
 			)
 		}
 	}
 
-	public requestNames(model: ModelSpec, ensureLoaded: (path: string, arg?: string | number) => void): void {
+	public requestNames(self: WingInstance): void {
+		const model = self.model
+
 		for (let ch = 1; ch <= model.channels; ch++) {
-			ensureLoaded(Commands.Channel.RealName(ch))
+			self.sendCommand(Commands.Channel.RealName(ch))
 		}
 		for (let aux = 1; aux <= model.auxes; aux++) {
-			ensureLoaded(Commands.Aux.RealName(aux))
+			self.sendCommand(Commands.Aux.RealName(aux))
 		}
 		for (let bus = 1; bus <= model.busses; bus++) {
-			ensureLoaded(Commands.Bus.Name(bus))
+			self.sendCommand(Commands.Bus.Name(bus))
 		}
 		for (let mtx = 1; mtx <= model.matrices; mtx++) {
-			ensureLoaded(Commands.Matrix.RealName(mtx))
+			self.sendCommand(Commands.Matrix.RealName(mtx))
 		}
 		for (let main = 1; main <= model.mains; main++) {
-			ensureLoaded(Commands.Main.RealName(main))
+			self.sendCommand(Commands.Main.RealName(main))
 		}
 		for (let dca = 1; dca <= model.dcas; dca++) {
-			ensureLoaded(Commands.Dca.Name(dca))
+			self.sendCommand(Commands.Dca.Name(dca))
 		}
 		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
-			ensureLoaded(Commands.MuteGroup.Name(mgrp))
+			self.sendCommand(Commands.MuteGroup.Name(mgrp))
+		}
+	}
+
+	public requestAllVariables(self: WingInstance): void {
+		const model = self.model
+
+		// Desk/system status
+		self.sendCommand(Commands.Io.MainAltSwitch())
+
+		// Control Status: Sends on Fader mode and Selected strip
+		self.sendCommand(`${Commands.Control.StatusNode()}/sof`)
+		self.sendCommand(`${Commands.Control.StatusNode()}/selidx`)
+
+		// Control Library: Active show/scene and scene list
+		self.sendCommand(Commands.Control.LibraryActiveShowName())
+		self.sendCommand(Commands.Control.LibraryActiveSceneIndex())
+		self.sendCommand(Commands.Control.LibraryActiveSceneName())
+		// Trigger library content listing (includes $scenes list)
+		self.sendCommand(Commands.Control.LibraryNode(), '?')
+
+		// USB Player/Recorder
+		self.sendCommand(Commands.UsbPlayer.PlayerActiveState())
+		self.sendCommand(Commands.UsbPlayer.PlayerActiveFile())
+		self.sendCommand(Commands.UsbPlayer.PlayerPosition())
+		self.sendCommand(Commands.UsbPlayer.PlayerTotalTime())
+		self.sendCommand(Commands.UsbPlayer.PlayerRepeat())
+
+		self.sendCommand(Commands.UsbPlayer.RecorderActiveState())
+		self.sendCommand(Commands.UsbPlayer.RecorderActiveFile())
+		self.sendCommand(Commands.UsbPlayer.RecorderTime())
+
+		// Wing Live SD Cards general link status
+		self.sendCommand(Commands.Cards.WLiveActLink())
+		self.sendCommand(Commands.Cards.WLiveSDLink())
+
+		for (let card = 1; card <= 2; card++) {
+			self.sendCommand(Commands.Cards.WLiveCardState(card))
+			self.sendCommand(Commands.Cards.WLiveCardSDState(card))
+			self.sendCommand(Commands.Cards.WLiveCardSDSize(card))
+			self.sendCommand(Commands.Cards.WLiveCardMarkers(card))
+			self.sendCommand(Commands.Cards.WLiveCardMarkerPosition(card))
+			self.sendCommand(Commands.Cards.WLiveCardSessions(card))
+			self.sendCommand(Commands.Cards.WLiveCardSessionPosition(card))
+			self.sendCommand(Commands.Cards.WLiveCardMarkerList(card))
+			self.sendCommand(Commands.Cards.WLiveCardETime(card))
+			self.sendCommand(Commands.Cards.WLiveCardSessionLength(card))
+			self.sendCommand(Commands.Cards.WLiveCardSDFree(card))
+		}
+
+		// GPIO states
+		for (let gpio = 1; gpio <= model.gpio; gpio++) {
+			self.sendCommand(Commands.Control.GpioReadState(gpio))
+		}
+
+		// Talkback assigns (A and B)
+		for (let bus = 1; bus <= model.busses; bus++) {
+			self.sendCommand(Commands.Configuration.TalkbackBusAssign('A', bus))
+			self.sendCommand(Commands.Configuration.TalkbackBusAssign('B', bus))
+		}
+		for (let mtx = 1; mtx <= model.matrices; mtx++) {
+			self.sendCommand(Commands.Configuration.TalkbackMatrixAssign('A', mtx))
+			self.sendCommand(Commands.Configuration.TalkbackMatrixAssign('B', mtx))
+		}
+		for (let main = 1; main <= model.mains; main++) {
+			self.sendCommand(Commands.Configuration.TalkbackMainAssign('A', main))
+			self.sendCommand(Commands.Configuration.TalkbackMainAssign('B', main))
+		}
+
+		// Names are requested elsewhere via state.requestNames
+
+		// Channel strips
+		for (let ch = 1; ch <= model.channels; ch++) {
+			self.sendCommand(Commands.Channel.InputGain(ch))
+			self.sendCommand(Commands.Channel.Mute(ch))
+			self.sendCommand(Commands.Channel.Fader(ch))
+			self.sendCommand(Commands.Channel.Pan(ch))
+
+			for (let bus = 1; bus <= model.busses; bus++) {
+				self.sendCommand(Commands.Channel.SendOn(ch, bus))
+				self.sendCommand(Commands.Channel.SendLevel(ch, bus))
+				self.sendCommand(Commands.Channel.SendPan(ch, bus))
+			}
+			for (let main = 1; main <= model.mains; main++) {
+				self.sendCommand(Commands.Channel.MainSendOn(ch, main))
+				self.sendCommand(Commands.Channel.MainSendLevel(ch, main))
+			}
+			for (let mtx = 1; mtx <= model.matrices; mtx++) {
+				self.sendCommand(Commands.Channel.MatrixSendOn(ch, mtx))
+				self.sendCommand(Commands.Channel.MatrixSendLevel(ch, mtx))
+				self.sendCommand(Commands.Channel.MatrixSendPan(ch, mtx))
+			}
+		}
+
+		// Auxes
+		for (let aux = 1; aux <= model.auxes; aux++) {
+			self.sendCommand(Commands.Aux.InputGain(aux))
+			self.sendCommand(Commands.Aux.Mute(aux))
+			self.sendCommand(Commands.Aux.Fader(aux))
+			self.sendCommand(Commands.Aux.Pan(aux))
+
+			for (let main = 1; main <= model.mains; main++) {
+				self.sendCommand(Commands.Aux.MainSendOn(aux, main))
+				self.sendCommand(Commands.Aux.MainSendLevel(aux, main))
+			}
+			for (let bus = 1; bus <= model.busses; bus++) {
+				self.sendCommand(Commands.Aux.SendOn(aux, bus))
+				self.sendCommand(Commands.Aux.SendLevel(aux, bus))
+				self.sendCommand(Commands.Aux.SendPan(aux, bus))
+			}
+			for (let mtx = 1; mtx <= model.matrices; mtx++) {
+				self.sendCommand(Commands.Aux.MatrixSendOn(aux, mtx))
+				self.sendCommand(Commands.Aux.MatrixSendLevel(aux, mtx))
+				self.sendCommand(Commands.Aux.MatrixSendPan(aux, mtx))
+			}
+		}
+
+		// Busses
+		for (let bus = 1; bus <= model.busses; bus++) {
+			self.sendCommand(Commands.Bus.Mute(bus))
+			self.sendCommand(Commands.Bus.Fader(bus))
+			self.sendCommand(Commands.Bus.Pan(bus))
+
+			for (let main = 1; main <= model.mains; main++) {
+				self.sendCommand(Commands.Bus.MainSendOn(bus, main))
+				self.sendCommand(Commands.Bus.MainSendLevel(bus, main))
+			}
+			for (let other = 1; other <= model.busses; other++) {
+				if (other === bus) continue
+				self.sendCommand(Commands.Bus.SendOn(bus, other))
+				self.sendCommand(Commands.Bus.SendLevel(bus, other))
+				self.sendCommand(Commands.Bus.SendPan(bus, other))
+			}
+			for (let mtx = 1; mtx <= model.matrices; mtx++) {
+				self.sendCommand(Commands.Bus.MatrixSendOn(bus, mtx))
+				self.sendCommand(Commands.Bus.MatrixSendLevel(bus, mtx))
+				self.sendCommand(Commands.Bus.MatrixSendPan(bus, mtx))
+			}
+		}
+
+		// Matrices
+		for (let mtx = 1; mtx <= model.matrices; mtx++) {
+			self.sendCommand(Commands.Matrix.Mute(mtx))
+			self.sendCommand(Commands.Matrix.Fader(mtx))
+			self.sendCommand(Commands.Matrix.Pan(mtx))
+		}
+
+		// Mains
+		for (let main = 1; main <= model.mains; main++) {
+			self.sendCommand(Commands.Main.Mute(main))
+			self.sendCommand(Commands.Main.Fader(main))
+			self.sendCommand(Commands.Main.Pan(main))
+
+			for (let mtx = 1; mtx <= model.matrices; mtx++) {
+				self.sendCommand(Commands.Main.MatrixSendOn(main, mtx))
+				self.sendCommand(Commands.Main.MatrixSendLevel(main, mtx))
+				self.sendCommand(Commands.Main.MatrixSendPan(main, mtx))
+			}
+		}
+
+		// DCAs
+		for (let dca = 1; dca <= model.dcas; dca++) {
+			self.sendCommand(Commands.Dca.Mute(dca))
+			self.sendCommand(Commands.Dca.Fader(dca))
+		}
+
+		// Mute Groups
+		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
+			// Mute group variables are handled via RE_MUTE
+			self.sendCommand(Commands.MuteGroup.Mute(mgrp))
 		}
 	}
 

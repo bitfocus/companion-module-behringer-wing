@@ -19,6 +19,8 @@ export interface WingConfig {
 	fadeUpdateRate?: number
 	statusPollUpdateRate?: number
 	variableUpdateRate?: number
+	/** When enabled, the module will request values for all variables on startup */
+	prefetchVariablesOnStartup?: boolean
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
@@ -43,6 +45,14 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 6,
 			choices: ModelChoices,
 			default: WingModel.Full.toString(),
+		},
+		{
+			type: 'checkbox',
+			id: 'prefetchVariablesOnStartup',
+			label: 'Fetch variables on startup',
+			tooltip: 'Request current values for all variables right after connecting to the desk.',
+			width: 6,
+			default: true,
 		},
 		{
 			type: 'number',

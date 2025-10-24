@@ -1,36 +1,47 @@
-import { CompanionActionDefinition, CompanionOptionValues } from '@companion-module/base'
+import { CompanionActionDefinition } from '@companion-module/base'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
 
 export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition, 'callback'>
 
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
-	GetFaderInputField,
 	GetDropdown,
-	GetPanoramaSlider,
-	GetMuteDropdown,
-	GetTextField,
-	GetFaderDeltaInputField,
-	GetPanoramaDeltaSlider,
+	GetDropdownWithVariables,
+	GetTextFieldWithVariables,
 	GetColorDropdown,
-	GetNumberField,
-	GetOnOffToggleDropdown,
+	GetNumberFieldWithVariables,
 	getDelayModes,
+	getIconChoices,
+	GetOnOffToggleDropdownWithVariables,
+	GetMuteDropdownWithVariables,
+	GetFaderInputFieldWithVariables,
+	GetFaderDeltaInputFieldWithVariables,
+	GetPanoramaSliderWithVariables,
+	GetPanoramaDeltaSliderWithVariables,
+	GetSendSourceDestinationFieldsWithVariables,
 } from '../choices/common.js'
-import { getNodeNumber, getNumber, runTransition } from './utils.js'
+import { runTransition } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
 import { StateUtil } from '../state/index.js'
 import { FadeDurationChoice } from '../choices/fades.js'
 import { getIdLabelPair } from '../choices/utils.js'
+import { getSourceGroupChoices } from '../choices/common.js'
 
 export enum CommonActions {
+	// Setup
+	SetMainConnection = 'set-main-connection',
+	SetAltConnection = 'set-alt-connection',
+	SetAutoSourceSwitch = 'set-auto-source-switch',
+	SetMainAlt = 'set-main-alt',
 	SetScribbleLight = 'set-scribble-light',
 	SetScribbleLightColor = 'set-scribble-light-color',
 	SetName = 'set-name',
+	SetIcon = 'set-icon',
 	SetSolo = 'set-solo',
 	ClearSolo = 'clear-solo',
+
 	// Gain
 	SetGain = 'set-gain',
 	StoreGain = 'store-gain',
@@ -109,56 +120,150 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 	const mainSendDestinations = [...state.namedChoices.matrices]
 
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
+		////////////////////////////////////////////////////////////////
+		// Setup
+		/////////////////////////////////////////////////////////////////
+		[CommonActions.SetMainConnection]: {
+			name: 'Set Channel/Aux Main Connection',
+			description: 'Set the index of the main connection of a channel or aux',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
+				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const group = await ActionUtil.getStringWithVariables(event, 'group')
+				const index = await ActionUtil.getNumberWithVariables(event, 'index')
+				let cmd = ActionUtil.getMainInputConnectionGroupCommand(sel)
+				send(cmd, group)
+				cmd = ActionUtil.getMainInputConnectionIndexCommand(sel)
+				send(cmd, index)
+			},
+		},
+		[CommonActions.SetAltConnection]: {
+			name: 'Set Channel/Aux Alt Connection',
+			description: 'Set the index of the alt connection of a channel or aux',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
+				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const group = await ActionUtil.getStringWithVariables(event, 'group')
+				const index = await ActionUtil.getNumberWithVariables(event, 'index')
+				let cmd = ActionUtil.getAltInputConnectionGroupCommand(sel)
+				send(cmd, group)
+				cmd = ActionUtil.getAltInputConnectionIndexCommand(sel)
+				send(cmd, index)
+			},
+		},
+		[CommonActions.SetAutoSourceSwitch]: {
+			name: 'Set Channel/Aux Auto Source Switch',
+			description: 'Enable or disable the global switching between main and alt inputs on a channel or aux',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Auto Source Switch', 'auto_source', [
+					getIdLabelPair('0', 'Individual'),
+					getIdLabelPair('1', 'Global'),
+					getIdLabelPair('-1', 'Toggle'),
+				]),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const autoSource = await ActionUtil.getNumberWithVariables(event, 'auto_source')
+				const cmd = ActionUtil.getInputAutoSourceSwitchCommand(sel)
+				send(cmd, autoSource)
+			},
+		},
+		[CommonActions.SetMainAlt]: {
+			name: 'Set Channel/Aux Main/Alt',
+			description: 'Set whether a channel or aux is using the main or alt input',
+			options: [
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetDropdownWithVariables('Source', 'main_alt', [
+					getIdLabelPair('0', 'Main'),
+					getIdLabelPair('1', 'Alt'),
+					getIdLabelPair('-1', 'Toggle'),
+				]),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const mainAlt = await ActionUtil.getNumberWithVariables(event, 'main_alt')
+				const cmd = ActionUtil.getInputAltSourceCommand(sel)
+				send(cmd, mainAlt)
+			},
+		},
 		[CommonActions.SetScribbleLight]: {
 			name: 'Set Scribble Light',
 			description: 'Set or toggle the scribble light state of a channel, aux, bus, dca, matrix, or main.',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				GetDropdown(
-					'Scribble Light',
-					'led',
-					[getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off'), getIdLabelPair('2', 'Toggle')],
-					'1',
-				),
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetOnOffToggleDropdownWithVariables('Scribble Light', 'led', true),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'led'), state)
-				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.led ?? 0 >= 2) {
-					const sel = event.options.sel as string
-					const cmd = ActionUtil.getScribblelightCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
-				}
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const led = await ActionUtil.getNumberWithVariables(event, 'led')
+				const cmd = ActionUtil.getScribblelightCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, led)
 			},
 		},
 		[CommonActions.SetScribbleLightColor]: {
 			name: 'Set Scribble Light Color',
 			description: 'Set the scribble light color of a channel, aux, bus, dca, matrix, or main.',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				GetColorDropdown('color', 'Color'),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getColorCommand(sel, getNodeNumber(event, 'sel'))
-				send(cmd, getNumber(event, 'color'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getColorCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, ActionUtil.getNumber(event, 'color'))
 			},
 		},
 		[CommonActions.SetName]: {
 			name: 'Set Name',
 			description: 'Set the name of a channel, aux, bus, dca, matrix, main, or a mutegroup.',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
-				GetTextField('Name', 'name'),
+				...GetDropdownWithVariables('Selection', 'sel', [
+					...allChannels,
+					...state.namedChoices.dcas,
+					...state.namedChoices.mutegroups,
+				]),
+				...GetTextFieldWithVariables('Name', 'name'),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getNameCommand(sel, getNodeNumber(event, 'sel'))
-				send(cmd, event.options.name as string)
+				const name = await ActionUtil.getStringWithVariables(event, 'name')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getNameCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, name)
+			},
+		},
+		[CommonActions.SetIcon]: {
+			name: 'Set Channel Icon',
+			description: 'Set the icon displayed for a channel.',
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetDropdownWithVariables('Icon', 'icon', getIconChoices()),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const icon = await ActionUtil.getNumberWithVariables(event, 'icon')
+				const cmd = ActionUtil.getIconCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, icon)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -168,48 +273,52 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Gain',
 			description: 'Set the input gain of a channel or aux.',
 			options: [
-				GetDropdown('Channel', 'channel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				GetNumberField('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0, true),
-				...FadeDurationChoice,
+				...GetDropdownWithVariables('Channel', 'channel', [
+					...state.namedChoices.channels,
+					...state.namedChoices.auxes,
+				]),
+				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0),
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
-				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, undefined, false)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const gain = await ActionUtil.getNumberWithVariables(event, 'gain')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, gain, false)
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
-			learn: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
-				return { level: StateUtil.getNumberFromState(cmd, state) }
+			learn: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				return { gain: StateUtil.getNumberFromState(cmd, state), gain_use_variables: false }
 			},
 		},
 		[CommonActions.StoreGain]: {
 			name: 'Store Gain',
 			description: 'Store the gain of a channel or aux.',
-			options: [GetDropdown('Selection', 'sel', allChannels)],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels)],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestoreGain]: {
 			name: 'Restore Gain',
 			description: 'Restore the gain of a channel or aux.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, restoreVal, false)
 			},
@@ -218,33 +327,33 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Gain',
 			description: 'Adjust the input gain of a channel or aux.',
 			options: [
-				GetDropdown('Selection', 'sel', allChannels),
-				GetNumberField('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0, true),
+				...GetDropdownWithVariables('Selection', 'sel', allChannels),
+				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = event.options.delta as number
+				const delta = await ActionUtil.getNumberWithVariables(event, 'gain')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
 					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaGain]: {
 			name: 'Undo Gain Adjust',
 			description: 'Undo the previous input gain adjustment on a channel or aux.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
@@ -252,9 +361,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGainCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
@@ -265,21 +374,18 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Mute',
 			description: 'Set or toggle the mute state of a channel, aux, bus, dca, matrix or main.',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
-				GetMuteDropdown('mute'),
+				...GetDropdownWithVariables('Selection', 'sel', [
+					...allChannels,
+					...state.namedChoices.dcas,
+					...state.namedChoices.mutegroups,
+				]),
+				...GetMuteDropdownWithVariables('mute', 'Mute', true),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'mute'), state)
-				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.sel ?? 0 >= 2) {
-					const sel = event.options.sel as string
-					const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
-				}
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const mute = await ActionUtil.getNumberWithVariables(event, 'mute')
+				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, mute)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -289,47 +395,51 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Level',
 			description: 'Set the fader level of a channel, aux, bus, dca, matrix or main to a value.',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetFaderInputField('level'),
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetFaderInputFieldWithVariables('level'),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
-				runTransition(cmd, 'level', event, state, transitions)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const level = await ActionUtil.getNumberWithVariables(event, 'level')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				runTransition(cmd, 'level', event, state, transitions, level)
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
-			learn: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
-				return { level: StateUtil.getNumberFromState(cmd, state) }
+			learn: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				return { level: StateUtil.getNumberFromState(cmd, state), level_use_variables: false }
 			},
 		},
 		[CommonActions.StoreFader]: {
 			name: 'Store Level',
 			description: 'Store the fader level of a channel, aux, bus, dca, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
+			options: [...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestoreFader]: {
 			name: 'Restore Level',
 			description: 'Restore the fader level of a channel, aux, bus, dca, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...FadeDurationChoice(),
+			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
 			},
@@ -338,14 +448,14 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Fader Level',
 			description: 'Adjust the level of a channel, aux, bus, dca, matrix or main.',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = event.options.delta as number
+				const delta = await ActionUtil.getNumberWithVariables(event, 'delta')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					if (targetValue < -90) {
@@ -355,19 +465,22 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaFader]: {
 			name: 'Undo Level Adjust',
 			description: 'Undo the previous level adjustment on a channel, aux, bus, dca, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice],
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...FadeDurationChoice(),
+			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
@@ -375,9 +488,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getFaderCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
@@ -388,45 +501,46 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetPanorama]: {
 			name: 'Set Panorama',
 			description: 'Set the panorama of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...GetPanoramaSlider('pan')],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...GetPanoramaSliderWithVariables('pan')],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
-				runTransition(cmd, 'pan', event, state, transitions, undefined, false)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const pan = await ActionUtil.getNumberWithVariables(event, 'pan')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				runTransition(cmd, 'pan', event, state, transitions, pan, false)
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
-			learn: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
-				return { pan: StateUtil.getNumberFromState(cmd, state) }
+			learn: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				return { pan: StateUtil.getNumberFromState(cmd, state), pan_use_variables: false }
 			},
 		},
 		[CommonActions.StorePanorama]: {
 			name: 'Store Panorama',
 			description: 'Store the panorama of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels)],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels)],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestorePanorama]: {
 			name: 'Restore Panorama',
 			description: 'Restore the panorama of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal, false)
 			},
@@ -434,31 +548,34 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.DeltaPanorama]: {
 			name: 'Adjust Panorama',
 			description: 'Adjust the panorama of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...GetPanoramaDeltaSlider('pan', 'Panorama')],
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', allChannels),
+				...GetPanoramaDeltaSliderWithVariables('pan', 'Panorama'),
+			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = event.options.pan as number
+				const delta = await ActionUtil.getNumberWithVariables(event, 'pan')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaPanorama]: {
 			name: 'Undo Panorama Adjust',
 			description: 'Undo the previous adjustment on the panorama of a channel, aux, bus, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice],
+			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
 				if (targetValue != undefined) {
@@ -466,9 +583,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getPanoramaCommand(sel, getNodeNumber(event, 'sel'))
+			subscribe: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
 		},
@@ -479,21 +596,14 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Solo',
 			description: 'Set the solo state for a channel, aux, bux, matrix or main',
 			options: [
-				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				GetOnOffToggleDropdown('solo', 'Solo'),
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetOnOffToggleDropdownWithVariables('solo', 'Solo', true),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getSetOrToggleValue(cmd, ActionUtil.getNumber(event, 'solo'), state)
-				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.sel ?? 0 >= 2) {
-					const sel = event.options.sel as string
-					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-					ensureLoaded(cmd)
-				}
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const solo = await ActionUtil.getNumberWithVariables(event, 'solo')
+				const cmd = ActionUtil.getSoloCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, solo)
 			},
 		},
 		[CommonActions.ClearSolo]: {
@@ -523,29 +633,19 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Delay',
 			description: 'Enable or disable the delay of a channel, bus, matrix or main.',
 			options: [
-				GetDropdown('Selection', 'sel', [
+				...GetDropdownWithVariables('Selection', 'sel', [
 					...state.namedChoices.channels,
 					...state.namedChoices.matrices,
 					...state.namedChoices.busses,
 					...state.namedChoices.mains,
 				]),
-				GetOnOffToggleDropdown('delay', 'Delay'),
+				...GetOnOffToggleDropdownWithVariables('delay', 'Delay', true),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getDelayOnCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'delay')
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					const currentVal = StateUtil.getBooleanFromState(cmd, state)
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getDelayOnCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getDelayOnCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				const delay = await ActionUtil.getNumberWithVariables(event, 'delay')
+				send(cmd, delay)
 			},
 		},
 
@@ -553,95 +653,56 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Delay Mode',
 			description: 'Set the delay mode of a channel, bus, matrix or main.',
 			options: [
-				GetDropdown('Selection', 'sel', [
+				...GetDropdownWithVariables('Selection', 'sel', [
 					...state.namedChoices.channels,
 					...state.namedChoices.matrices,
 					...state.namedChoices.busses,
 					...state.namedChoices.mains,
 				]),
 				GetDropdown('Delay Mode', 'mode', getDelayModes()),
-				{
-					type: 'number',
-					label: 'Amount (meters)',
-					id: 'amount_m',
-					min: 0,
-					max: 150,
-					step: 0.1,
-					default: 0,
-					range: true,
-					isVisible: (options) => {
-						return (options.mode as string) === 'M'
-					},
-				},
-				{
-					type: 'number',
-					label: 'Amount (ft)',
-					id: 'amount_ft',
-					min: 0.5,
-					max: 500,
-					step: 0.5,
-					default: 0.5,
-					range: true,
-					isVisible: (options) => {
-						return options.mode === 'FT'
-					},
-				},
-				{
-					type: 'number',
-					label: 'Amount (ms)',
-					id: 'amount_ms',
-					min: 0.5,
-					max: 500,
-					step: 0.1,
-					default: 0.5,
-					range: true,
-					isVisible: (options) => {
-						return options.mode === 'MS'
-					},
-				},
-				{
-					type: 'number',
-					label: 'Amount (samples)',
-					id: 'amount_samples',
-					min: 16,
-					max: 500,
-					step: 1,
-					default: 16,
-					range: true,
-					isVisible: (options) => {
-						return options.mode === 'SMP'
-					},
-				},
+				...GetNumberFieldWithVariables('Amount (meters)', 'amount_m', 0, 150, 0.1, 0, '', `$(options:mode) == 'M'`),
+				...GetNumberFieldWithVariables('Amount (ft)', 'amount_ft', 0.5, 500, 0.5, 0.5, '', `$(options:mode) == 'FT'`),
+				...GetNumberFieldWithVariables('Amount (ms)', 'amount_ms', 0.5, 500, 0.1, 0.5, '', `$(options:mode) == 'MS'`),
+				...GetNumberFieldWithVariables(
+					'Amount (samples)',
+					'amount_samples',
+					16,
+					500,
+					1,
+					16,
+					'',
+					`$(options:mode) == 'SMP'`,
+				),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const mode = event.options.mode as string
-				send(ActionUtil.getDelayModeCommand(sel, getNodeNumber(event, 'sel')), mode)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const mode = await ActionUtil.getStringWithVariables(event, 'mode')
+				send(ActionUtil.getDelayModeCommand(sel, ActionUtil.getNodeNumberFromID(sel)), mode)
 				switch (mode) {
 					case 'M':
 						send(
-							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_m as number,
 							true,
 						)
 						break
 					case 'FT':
 						send(
-							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_ft as number,
 							true,
 						)
 						break
 					case 'MS':
 						send(
-							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_ms as number,
 							true,
 						)
 						break
 					case 'SMP':
 						send(
-							ActionUtil.getDelayAmountCommand(sel, getNodeNumber(event, 'sel')),
+							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_samples as number,
 							true,
 						)
@@ -656,24 +717,14 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Gate On',
 			description: 'Enable, disable or toggle the on-state of a gate on a channel',
 			options: [
-				GetDropdown('Selection', 'sel', state.namedChoices.channels),
-				GetOnOffToggleDropdown('enable', 'Enable'),
+				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.channels),
+				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
 			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGateEnableCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'enable')
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					const currentVal = StateUtil.getBooleanFromState(cmd, state)
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getGateEnableCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
+				const cmd = ActionUtil.getGateEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				send(cmd, enable)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -682,22 +733,15 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetEqOn]: {
 			name: 'Set EQ On',
 			description: 'Enable, disable or toggle the on-state of an EQ on a channel, bus, aux, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('enable', 'Enable')],
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', allChannels),
+				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
+			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getEqEnableCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'enable')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getEqEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
+				send(cmd, enable)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -706,22 +750,15 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetDynamicsOn]: {
 			name: 'Set Dynamics On',
 			description: 'Enable, disable or toggle the on-state of dynamics on a channel, bus, aux, matrix or main.',
-			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('enable', 'Enable')],
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', allChannels),
+				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
+			],
 			callback: async (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getDynamicsEnableCommand(sel, getNodeNumber(event, 'sel'))
-				const val = ActionUtil.getNumber(event, 'enable')
-				const currentVal = StateUtil.getBooleanFromState(cmd, state)
-				if (val < 2) {
-					send(cmd, val)
-				} else {
-					send(cmd, Number(!currentVal))
-				}
-			},
-			subscribe: (event) => {
-				const sel = event.options.sel as string
-				const cmd = ActionUtil.getDynamicsEnableCommand(sel, getNodeNumber(event, 'sel'))
-				ensureLoaded(cmd)
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const cmd = ActionUtil.getDynamicsEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
+				send(cmd, enable)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -731,42 +768,21 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Send Level',
 			description: 'Set the send level from a destination channel strip to a source',
 			options: [
-				GetDropdown('From', 'src', allSendSources),
-				{
-					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return !source.startsWith('/main')
-					},
-				},
-				{
-					...GetDropdown('To', 'mainDest', mainSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return source.startsWith('/main')
-					},
-				},
-				...GetFaderInputField('level'),
+				...GetSendSourceDestinationFieldsWithVariables(
+					allSendSources,
+					channelAuxBusSendDestinations,
+					mainSendDestinations,
+				),
+				...GetFaderInputFieldWithVariables('level'),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				const level = await ActionUtil.getNumberWithVariables(event, 'level')
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
-				runTransition(cmd, 'level', event, state, transitions)
+				runTransition(cmd, 'level', event, state, transitions, level)
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+			subscribe: async (event) => {
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
@@ -775,41 +791,19 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Store Send Level',
 			description: 'Store the send level from a destination channel strip to a source',
 			options: [
-				GetDropdown('From', 'src', allSendSources),
-				{
-					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return !source.startsWith('/main')
-					},
-				},
-				{
-					...GetDropdown('To', 'mainDest', mainSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return source.startsWith('/main')
-					},
-				},
+				...GetSendSourceDestinationFieldsWithVariables(
+					allSendSources,
+					channelAuxBusSendDestinations,
+					mainSendDestinations,
+				),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+			subscribe: async (event) => {
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
@@ -818,31 +812,15 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Restore Send Level',
 			description: 'Restore the send level from a destination channel strip to a source',
 			options: [
-				GetDropdown('From', 'src', allSendSources),
-				{
-					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return !source.startsWith('/main')
-					},
-				},
-				{
-					...GetDropdown('To', 'mainDest', mainSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return source.startsWith('/main')
-					},
-				},
-				...FadeDurationChoice,
+				...GetSendSourceDestinationFieldsWithVariables(
+					allSendSources,
+					channelAuxBusSendDestinations,
+					mainSendDestinations,
+				),
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
@@ -852,48 +830,26 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Send Level',
 			description: 'Adjust the send level from a destination channel strip to a source',
 			options: [
-				GetDropdown('From', 'src', allSendSources),
-				{
-					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return !source.startsWith('/main')
-					},
-				},
-				{
-					...GetDropdown('To', 'mainDest', mainSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return source.startsWith('/main')
-					},
-				},
-				...GetFaderDeltaInputField('delta', 'Adjust (dB)'),
+				...GetSendSourceDestinationFieldsWithVariables(
+					allSendSources,
+					channelAuxBusSendDestinations,
+					mainSendDestinations,
+				),
+				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = event.options.delta as number
+				const delta = await ActionUtil.getNumberWithVariables(event, 'delta')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+			subscribe: async (event) => {
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
@@ -902,31 +858,15 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Undo Send Level Adjust',
 			description: 'Undo the previous send level adjustment from a destination channel strip to a source',
 			options: [
-				GetDropdown('From', 'src', allSendSources),
-				{
-					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return !source.startsWith('/main')
-					},
-				},
-				{
-					...GetDropdown('To', 'mainDest', mainSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return source.startsWith('/main')
-					},
-				},
-				...FadeDurationChoice,
+				...GetSendSourceDestinationFieldsWithVariables(
+					allSendSources,
+					channelAuxBusSendDestinations,
+					mainSendDestinations,
+				),
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
@@ -935,14 +875,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+			subscribe: async (event) => {
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
@@ -951,48 +885,22 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Send Mute',
 			description: 'Set or toggle the mute state of a send from a destination channel strip to a source',
 			options: [
-				GetDropdown('From', 'src', allSendSources),
-				{
-					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return !source.startsWith('/main')
-					},
-				},
-				{
-					...GetDropdown('To', 'mainDest', mainSendDestinations),
-					isVisible: (options: CompanionOptionValues): boolean => {
-						const source = options.src as string
-						return source.startsWith('/main')
-					},
-				},
-				GetMuteDropdown('mute'),
+				...GetSendSourceDestinationFieldsWithVariables(
+					allSendSources,
+					channelAuxBusSendDestinations,
+					mainSendDestinations,
+				),
+				...GetMuteDropdownWithVariables('mute', 'Mute', true),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				let dest = ''
-				if (src.startsWith('/main')) {
-					dest = event.options.mainDest as string
-				} else {
-					dest = event.options.dest as string
-				}
+				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendMuteCommand(src, dest)
-				let val = ActionUtil.getNumber(event, 'mute')
-				val = ActionUtil.getSetOrToggleValue(cmd, val, state, true)
-				send(cmd, val)
-			},
-			subscribe: (event) => {
-				if (event.options.sel ?? 0 >= 2) {
-					const src = event.options.src as string
-					let dest = ''
-					if (src.startsWith('/main')) {
-						dest = event.options.mainDest as string
-					} else {
-						dest = event.options.dest as string
-					}
-					const cmd = ActionUtil.getSendMuteCommand(src, dest)
-					ensureLoaded(cmd)
+				let val = await ActionUtil.getNumberWithVariables(event, 'mute')
+				// Mute states are inverted for sends
+				if (val != -1) {
+					val = val == 0 ? 1 : 0
 				}
+				send(cmd, val)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -1002,39 +910,46 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Send Panorama',
 			description: 'Set the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...GetPanoramaSlider('pan'),
+				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				...GetPanoramaSliderWithVariables('pan'),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
+				const pan = await ActionUtil.getNumberWithVariables(event, 'pan')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
-				runTransition(cmd, 'pan', event, state, transitions, undefined, false)
+				runTransition(cmd, 'pan', event, state, transitions, pan, false)
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+			subscribe: async (event) => {
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
+			},
+			learn: async (event) => {
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
+				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
+				return { pan: StateUtil.getNumberFromState(cmd, state), pan_use_variables: false }
 			},
 		},
 		[CommonActions.StoreSendPanorama]: {
 			name: 'Store Send Panorama',
 			description: 'Store the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+			subscribe: async (event) => {
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
 			},
@@ -1043,13 +958,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Restore Send Panorama',
 			description: 'Restore the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...FadeDurationChoice,
+				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'pan', event, state, transitions, restoreVal, false)
@@ -1059,25 +974,25 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Send Panorama',
 			description: 'Adjust the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...GetPanoramaDeltaSlider('delta', 'Panorama'),
+				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				...GetPanoramaDeltaSliderWithVariables('delta', 'Panorama'),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = event.options.delta as number
+				const delta = await ActionUtil.getNumberWithVariables(event, 'delta')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+			subscribe: async (event) => {
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
 			},
@@ -1086,13 +1001,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Undo Send Panorama Adjust',
 			description: 'Undo the panorama adjustment of a send from a channel or aux to a bus or matrix.',
 			options: [
-				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...FadeDurationChoice,
+				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
@@ -1101,9 +1016,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: (event) => {
-				const src = event.options.src as string
-				const dest = event.options.dest as string
+			subscribe: async (event) => {
+				const src = await ActionUtil.getStringWithVariables(event, 'src')
+				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
 			},
@@ -1112,20 +1027,21 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Insert On',
 			description: 'Enable or disable an insert for a channel, aux, bus, matrix or main.',
 			options: [
-				GetDropdown('Insert', 'insert', [
+				...GetDropdownWithVariables('Insert', 'insert', [
 					getIdLabelPair('pre', 'Pre-Insert'),
 					getIdLabelPair('post', 'Post-Insert'),
 					getIdLabelPair('pre-post', 'Both'),
 				]),
-				GetDropdown('Selection', 'sel', [...allChannels]),
-				GetOnOffToggleDropdown('enable', 'Enable'),
+				...GetDropdownWithVariables('Selection', 'sel', [...allChannels]),
+				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
 			],
 			callback: async (event) => {
-				const insert = event.options.insert as string
-				const sel = event.options.sel as string
-				const val = ActionUtil.getNumber(event, 'enable')
+				const insert = await ActionUtil.getStringWithVariables(event, 'insert')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const val = await ActionUtil.getNumberWithVariables(event, 'enable')
+				const nodeNum = ActionUtil.getNodeNumberFromID(sel)
 				if (insert.includes('pre')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					const currentVal = StateUtil.getBooleanFromState(cmd, state)
 					if (val < 2) {
 						send(cmd, val)
@@ -1134,7 +1050,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					}
 				}
 				if (insert.includes('post')) {
-					const cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPostInsertCommand(sel, nodeNum)
 					if (cmd == '') return // if an aux is requested
 					const currentVal = StateUtil.getBooleanFromState(cmd, state)
 					if (val < 2) {
@@ -1144,15 +1060,16 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					}
 				}
 			},
-			subscribe: (event) => {
-				const insert = event.options.insert as string
-				const sel = event.options.sel as string
+			subscribe: async (event) => {
+				const insert = await ActionUtil.getStringWithVariables(event, 'insert')
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const nodeNum = ActionUtil.getNodeNumberFromID(sel)
 				if (insert.includes('pre')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					ensureLoaded(cmd)
 				}
 				if (insert.includes('post')) {
-					const cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
+					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					ensureLoaded(cmd)
 				}
 			},
