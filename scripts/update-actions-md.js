@@ -81,9 +81,9 @@ let helpContent = fs.readFileSync(helpFile, 'utf8');
 const supportedActionsHeader = '## Supported Actions';
 const headerIndex = helpContent.indexOf(supportedActionsHeader);
 if (headerIndex !== -1) {
-  // Find the next heading after '## Supported Actions'
+  // Find the next heading after '### Supported Actions'
   const afterHeader = helpContent.slice(headerIndex + supportedActionsHeader.length);
-  const nextHeadingMatch = afterHeader.match(/\n##\s.*/);
+  const nextHeadingMatch = afterHeader.match(/\n#+\s.*/);
   let before = helpContent.slice(0, headerIndex + supportedActionsHeader.length);
   let after = '';
   if (nextHeadingMatch) {

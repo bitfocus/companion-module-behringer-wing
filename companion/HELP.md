@@ -147,3 +147,15 @@ If you continue to experience issues, you can open an issue on the [GitHub repos
 | USB Player | USB: Record Action | Start, stop, pause or create a new file in the USB recorder. |
 | USB Player | USB: Set Repeat | Enable the repeat functionality of the USB player |
 
+
+### Supported Variables
+
+The list of all variables that are supported by this module is far too long. Please find the explanation of the variable naming scheme below:
+
+If a variable relates to a specific channel strip (like a channel, aux, bus, matrix, dca or main), the variable name starts with the type and number of the channel strip, e.g. `ch1_` for channel 1.
+
+The property names are constructed in a way that they are similar to the action names. For example, the fader level of channel 1 is available in the variable `ch1_level`.
+
+If a variable relates to a property that is specific for one strip to another, the variable name starts with the source and destination identifiers. For example, the send level from channel 1 to bus 1 is available in the variable `ch1_to_bus1_send_level`.
+
+To use a variable in a text field, use the following syntax: `${<module_name>:<variable_name>}`. For example, to use the fader level of channel 1 and your instance of the module is named `wing`, use `${wing:ch1_level}`.
