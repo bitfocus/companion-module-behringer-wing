@@ -1,6 +1,7 @@
 import { type SomeCompanionConfigField } from '@companion-module/base'
 import { WingDeviceDetectorInstance } from './device-detector.js'
 import { ModelChoices, WingModel } from './models/types.js'
+import { InstanceBaseExt } from './types.js'
 // import { ModelChoices, WingModel } from './models/types.js'
 
 export const fadeUpdateRateDefault = 50
@@ -23,8 +24,34 @@ export interface WingConfig {
 	prefetchVariablesOnStartup?: boolean
 }
 
-export function GetConfigFields(): SomeCompanionConfigField[] {
+export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
+	const spacer = {
+		type: 'static-text',
+		id: 'spacer',
+		width: 12,
+		label: '',
+		value: '',
+	} as SomeCompanionConfigField
+
+	function calcUpdateRate(ms: number): number {
+		if (ms > 0) {
+			const updatesPerSec = 1000 / ms
+			return Number.isInteger(updatesPerSec) ? Math.round(updatesPerSec) : Math.round(updatesPerSec * 100) / 100
+		}
+		return 0
+	}
+
 	return [
+		{
+			type: 'static-text',
+			id: 'info',
+			width: 12,
+			label: 'Information',
+			value:
+				'This module works with all Berhinger Wing desks. Make sure to have the latest firmware installed. </br>' +
+				'You can find the firmware and more information on the <a href="https://www.behringer.com/product.html?modelCode=0603-AEN" target="_blank">official Behringer website</a>',
+		},
+		spacer,
 		{
 			type: 'dropdown',
 			id: 'host',
@@ -47,20 +74,21 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			default: WingModel.Full.toString(),
 		},
 		{
-			type: 'checkbox',
-			id: 'prefetchVariablesOnStartup',
-			label: 'Fetch variables on startup',
-			tooltip: 'Request current values for all variables right after connecting to the desk.',
-			width: 6,
-			default: true,
+			type: 'static-text',
+			id: 'update-rate-info',
+			width: 12,
+			label: 'Update Rates',
+			value:
+				'Configure update rates for communication with the console. Update rates are specified in milliseconds (ms).</br>' +
+				'Lower values make the module more responsive but may increase system and network load.',
 		},
 		{
 			type: 'number',
 			id: 'fadeUpdateRate',
-			label: 'Fader Update Rate',
+			label: `Fader Update Rate (${calcUpdateRate(_self.config.fadeUpdateRate ?? fadeUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Update rate of the faders in milliseconds. A lower values makes the transitions smoother but increases system load.',
-			width: 5,
+			width: 6,
 			min: 20,
 			max: 60000,
 			default: fadeUpdateRateDefault,
@@ -68,10 +96,10 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'number',
 			id: 'statusPollUpdateRate',
-			label: 'Status Poll Rate',
+			label: `Status Poll Rate (${calcUpdateRate(_self.config.statusPollUpdateRate ?? pollUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Some values need to be actively requested from the desk, this number sets the interval in milliseconds at which those requests occur.',
-			width: 5,
+			width: 6,
 			min: 20,
 			max: 60000,
 			default: pollUpdateRateDefault,
@@ -79,13 +107,21 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'number',
 			id: 'variableUpdateRate',
-			label: 'Variable Update Rate',
+			label: `Variable Update Rate (${calcUpdateRate(_self.config.variableUpdateRate ?? variableUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Defines how many milliseconds elapse between variable updates. A lower number makes variables more responsive but may decrease system performance.',
-			width: 5,
+			width: 6,
 			min: 20,
 			max: 60000,
 			default: variableUpdateRateDefault,
+		},
+		{
+			type: 'checkbox',
+			id: 'prefetchVariablesOnStartup',
+			label: 'Fetch variables on startup',
+			tooltip: 'Request values for all variables when establishing a connection to a desk.',
+			width: 6,
+			default: true,
 		},
 	]
 }
