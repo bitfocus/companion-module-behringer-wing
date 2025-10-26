@@ -92,9 +92,13 @@ export enum CommonActions {
 }
 
 export function createCommonActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
-	const ensureLoaded = self.ensureLoaded
-	const state = self.state
+	const send = self.connection!.sendCommand.bind(self.connection)
+	const ensureLoaded = self.stateHandler!.ensureLoaded.bind(self.stateHandler)
+	const state = self.stateHandler?.state
+	if (!state) {
+		self.logger!.error('State handler or state is not available for creating common actions')
+		throw new Error('State handler or state is not available')
+	}
 	const transitions = self.transitions
 
 	const allChannels = [
@@ -139,9 +143,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const group = await ActionUtil.getStringWithVariables(event, 'group')
 				const index = await ActionUtil.getNumberWithVariables(event, 'index')
 				let cmd = ActionUtil.getMainInputConnectionGroupCommand(sel)
-				send(cmd, group)
+				await send(cmd, group)
 				cmd = ActionUtil.getMainInputConnectionIndexCommand(sel)
-				send(cmd, index)
+				await send(cmd, index)
 			},
 		},
 		[CommonActions.SetAltConnection]: {
@@ -160,9 +164,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const group = await ActionUtil.getStringWithVariables(event, 'group')
 				const index = await ActionUtil.getNumberWithVariables(event, 'index')
 				let cmd = ActionUtil.getAltInputConnectionGroupCommand(sel)
-				send(cmd, group)
+				await send(cmd, group)
 				cmd = ActionUtil.getAltInputConnectionIndexCommand(sel)
-				send(cmd, index)
+				await send(cmd, index)
 			},
 		},
 		[CommonActions.SetAutoSourceSwitch]: {
@@ -183,7 +187,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
 				const autoSource = await ActionUtil.getNumberWithVariables(event, 'auto_source')
 				const cmd = ActionUtil.getInputAutoSourceSwitchCommand(sel)
-				send(cmd, autoSource)
+				await send(cmd, autoSource)
 			},
 		},
 		[CommonActions.SetMainAlt]: {
@@ -204,7 +208,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'channel')
 				const mainAlt = await ActionUtil.getNumberWithVariables(event, 'main_alt')
 				const cmd = ActionUtil.getInputAltSourceCommand(sel)
-				send(cmd, mainAlt)
+				await send(cmd, mainAlt)
 			},
 		},
 		[CommonActions.SetScribbleLight]: {
@@ -218,7 +222,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const led = await ActionUtil.getNumberWithVariables(event, 'led')
 				const cmd = ActionUtil.getScribblelightCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, led)
+				await send(cmd, led)
 			},
 		},
 		[CommonActions.SetScribbleLightColor]: {
@@ -231,7 +235,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getColorCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, ActionUtil.getNumber(event, 'color'))
+				await send(cmd, ActionUtil.getNumber(event, 'color'))
 			},
 		},
 		[CommonActions.SetName]: {
@@ -249,7 +253,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const name = await ActionUtil.getStringWithVariables(event, 'name')
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getNameCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, name)
+				await send(cmd, name)
 			},
 		},
 		[CommonActions.SetIcon]: {
@@ -263,7 +267,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const icon = await ActionUtil.getNumberWithVariables(event, 'icon')
 				const cmd = ActionUtil.getIconCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, icon)
+				await send(cmd, icon)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -289,7 +293,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 			learn: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
@@ -309,7 +313,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestoreGain]: {
@@ -344,7 +348,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaGain]: {
@@ -364,7 +368,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -385,7 +389,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const mute = await ActionUtil.getNumberWithVariables(event, 'mute')
 				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, mute)
+				await send(cmd, mute)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -407,7 +411,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 			learn: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
@@ -427,7 +431,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestoreFader]: {
@@ -479,7 +483,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaFader]: {
@@ -502,7 +506,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 
@@ -522,7 +526,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 			learn: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
@@ -542,7 +546,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestorePanorama]: {
@@ -577,7 +581,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaPanorama]: {
@@ -597,7 +601,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -614,7 +618,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const solo = await ActionUtil.getNumberWithVariables(event, 'solo')
 				const cmd = ActionUtil.getSoloCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, solo)
+				await send(cmd, solo)
 			},
 		},
 		[CommonActions.ClearSolo]: {
@@ -632,7 +636,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					const number = extractNumber(id)
 					if (number !== null) {
 						const cmd = ActionUtil.getSoloCommand(id, number)
-						send(cmd, 0)
+						await send(cmd, 0)
 					}
 				}
 			},
@@ -656,7 +660,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getDelayOnCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const delay = await ActionUtil.getNumberWithVariables(event, 'delay')
-				send(cmd, delay)
+				await send(cmd, delay)
 			},
 		},
 
@@ -688,31 +692,31 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const mode = await ActionUtil.getStringWithVariables(event, 'mode')
-				send(ActionUtil.getDelayModeCommand(sel, ActionUtil.getNodeNumberFromID(sel)), mode)
+				await send(ActionUtil.getDelayModeCommand(sel, ActionUtil.getNodeNumberFromID(sel)), mode)
 				switch (mode) {
 					case 'M':
-						send(
+						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_m as number,
 							true,
 						)
 						break
 					case 'FT':
-						send(
+						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_ft as number,
 							true,
 						)
 						break
 					case 'MS':
-						send(
+						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_ms as number,
 							true,
 						)
 						break
 					case 'SMP':
-						send(
+						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
 							event.options.amount_samples as number,
 							true,
@@ -735,7 +739,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
 				const cmd = ActionUtil.getGateEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, enable)
+				await send(cmd, enable)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -752,7 +756,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getEqEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
-				send(cmd, enable)
+				await send(cmd, enable)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -769,7 +773,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getDynamicsEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const enable = await ActionUtil.getNumberWithVariables(event, 'enable')
-				send(cmd, enable)
+				await send(cmd, enable)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -795,7 +799,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.StoreSendFader]: {
@@ -816,7 +820,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestoreSendFader]: {
@@ -873,7 +877,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaSendFader]: {
@@ -900,7 +904,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			subscribe: async (event) => {
 				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.SetSendMute]: {
@@ -922,7 +926,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				if (val != -1) {
 					val = val == 0 ? 1 : 0
 				}
-				send(cmd, val)
+				await send(cmd, val)
 			},
 		},
 		////////////////////////////////////////////////////////////////
@@ -947,7 +951,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const src = await ActionUtil.getStringWithVariables(event, 'src')
 				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 			learn: async (event) => {
 				const src = await ActionUtil.getStringWithVariables(event, 'src')
@@ -973,7 +977,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const src = await ActionUtil.getStringWithVariables(event, 'src')
 				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.RestoreSendPanorama]: {
@@ -1016,7 +1020,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const src = await ActionUtil.getStringWithVariables(event, 'src')
 				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.UndoDeltaSendPanorama]: {
@@ -1042,7 +1046,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const src = await ActionUtil.getStringWithVariables(event, 'src')
 				const dest = await ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
-				ensureLoaded(cmd)
+				await ensureLoaded(cmd)
 			},
 		},
 		[CommonActions.SetInsertOn]: {
@@ -1066,9 +1070,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					const currentVal = StateUtil.getBooleanFromState(cmd, state)
 					if (val < 2) {
-						send(cmd, val)
+						await send(cmd, val)
 					} else {
-						send(cmd, Number(!currentVal))
+						await send(cmd, Number(!currentVal))
 					}
 				}
 				if (insert.includes('post')) {
@@ -1076,9 +1080,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					if (cmd == '') return // if an aux is requested
 					const currentVal = StateUtil.getBooleanFromState(cmd, state)
 					if (val < 2) {
-						send(cmd, val)
+						await send(cmd, val)
 					} else {
-						send(cmd, Number(!currentVal))
+						await send(cmd, Number(!currentVal))
 					}
 				}
 			},
@@ -1088,11 +1092,11 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const nodeNum = ActionUtil.getNodeNumberFromID(sel)
 				if (insert.includes('pre')) {
 					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
-					ensureLoaded(cmd)
+					await ensureLoaded(cmd)
 				}
 				if (insert.includes('post')) {
 					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
-					ensureLoaded(cmd)
+					await ensureLoaded(cmd)
 				}
 			},
 		},

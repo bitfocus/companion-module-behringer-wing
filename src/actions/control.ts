@@ -28,10 +28,12 @@ export enum OtherActionId {
 }
 
 export function createControlActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
-	const state = self.state
-	const ensureLoaded = self.ensureLoaded
-	const subscriptions = self.subscriptions
+	const send = self.connection!.sendCommand.bind(self.connection)
+	const state = self.stateHandler?.state
+	if (!state) throw new Error('State handler or state is not available')
+	const ensureLoaded = self.stateHandler!.ensureLoaded.bind(self.stateHandler)
+	const subscriptions = self.feedbackHandler?.subscriptions
+	if (!subscriptions) throw new Error('Feedback handler or subscriptions are not available')
 	const model = self.model
 
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
@@ -43,13 +45,13 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			callback: async (event) => {
 				const sceneName = await ActionUtil.getStringWithVariables(event, 'sceneName')
 				const sceneId = state.sceneNameToIdMap.get(sceneName) ?? 0
-				send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
-				send(ControlCommands.LibraryAction(), 'GO')
+				await send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
+				await send(ControlCommands.LibraryAction(), 'GO')
 			},
-			subscribe: () => {
+			subscribe: async () => {
 				subscriptions.subscribePoll(ControlCommands.LibraryScenes())
-				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
-				ensureLoaded(ControlCommands.LibraryNode(), '?')
+				await ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
+				await ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
 		},
 		[OtherActionId.RecallSceneByNumber]: {
@@ -58,12 +60,12 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			options: [...GetNumberFieldWithVariables('Scene Number', 'sceneId', 1, 16384)],
 			callback: async (event) => {
 				const sceneId = await ActionUtil.getNumberWithVariables(event, 'sceneId')
-				send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
-				send(ControlCommands.LibraryAction(), 'GO')
+				await send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
+				await send(ControlCommands.LibraryAction(), 'GO')
 			},
-			subscribe: () => {
-				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
-				ensureLoaded(ControlCommands.LibraryNode(), '?')
+			subscribe: async () => {
+				await ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
+				await ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
 			learn: () => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
@@ -92,10 +94,10 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			callback: async (event) => {
 				const act = await ActionUtil.getStringWithVariables(event, 'act')
 				if (act === 'GO') {
-					send(ControlCommands.LibrarySceneSelectionIndex(), 0) // required for 'GO' with PREV/NEXT
+					await send(ControlCommands.LibrarySceneSelectionIndex(), 0) // required for 'GO' with PREV/NEXT
 				}
 				const cmd = ControlCommands.LibraryAction()
-				send(cmd, act)
+				await send(cmd, act)
 			},
 		},
 		[OtherActionId.SetGpioMode]: {
@@ -109,7 +111,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				const gpio = await ActionUtil.getNumberWithVariables(event, 'gpio')
 				const val = await ActionUtil.getStringWithVariables(event, 'mode')
 				const cmd = ControlCommands.GpioMode(gpio)
-				send(cmd, val)
+				await send(cmd, val)
 			},
 		},
 		[OtherActionId.SetGpioState]: {
@@ -124,7 +126,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				const gpioState = await ActionUtil.getNumberWithVariables(event, 'state')
 				const cmd = ControlCommands.GpioState(sel)
 
-				send(cmd, gpioState)
+				await send(cmd, gpioState)
 			},
 		},
 		[OtherActionId.SaveNow]: {
@@ -133,7 +135,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				'Save console data to internal flash. CAUTION: excessive writes to the internal flash memory can cause it to wear out.',
 			options: [],
 			callback: async () => {
-				send(ControlCommands.SaveNow(), 1)
+				await send(ControlCommands.SaveNow(), 1)
 			},
 		},
 		[OtherActionId.SetSOF]: {
@@ -160,7 +162,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				// convert channel to index
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				// send the SOF command with the channel index
-				send(ControlCommands.SetSof(), channelIndex + 1) // +1 because of int offset in Wing
+				await send(ControlCommands.SetSof(), channelIndex + 1) // +1 because of int offset in Wing
 			},
 		},
 		[OtherActionId.SetSelected]: {
@@ -180,7 +182,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				// convert channel to index
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				// send the SOF command with the channel index
-				send(ControlCommands.SetSelect(), channelIndex)
+				await send(ControlCommands.SetSelect(), channelIndex)
 			},
 		},
 		////////////////////////////////////////////////////////////////

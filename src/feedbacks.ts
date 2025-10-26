@@ -1,4 +1,4 @@
-import { WingState, WingSubscriptions } from './state/index.js'
+import { WingSubscriptions } from './state/index.js'
 import { InstanceBaseExt } from './types.js'
 import { WingConfig } from './config.js'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
@@ -52,24 +52,25 @@ export enum FeedbackId {
 }
 
 function subscribeFeedback(
-	ensureLoaded: (path: string) => void,
+	ensureLoaded: (path: string) => Promise<void>,
 	subs: WingSubscriptions,
 	path: string,
 	event: CompanionFeedbackInfo,
 ): void {
 	subs.subscribe(path, event.id, event.feedbackId as FeedbackId)
-	ensureLoaded(path)
+	ensureLoaded(path).catch(() => {})
 }
 function unsubscribeFeedback(subs: WingSubscriptions, path: string, event: CompanionFeedbackInfo): void {
 	subs.unsubscribe(path, event.id)
 }
 
-export function GetFeedbacksList(
-	_self: InstanceBaseExt<WingConfig>,
-	state: WingState,
-	subs: WingSubscriptions,
-	ensureLoaded: (path: string) => void,
-): CompanionFeedbackDefinitions {
+export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionFeedbackDefinitions {
+	const state = _self.stateHandler?.state
+	if (!state) throw new Error('State handler or state is not available')
+	const subs = _self.feedbackHandler?.subscriptions
+	if (!subs) throw new Error('Feedback handler or subscriptions are not available')
+	const ensureLoaded = _self.stateHandler?.ensureLoaded.bind(_self.stateHandler)
+	if (!ensureLoaded) throw new Error('State handler or ensureLoaded is not available')
 	const allChannels = [
 		...state.namedChoices.channels,
 		...state.namedChoices.auxes,
@@ -107,7 +108,7 @@ export function GetFeedbacksList(
 				// Wing reports 0 for Main, 1 for Alt; invert to match UI labels
 				return typeof currentValue === 'number' && `${Number(!currentValue)}` === (event.options.sel as string)
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const cmd = IoCommands.MainAltSwitch()
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -131,7 +132,7 @@ export function GetFeedbacksList(
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == event.options.mute
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const sel = event.options.sel as string
 				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
@@ -177,7 +178,7 @@ export function GetFeedbacksList(
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue != event.options.mute
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const src = event.options.src as string
 				let dest = ''
 				if (src.startsWith('/main')) {
@@ -223,7 +224,7 @@ export function GetFeedbacksList(
 				const val = StateUtil.getStringFromState(cmd, state) as string
 				return val === event.options.status
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const cmd = StatusCommands.AesStatus(event.options.aes as string)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -249,7 +250,7 @@ export function GetFeedbacksList(
 				const recState = StateUtil.getStringFromState(cmd, state)
 				return recState === event.options.state
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -275,7 +276,7 @@ export function GetFeedbacksList(
 				const playerState = StateUtil.getStringFromState(cmd, state)
 				return playerState === event.options.state
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const cmd = UsbPlayerCommands.PlayerActiveState()
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -295,7 +296,7 @@ export function GetFeedbacksList(
 				const currentValue = StateUtil.getStringFromState(cmd, state)
 				return currentValue == event.options.state
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -315,7 +316,7 @@ export function GetFeedbacksList(
 				const currentValue = StateUtil.getStringFromState(cmd, state)
 				return currentValue == event.options.state
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -339,7 +340,7 @@ export function GetFeedbacksList(
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == event.options.state
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const sel = event.options.sel as number
 				const cmd = ControlCommands.GpioReadState(sel)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
@@ -385,7 +386,7 @@ export function GetFeedbacksList(
 					return typeof currentValue === 'number' && currentValue == event.options.solo
 				}
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const sel = event.options.sel as string
 				if (sel == 'any' || sel == 'all') {
 					allChannelsAndDcas.forEach((s) => {
@@ -486,7 +487,7 @@ export function GetFeedbacksList(
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == event.options.on
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -516,7 +517,7 @@ export function GetFeedbacksList(
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == event.options.assign
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const talkback = event.options.tb as string
 				const destination = event.options.dest as string
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
@@ -565,7 +566,7 @@ export function GetFeedbacksList(
 				if (insert === 'either') return preOn || postOn
 				return false
 			},
-			subscribe: (event): void => {
+			subscribe: async (event): Promise<void> => {
 				const sel = event.options.sel as string
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
 				subscribeFeedback(ensureLoaded, subs, cmd, event)

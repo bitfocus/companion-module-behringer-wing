@@ -4,7 +4,6 @@ import { GetConfigFields, WingConfig } from './config.js'
 import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
 import { GetFeedbacksList } from './feedbacks.js'
-import { WingState, WingSubscriptions } from './state/index.js'
 import { OscMessage } from 'osc'
 import { WingTransitions } from './handlers/transitions.js'
 import { WingDeviceDetectorInstance } from './handlers/device-detector.js'
@@ -22,25 +21,23 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	config!: WingConfig
 	model: ModelSpec
 	oscForwarder: osc.UDPPort | undefined
-	subscriptions: WingSubscriptions
 	connected: boolean = false
-	state: WingState = new WingState(getDeskModel(WingModel.Full))
 
 	private reconnectTimer: NodeJS.Timeout | undefined
 	private syncInterval: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
 
-	private logger: ModuleLogger | undefined
-	private connection: ConnectionHandler | undefined
-	private stateHandler: StateHandler | undefined
-	private feedbackHandler: FeedbackHandler | undefined
-	private variableHandler: VariableHandler | undefined
+	logger: ModuleLogger | undefined
+	connection: ConnectionHandler | undefined
+	stateHandler: StateHandler | undefined
+	feedbackHandler: FeedbackHandler | undefined
+	variableHandler: VariableHandler | undefined
 	transitions: WingTransitions
 
 	constructor(internal: unknown) {
 		super(internal)
 
-		this.subscriptions = new WingSubscriptions()
+		// this.subscriptions = new WingSubscriptions()
 		this.model = getDeskModel(WingModel.Full) // default, later set in init
 
 		this.transitions = new WingTransitions(this)
@@ -92,7 +89,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	async configUpdated(config: WingConfig): Promise<void> {
 		this.config = config
 		this.model = getDeskModel(this.config.model)
-		this.subscriptions = new WingSubscriptions()
+		// this.subscriptions = new WingSubscriptions()
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
 		this.transitions.stopAll()
@@ -104,7 +101,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 			this.connection?.on('ready', () => {
 				this.updateStatus(InstanceStatus.Ok)
-				this.requestStatusUpdates()
+				// this.requestStatusUpdates()
 			})
 
 			this.connection?.on('error', (err: Error) => {
@@ -144,23 +141,20 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			// Setup State Handler
 			this.stateHandler = new StateHandler(this.model, this.logger)
 			if (this.stateHandler) {
-				this.state = this.stateHandler.state ?? new WingState(this.model)
-
 				this.stateHandler.on('request', (path: string, arg?: string | number) => {
-					this.sendCommand(path, arg)
+					this.connection!.sendCommand(path, arg).catch(() => {})
 				})
 
-				this.stateHandler.on('update', (state: WingState) => {
+				this.stateHandler.on('update', () => {
 					this.setPresetDefinitions(GetPresets(this))
 					this.setActionDefinitions(createActions(this))
-					this.setFeedbackDefinitions(GetFeedbacksList(this, state, this.subscriptions, this.ensureLoaded))
+					this.setFeedbackDefinitions(GetFeedbacksList(this))
 					this.checkFeedbacks()
 				})
 			}
 
 			// Setup Feedback Handler
 			this.feedbackHandler = new FeedbackHandler(this.logger)
-			this.subscriptions = this.feedbackHandler.subscriptions! // TODO: get rid of this
 			this.feedbackHandler?.on('check-feedbacks', (feedbacks: string[]) => {
 				this.checkFeedbacks(...feedbacks)
 			})
@@ -200,10 +194,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	updateFeedbacks(): void {
 		this.setFeedbackDefinitions(
 			GetFeedbacksList(
-				this,
-				this.stateHandler?.state ?? new WingState(this.model),
-				this.subscriptions,
-				this.ensureLoaded,
+				this
 			),
 		)
 	}
@@ -242,23 +233,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		}
 	}
 
-	private requestStatusUpdates(): void {
-		// create timeout to verify that the desk is still connected, if we are actively polling
-		if (this.subscriptions.getPollPaths().length > 0) {
-			if (this.reconnectTimer) {
-				clearTimeout(this.reconnectTimer)
-				this.reconnectTimer = undefined
-			}
-			this.reconnectTimer = setTimeout(() => {
-				this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
-				this.connected = false
-			}, this.config.statusPollUpdateRate ?? 3000)
-		}
-		this.subscriptions.getPollPaths().forEach((c) => {
-			this.sendCommand(c)
-		})
-	}
-
 	// TODO: get rid of this
 	sendCommand = (cmd: string, argument?: number | string, preferFloat?: boolean): void => {
 		this.connection?.sendCommand(cmd, argument, preferFloat).catch((err) => {
@@ -271,6 +245,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.stateHandler?.ensureLoaded(path, arg).catch((err) => {
 			this.logger?.error(`Error ensuring loaded ${path}: ${err.message}`)
 		})
+		this.setFeedbackDefinitions(GetFeedbacksList(this))
 	}
 }
 

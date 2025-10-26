@@ -27,9 +27,10 @@ export enum MatrixActions {
 }
 
 export function createMatrixActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
-	const ensureLoaded = self.ensureLoaded
-	const state = self.state
+	const send = self.connection!.sendCommand.bind(self.connection)
+	const ensureLoaded = self.stateHandler!.ensureLoaded.bind(self.stateHandler)
+	const state = self.stateHandler?.state
+	if (!state) throw new Error('State handler or state is not available')
 	const transitions = self.transitions
 
 	const actions: { [id in MatrixActions]: CompanionActionWithCallback | undefined } = {
@@ -45,7 +46,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const mute = await ActionUtil.getNumberWithVariables(event, 'mute')
 				const cmd = Commands.DirectInputSwitch(ActionUtil.getNodeNumberFromID(sel))
 
-				send(cmd, mute)
+				await send(cmd, mute)
 			},
 		},
 		[MatrixActions.MatrixDirectInInput]: {
@@ -59,7 +60,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const source = await ActionUtil.getStringWithVariables(event, 'source')
 				const cmd = Commands.DirectInputIn(ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, source)
+				await send(cmd, source)
 			},
 		},
 		[MatrixActions.MatrixDirectInInvert]: {
@@ -73,7 +74,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const invert = await ActionUtil.getNumberWithVariables(event, 'invert')
 				const cmd = Commands.DirectInputInvert(ActionUtil.getNodeNumberFromID(sel))
-				send(cmd, invert)
+				await send(cmd, invert)
 			},
 		},
 		[MatrixActions.MatrixDirectInDeltaFader]: {
@@ -107,7 +108,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInUndoDeltaFader]: {
@@ -126,7 +127,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInRecallFader]: {
@@ -141,7 +142,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInSetFader]: {
@@ -159,7 +160,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInStoreFader]: {
@@ -173,7 +174,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 	}

@@ -12,7 +12,7 @@ export enum OtherActionId {
 }
 
 export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
+	const send = self.connection!.sendCommand.bind(self.connection)
 
 	const actions: { [id in OtherActionId]: CompanionActionWithCallback | undefined } = {
 		[OtherActionId.SendCommand]: {
@@ -21,7 +21,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			options: [...GetTextFieldWithVariables('Command', 'cmd', '')],
 			callback: async (event) => {
 				const cmd = await getStringWithVariables(event, 'cmd')
-				send(cmd)
+				await send(cmd)
 			},
 		},
 		[OtherActionId.SendCommandWithNumber]: {
@@ -34,7 +34,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			callback: async (event) => {
 				const cmd = await getStringWithVariables(event, 'cmd')
 				const num = await self.parseVariablesInString(event.options.num as string)
-				send(cmd, parseInt(num))
+				await send(cmd, parseInt(num))
 			},
 		},
 		[OtherActionId.SendCommandWithString]: {
@@ -47,7 +47,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			callback: async (event) => {
 				const cmd = await getStringWithVariables(event, 'cmd')
 				const val = await getStringWithVariables(event, 'val')
-				send(cmd, val)
+				await send(cmd, val)
 			},
 		},
 	}

@@ -12,7 +12,7 @@ export enum IoActionId {
 }
 
 export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
+	const send = self.connection!.sendCommand.bind(self.connection)
 
 	const actions: { [id in IoActionId]: CompanionActionWithCallback | undefined } = {
 		[IoActionId.MainAltSwitch]: {
@@ -28,7 +28,7 @@ export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			callback: async (event) => {
 				const cmd = IoCommands.MainAltSwitch()
 				const val = await ActionUtil.getNumberWithVariables(event, 'sel')
-				send(cmd, val)
+				await send(cmd, val)
 			},
 		},
 	}
