@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
 import { ModuleLogger } from './logger.js'
-import { ModelSpec } from './models/types.js'
-import { WingState } from './state/index.js'
+import { ModelSpec } from '../models/types.js'
+import { WingState } from '../state/index.js'
 import PQueue from 'p-queue'
 import osc, { OscMessage } from 'osc'
 import debounceFn from 'debounce-fn'
@@ -21,11 +21,6 @@ export class StateHandler extends EventEmitter {
 	private readonly debounceUpdateCompanion: () => void
 
 	private readonly reCtlLib = /\/\$ctl\/lib/
-	// private readonly reChName = /\/ch\/\d+\/\$name/
-	// private readonly reAuxName = /\/aux\/\d+\/\$name/
-	// private readonly reBusName = /\/bus\/\d+\/\$name/
-	// private readonly reMtxName = /\/mtx\/\d+\/\$name/
-	// private readonly reMainName = /\/main\/\d+\/\$name/
 	private readonly reScenes = /\$scenes\s+list\s+\[([^\]]+)\]/
 
 	constructor(model: ModelSpec, logger?: ModuleLogger) {
@@ -54,7 +49,6 @@ export class StateHandler extends EventEmitter {
 		if (this.reCtlLib.test(msg.address)) {
 			const content = String(args[0]?.value ?? '')
 			const scenes = content.match(this.reScenes)
-			// UpdateShowControlVariables(this)
 			if (scenes) {
 				const sceneList = scenes[1].split(',').map((s) => s.trim())
 				const newScenes = sceneList.map((s) => ({ id: s, label: s }))
