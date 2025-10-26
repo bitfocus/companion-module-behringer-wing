@@ -1,4 +1,4 @@
-import { WingTransitions } from '../transitions.js'
+import { WingTransitions } from '../handlers/transitions.js'
 import { WingState } from '../state/index.js'
 import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
 import { Easing } from '../easings.js'
