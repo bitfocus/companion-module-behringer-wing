@@ -24,7 +24,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	connected: boolean = false
 
 	private reconnectTimer: NodeJS.Timeout | undefined
-	private syncInterval: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
 
 	logger: ModuleLogger | undefined
@@ -56,17 +55,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	async destroy(): Promise<void> {
-		if (this.reconnectTimer) {
-			clearTimeout(this.reconnectTimer)
-			this.reconnectTimer = undefined
-		}
-		if (this.syncInterval) {
-			clearInterval(this.syncInterval)
-			this.syncInterval = undefined
-		}
 		if (this.statusUpdateInterval) {
 			clearInterval(this.statusUpdateInterval)
 			this.statusUpdateInterval = undefined
+		}
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer)
+			this.reconnectTimer = undefined
 		}
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
@@ -101,7 +96,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 			this.connection?.on('ready', () => {
 				this.updateStatus(InstanceStatus.Ok)
-				// this.requestStatusUpdates()
+				void this.requestStatusUpdates()
 			})
 
 			this.connection?.on('error', (err: Error) => {
@@ -124,13 +119,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			})
 
 			this.connection?.on('message', (msg: OscMessage) => {
-				if (this.reconnectTimer) {
-					clearTimeout(this.reconnectTimer)
-					this.reconnectTimer = undefined
-				}
 				if (this.connected == false) {
 					this.updateStatus(InstanceStatus.Ok)
 					this.connected = true
+				}
+				if (this.reconnectTimer) {
+					clearTimeout(this.reconnectTimer)
+					this.reconnectTimer = undefined
 				}
 				this.stateHandler?.processMessage(msg)
 				this.feedbackHandler?.processMessage(msg)
@@ -180,7 +175,31 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		this.setupOscForwarder()
 
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer)
+			this.reconnectTimer = undefined
+		}
+
 		WingDeviceDetectorInstance.subscribe(this.id)
+	}
+
+	private async requestStatusUpdates(): Promise<void> {
+		const subs = this.feedbackHandler?.subscriptions
+		if (!subs) return
+		// create timeout to verify that the desk is still connected, if we are actively polling
+		if (subs.getPollPaths().length > 0) {
+			if (this.reconnectTimer) {
+				clearTimeout(this.reconnectTimer)
+				this.reconnectTimer = undefined
+			}
+			this.reconnectTimer = setTimeout(() => {
+				this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
+				this.connected = false
+			}, this.config.statusPollUpdateRate ?? 3000)
+		}
+		subs.getPollPaths().forEach((c) => {
+			void this.connection?.sendCommand(c)
+		})
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
