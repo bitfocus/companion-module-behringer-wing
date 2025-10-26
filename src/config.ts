@@ -25,6 +25,8 @@ export interface WingConfig {
 	enableOscForwarding?: boolean
 	oscForwardingHost?: string
 	oscForwardingPort?: number
+
+	useCcSurfaces?: boolean
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
@@ -164,6 +166,15 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			max: 65535,
 			default: 2223,
 			isVisible: (config) => config.enableOscForwarding === true,
+		},
+		spacer,
+		{
+			type: 'checkbox',
+			id: 'useCcSurfaces',
+			label: 'Use Control Center Surfaces',
+			tooltip: 'Enable support for Control Center surfaces.',
+			width: 6,
+			default: false,
 		},
 	]
 }

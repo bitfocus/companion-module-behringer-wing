@@ -24,7 +24,7 @@ import { WingDeviceDetectorInstance } from './device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets.js'
-
+import { CustomControlsHandler } from './cc-handler.js'
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
 	state: WingState
@@ -122,6 +122,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		WingDeviceDetectorInstance.subscribe(this.id)
 
 		this.updateCompanionWithState()
+
+		if (this.config.useCcSurfaces) {
+			const ccHandler = new CustomControlsHandler()
+			await ccHandler.createCcSurfacesForModel(this.model)
+		}
 	}
 
 	async destroy(): Promise<void> {
@@ -205,6 +210,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		}, this.config.variableUpdateRate)
 
 		WingDeviceDetectorInstance.subscribe(this.id)
+
+		if (this.config.useCcSurfaces) {
+			const ccHandler = new CustomControlsHandler()
+			await ccHandler.createCcSurfacesForModel(this.model)
+		}
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
