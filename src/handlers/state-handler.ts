@@ -40,7 +40,7 @@ export class StateHandler extends EventEmitter {
 	private updateCompanionWithState(): void {
 		this.logger?.debug('Triggering Companion update from changed state')
 		this.state?.updateNames(this.model)
-		this.emit('update', this.state)
+		this.emit('update')
 	}
 
 	private updateLists(msg: osc.OscMessage): void {
