@@ -22,6 +22,7 @@ export interface WingConfig {
 	variableUpdateRate?: number
 	/** When enabled, the module will request values for all variables on startup */
 	prefetchVariablesOnStartup?: boolean
+	useCcSurfaces?: boolean
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
@@ -122,6 +123,14 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'Request values for all variables when establishing a connection to a desk.',
 			width: 6,
 			default: true,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcSurfaces',
+			label: 'Use Control Center Surfaces',
+			tooltip: 'Enable support for Control Center surfaces.',
+			width: 6,
+			default: false,
 		},
 	]
 }
