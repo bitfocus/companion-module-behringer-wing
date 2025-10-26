@@ -15,7 +15,6 @@ export const DeskTypes = [
 ]
 export interface WingConfig {
 	host?: string
-	port?: number
 	model?: WingModel
 	fadeUpdateRate?: number
 	statusPollUpdateRate?: number

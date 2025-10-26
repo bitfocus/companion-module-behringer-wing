@@ -93,7 +93,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			// Setup OSC
 			this.connection = new ConnectionHandler(this.logger)
 			this.connection.setSubscriptionInterval(this.config.subscriptionInterval)
-			await this.connection?.open('0.0.0.0', 0, this.config.host, this.config.port ?? 2223)
+			await this.connection?.open('0.0.0.0', 0, this.config.host, 2223)
 
 			this.connection?.on('ready', () => {
 				this.updateStatus(InstanceStatus.Ok, 'Connection Ready')
