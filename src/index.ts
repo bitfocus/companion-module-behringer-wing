@@ -81,10 +81,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		if (this.config.host !== undefined) {
 			// Setup OSC
 			this.connection = new ConnectionHandler(this.logger)
+			this.connection.setSubscriptionInterval(this.config.subscriptionInterval)
 			await this.connection?.open('0.0.0.0', 0, this.config.host, this.config.port ?? 2223)
 
 			this.connection?.on('ready', () => {
-				this.updateStatus(InstanceStatus.Ok)
+				this.updateStatus(InstanceStatus.Ok, 'Connection Ready')
 				void this.requestStatusUpdates()
 			})
 
@@ -123,9 +124,15 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 			// Setup State Handler
 			this.stateHandler = new StateHandler(this.model, this.logger)
+			this.stateHandler.setTimeout(this.config.requestTimeout ?? 200)
 			if (this.stateHandler) {
 				this.stateHandler.on('request', (path: string, arg?: string | number) => {
 					this.connection!.sendCommand(path, arg).catch(() => {})
+				})
+				this.stateHandler.on('request-failed', (path: string) => {
+					if (this.config.panicOnLostRequest) {
+						this.updateStatus(InstanceStatus.ConnectionFailure, `Request failed for ${path}`)
+					}
 				})
 
 				this.stateHandler.on('update', () => {
@@ -157,7 +164,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.variableHandler?.setupVariables()
 
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
-		this.updateStatus(InstanceStatus.Connecting)
+		this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
 		this.updateActions()
 		this.updateFeedbacks()
 
