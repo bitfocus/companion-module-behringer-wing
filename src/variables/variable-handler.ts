@@ -1,5 +1,5 @@
 import EventEmitter from 'events'
-import { ModuleLogger } from '../logger.js'
+import { ModuleLogger } from '../handlers/logger.js'
 import { ModelSpec } from '../models/types.js'
 import { getChannelVariables } from './channel.js'
 import { getAuxVariables } from './aux.js'

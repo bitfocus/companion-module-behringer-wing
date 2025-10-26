@@ -1,5 +1,5 @@
 import { InstanceBase } from '@companion-module/base'
-import { WingTransitions } from './transitions.js'
+import { WingTransitions } from './handlers/transitions.js'
 import { WingState, WingSubscriptions } from './state/state.js'
 import { ModelSpec } from './models/types.js'
 

@@ -1,5 +1,5 @@
 import osc from 'osc'
-import { WingModel } from './models/types.js'
+import { WingModel } from '../models/types.js'
 
 export interface DeviceInfo {
 	deviceName: string

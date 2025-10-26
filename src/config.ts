@@ -1,5 +1,5 @@
 import { type SomeCompanionConfigField } from '@companion-module/base'
-import { WingDeviceDetectorInstance } from './device-detector.js'
+import { WingDeviceDetectorInstance } from './handlers/device-detector.js'
 import { ModelChoices, WingModel } from './models/types.js'
 import { InstanceBaseExt } from './types.js'
 // import { ModelChoices, WingModel } from './models/types.js'

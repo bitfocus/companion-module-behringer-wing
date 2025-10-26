@@ -1,9 +1,9 @@
 import EventEmitter from 'events'
 import { ModuleLogger } from './logger.js'
 import debounceFn from 'debounce-fn'
-import { FeedbackId } from './feedbacks.js'
+import { FeedbackId } from '../feedbacks.js'
 import { OscMessage } from 'osc'
-import { WingSubscriptions } from './state/index.js'
+import { WingSubscriptions } from '../state/index.js'
 
 export class FeedbackHandler extends EventEmitter {
 	private readonly messageFeedbacks = new Set<FeedbackId>()
