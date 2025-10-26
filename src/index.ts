@@ -1,11 +1,6 @@
 import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
-import {
-	UpdateVariables as UpdateAllVariables,
-	UpdateShowControlVariables,
-	UpdateVariableDefinitions,
-} from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
 import { GetFeedbacksList } from './feedbacks.js'
@@ -20,6 +15,8 @@ import { ConnectionHandler } from './connection-handler.js'
 import { ModuleLogger } from './logger.js'
 import { StateHandler } from './state-handler.js'
 import { FeedbackHandler } from './feedback-handler.js'
+import { VariableHandler } from './variables/variable-handler.js'
+import osc  from 'osc'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
@@ -32,15 +29,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	private reconnectTimer: NodeJS.Timeout | undefined
 	private syncInterval: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
-	private variableUpdateInterval: NodeJS.Timeout | undefined
 
 	private logger: ModuleLogger | undefined
 	private connection: ConnectionHandler | undefined
 	private stateHandler: StateHandler | undefined
 	private feedbackHandler: FeedbackHandler | undefined
+	private variableHandler: VariableHandler | undefined
 	transitions: WingTransitions
-
-	private variableMessages: { [path: string]: OscMessage } = {}
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -60,12 +55,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		await this.configUpdated(config)
 
-		this.setupOscForwarder()
-
-		this.variableUpdateInterval = setInterval(() => {
-			this.UpdateVariables()
-		}, this.config.variableUpdateRate ?? 1000)
-
 		WingDeviceDetectorInstance.subscribe(this.id)
 	}
 
@@ -82,10 +71,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			clearInterval(this.statusUpdateInterval)
 			this.statusUpdateInterval = undefined
 		}
-		if (this.variableUpdateInterval) {
-			clearInterval(this.variableUpdateInterval)
-			this.variableUpdateInterval = undefined
-		}
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
 		this.transitions.stopAll()
@@ -101,17 +86,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			}
 			this.oscForwarder = undefined
 		}
+		this.variableHandler?.destroy()
 	}
 
 	async configUpdated(config: WingConfig): Promise<void> {
 		this.config = config
 		this.model = getDeskModel(this.config.model)
 		this.subscriptions = new WingSubscriptions()
-
-		if (this.variableUpdateInterval) {
-			clearInterval(this.variableUpdateInterval)
-			this.variableUpdateInterval = undefined
-		}
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
 		this.transitions.stopAll()
@@ -156,8 +137,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				}
 				this.stateHandler?.processMessage(msg)
 				this.feedbackHandler?.processMessage(msg)
-
-				this.variableMessages[msg.address] = msg
+				this.variableHandler?.processMessage(msg)
 				this.oscForwarder?.send(msg)
 			})
 
@@ -174,7 +154,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 					this.setPresetDefinitions(GetPresets(this))
 					this.setActionDefinitions(createActions(this))
 					this.setFeedbackDefinitions(GetFeedbacksList(this, state, this.subscriptions, this.ensureLoaded))
-					UpdateShowControlVariables(this)
 					this.checkFeedbacks()
 				})
 			}
@@ -187,17 +166,25 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			})
 		}
 
+		// Setup Variable Handler
+		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate, this.logger)
+		this.variableHandler.on('create-variables', (variables) => {
+			this.setVariableDefinitions(variables)
+		})
+		this.variableHandler.on('update-variable', (variable, value) => {
+			this.setVariableValues({ [variable]: value })
+		})
+		this.variableHandler.on('send', (cmd: string, arg?: number | string) => {
+			this.connection?.sendCommand(cmd, arg).catch(() => {})
+		})
+		this.variableHandler?.setupVariables()
+
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
 		this.updateStatus(InstanceStatus.Connecting)
 		this.updateActions()
 		this.updateFeedbacks()
-		this.updateVariableDefinitions()
 
 		this.setupOscForwarder()
-
-		this.variableUpdateInterval = setInterval(() => {
-			this.UpdateVariables()
-		}, this.config.variableUpdateRate ?? 1000)
 
 		WingDeviceDetectorInstance.subscribe(this.id)
 	}
@@ -219,10 +206,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				this.ensureLoaded,
 			),
 		)
-	}
-
-	updateVariableDefinitions(): void {
-		UpdateVariableDefinitions(this)
 	}
 
 	private setupOscForwarder(): void {
@@ -276,21 +259,14 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 	}
 
-	private UpdateVariables(): void {
-		const messages: OscMessage[] = Object.values(this.variableMessages)
-		if (messages.length === 0) {
-			return
-		}
-		UpdateAllVariables(this, messages)
-		this.variableMessages = {}
-	}
-
+	// TODO: get rid of this
 	sendCommand = (cmd: string, argument?: number | string, preferFloat?: boolean): void => {
 		this.connection?.sendCommand(cmd, argument, preferFloat).catch((err) => {
 			this.logger?.error(`Error sending command ${cmd}: ${err.message}`)
 		})
 	}
 
+	// TODO: get rid of this
 	ensureLoaded = (path: string, arg?: string | number): void => {
 		this.stateHandler?.ensureLoaded(path, arg).catch((err) => {
 			this.logger?.error(`Error ensuring loaded ${path}: ${err.message}`)
