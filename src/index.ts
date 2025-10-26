@@ -8,10 +8,9 @@ import {
 } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
-import { FeedbackId, GetFeedbacksList } from './feedbacks.js'
+import { GetFeedbacksList } from './feedbacks.js'
 import { WingState, WingSubscriptions } from './state/index.js'
-import osc, { OscMessage } from 'osc'
-import debounceFn from 'debounce-fn'
+import { OscMessage } from 'osc'
 import { WingTransitions } from './transitions.js'
 import { WingDeviceDetectorInstance } from './device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
@@ -20,6 +19,7 @@ import { GetPresets } from './presets.js'
 import { ConnectionHandler } from './connection-handler.js'
 import { ModuleLogger } from './logger.js'
 import { StateHandler } from './state-handler.js'
+import { FeedbackHandler } from './feedback-handler.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
@@ -31,46 +31,22 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	private reconnectTimer: NodeJS.Timeout | undefined
 	private syncInterval: NodeJS.Timeout | undefined
-	// private subscribeInterval: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
 	private variableUpdateInterval: NodeJS.Timeout | undefined
 
 	private logger: ModuleLogger | undefined
 	private connection: ConnectionHandler | undefined
 	private stateHandler: StateHandler | undefined
+	private feedbackHandler: FeedbackHandler | undefined
 	transitions: WingTransitions
 
-	private readonly messageFeedbacks = new Set<FeedbackId>()
-	private readonly debounceMessageFeedbacks: () => void
-
 	private variableMessages: { [path: string]: OscMessage } = {}
-
-	// Precompiled regexes to avoid per-message allocations
-	private readonly reChName = /\/ch\/\d+\/\$name/
-	private readonly reAuxName = /\/aux\/\d+\/\$name/
-	private readonly reBusName = /\/bus\/\d+\/\$name/
-	private readonly reMtxName = /\/mtx\/\d+\/\$name/
-	private readonly reMainName = /\/main\/\d+\/\$name/
 
 	constructor(internal: unknown) {
 		super(internal)
 
 		this.subscriptions = new WingSubscriptions()
 		this.model = getDeskModel(WingModel.Full) // default, later set in init
-
-		this.debounceMessageFeedbacks = debounceFn(
-			() => {
-				const feedbacks = Array.from(this.messageFeedbacks).map((feedback) => feedback.toString())
-				this.messageFeedbacks.clear()
-				this.checkFeedbacks(...feedbacks)
-			},
-			{
-				wait: 100,
-				maxWait: 500,
-				before: true,
-				after: true,
-			},
-		)
 
 		this.transitions = new WingTransitions(this)
 	}
@@ -166,6 +142,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 					this.statusUpdateInterval = undefined
 				}
 				this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
+				this.stateHandler?.clearState()
 			})
 
 			this.connection?.on('message', (msg: OscMessage) => {
@@ -178,8 +155,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 					this.connected = true
 				}
 				this.stateHandler?.processMessage(msg)
+				this.feedbackHandler?.processMessage(msg)
 
-				this.checkFeedbackChanges(msg)
 				this.variableMessages[msg.address] = msg
 				this.oscForwarder?.send(msg)
 			})
@@ -201,6 +178,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 					this.checkFeedbacks()
 				})
 			}
+
+			// Setup Feedback Handler
+			this.feedbackHandler = new FeedbackHandler(this.logger)
+			this.subscriptions = this.feedbackHandler.subscriptions! // TODO: get rid of this
+			this.feedbackHandler?.on('check-feedbacks', (feedbacks: string[]) => {
+				this.checkFeedbacks(...feedbacks)
+			})
 		}
 
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
@@ -290,24 +274,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.subscriptions.getPollPaths().forEach((c) => {
 			this.sendCommand(c)
 		})
-	}
-
-	private checkFeedbackChanges(msg: osc.OscMessage): void {
-		const toUpdate = this.subscriptions.getFeedbacks(msg.address)
-		if (toUpdate.length > 0) {
-			toUpdate.forEach((f) => this.messageFeedbacks.add(f))
-			this.debounceMessageFeedbacks()
-		}
-
-		if (
-			this.reChName.test(msg.address) ||
-			this.reBusName.test(msg.address) ||
-			this.reAuxName.test(msg.address) ||
-			this.reMtxName.test(msg.address) ||
-			this.reMainName.test(msg.address)
-		) {
-			this.stateHandler?.requestUpdate()
-		}
 	}
 
 	private UpdateVariables(): void {
