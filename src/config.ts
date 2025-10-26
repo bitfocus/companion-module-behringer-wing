@@ -25,6 +25,11 @@ export interface WingConfig {
 	enableOscForwarding?: boolean
 	oscForwardingHost?: string
 	oscForwardingPort?: number
+
+	// Advanced Option
+	requestTimeout?: number
+	panicOnLostRequest?: boolean
+	subscriptionInterval?: number
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
@@ -126,6 +131,48 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'Request values for all variables when establishing a connection to a desk.',
 			width: 6,
 			default: true,
+		},
+		spacer,
+		{
+			type: 'checkbox',
+			id: 'show-advanced-options',
+			label: 'Show advanced options',
+			tooltip:
+				'Show advanced configuration options. There is no guarantee that these options will work in any combination.',
+			width: 12,
+			default: false,
+		},
+		{
+			type: 'number',
+			id: 'requestTimeout',
+			label: 'Request Timeout (ms)',
+			tooltip: 'Time in milliseconds to wait for a response to a sent command before considering it lost.',
+			width: 6,
+			min: 50,
+			max: 10000,
+			default: 200,
+			isVisible: (configValues) => configValues['show-advanced-options'] === true,
+		},
+		{
+			type: 'checkbox',
+			id: 'panicOnLostRequest',
+			label: 'Panic on lost request',
+			tooltip:
+				'If enabled, the module will log an error when a sent command does not receive a response within the specified timeframe.',
+			width: 6,
+			default: false,
+			isVisible: (configValues) => configValues['show-advanced-options'] === true,
+		},
+		{
+			type: 'number',
+			id: 'subscriptionInterval',
+			label: 'Subscription Interval (ms)',
+			tooltip: 'Time in milliseconds to wait between subscription requests.',
+			width: 6,
+			min: 100,
+			max: 9999,
+			default: 200,
+			isVisible: (configValues) => configValues['show-advanced-options'] === true,
 		},
 		spacer,
 		{

@@ -31,10 +31,7 @@ export class ConnectionHandler extends EventEmitter {
 
 		this.osc.on('ready', () => {
 			this.logger?.info('OSC connection is ready')
-			this.subscribeForUpdates().catch((err) => {
-				this.logger?.error(`Failed to subscribe for updates: ${err}`)
-				this.emit('ready')
-			})
+			this.subscribeForUpdates(9000).catch(() => {})
 		})
 
 		this.osc.on('error', (err) => {
@@ -59,13 +56,19 @@ export class ConnectionHandler extends EventEmitter {
 		this.osc.open()
 	}
 
-	private async subscribeForUpdates(): Promise<void> {
+	setSubscriptionInterval(interval?: number): void {
+		if (this.subscribeInterval) {
+			clearInterval(this.subscribeInterval)
+		}
+		this.subscribeForUpdates(interval ?? 9000).catch(() => {})
+	}
+
+	private async subscribeForUpdates(interval: number): Promise<void> {
 		await this.ready
-		this.logger?.info('Subscribing for updates')
 		this.sendSubscriptionCommand()
 		this.subscribeInterval = setInterval(() => {
 			this.sendSubscriptionCommand()
-		}, 9000)
+		}, interval)
 	}
 
 	private sendSubscriptionCommand(): void {
