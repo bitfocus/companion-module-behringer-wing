@@ -43,6 +43,10 @@ export class StateHandler extends EventEmitter {
 		this.emit('update')
 	}
 
+	setTimeout(timeout: number): void {
+		this.requestQueue.timeout = timeout
+	}
+
 	private updateLists(msg: osc.OscMessage): void {
 		const args = msg.args as osc.MetaArgument[]
 
@@ -105,7 +109,8 @@ export class StateHandler extends EventEmitter {
 			})
 			.catch((_e: unknown) => {
 				delete this.inFlightRequests[path]
-				this.logger?.warn(`Request failed (${_e}) for ${path}`)
+				this.emit('request-failed', path)
+				this.logger?.warn(`Request failed for ${path} after timeout (${_e})`)
 			})
 	}
 
