@@ -1,6 +1,6 @@
-import { WingConfig } from './config.js'
-import { Easing } from './easings.js'
-import { InstanceBaseExt } from './types.js'
+import { WingConfig } from '../config.js'
+import { Easing } from '../easings.js'
+import { InstanceBaseExt } from '../types.js'
 
 export interface TransitionInfo {
 	steps: number[]
@@ -25,7 +25,7 @@ export class WingTransitions {
 
 	private sendOsc(cmd: string, arg?: string | number): void {
 		if (this.instance.config.host) {
-			this.instance.sendCommand(cmd, arg, true)
+			this.instance.connection!.sendCommand(cmd, arg, true).catch(() => {})
 		}
 	}
 
