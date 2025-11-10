@@ -32,7 +32,7 @@ export enum CardsActionId {
 }
 
 export function createCardsActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
+	const send = self.connection!.sendCommand.bind(self.connection)
 
 	const actions: { [id in CardsActionId]: CompanionActionWithCallback | undefined } = {
 		[CardsActionId.SetLink]: {
@@ -42,7 +42,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const cmd = Commands.WLiveSDLink()
 				const link = await getStringWithVariables(event, 'link')
-				send(cmd, link)
+				await send(cmd, link)
 			},
 		},
 		[CardsActionId.SetAutoInput]: {
@@ -52,7 +52,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoIn()
 				const selection = await getStringWithVariables(event, 'selection')
-				send(cmd, selection)
+				await send(cmd, selection)
 			},
 		},
 		[CardsActionId.SetAutoStop]: {
@@ -62,7 +62,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoStop()
 				const selection = await getStringWithVariables(event, 'selection')
-				send(cmd, selection)
+				await send(cmd, selection)
 			},
 		},
 		[CardsActionId.SetAutoPlay]: {
@@ -72,7 +72,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoPlay()
 				const selection = await getStringWithVariables(event, 'selection')
-				send(cmd, selection)
+				await send(cmd, selection)
 			},
 		},
 		[CardsActionId.SetAutoRecord]: {
@@ -82,7 +82,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoRecord()
 				const selection = await getStringWithVariables(event, 'selection')
-				send(cmd, selection)
+				await send(cmd, selection)
 			},
 		},
 		[CardsActionId.CardAction]: {
@@ -96,7 +96,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const cmd = Commands.WLiveCardControl(card)
 				const action = await getStringWithVariables(event, 'action')
-				send(cmd, action)
+				await send(cmd, action)
 			},
 		},
 		[CardsActionId.OpenSession]: {
@@ -110,7 +110,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const session = await getNumberWithVariables(event, 'session')
 				const cmd = Commands.WLiveCardOpenSession(card)
-				send(cmd, session)
+				await send(cmd, session)
 			},
 		},
 		[CardsActionId.DeleteSession]: {
@@ -124,7 +124,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const session = await getNumberWithVariables(event, 'session')
 				const cmd = Commands.WLiveCardDeleteSession(card)
-				send(cmd, session)
+				await send(cmd, session)
 			},
 		},
 		[CardsActionId.NameSession]: {
@@ -143,7 +143,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const name = await getStringWithVariables(event, 'name')
 				const cmd = Commands.WLiveCardNameSession(card)
-				send(cmd, name)
+				await send(cmd, name)
 			},
 		},
 		[CardsActionId.SetPosition]: {
@@ -157,9 +157,9 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const position = await getNumberWithVariables(event, 'position')
 				const cmd = Commands.WLiveCardTime(card)
-				send(cmd, position, true)
+				await send(cmd, position, true)
 				const cmd2 = Commands.WLiveCardGotoMarker(card)
-				send(cmd2, 101)
+				await send(cmd2, 101)
 			},
 		},
 		[CardsActionId.AddMarker]: {
@@ -169,7 +169,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const card = await getNumberWithVariables(event, 'card')
 				const cmd = Commands.WLiveCardSetMarker(card)
-				send(cmd, 1)
+				await send(cmd, 1)
 			},
 		},
 		[CardsActionId.EditMarker]: {
@@ -184,7 +184,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const marker = await getNumberWithVariables(event, 'marker')
 				const cmd = Commands.WLiveCardEditMarker(card)
-				send(cmd, marker)
+				await send(cmd, marker)
 			},
 		},
 		[CardsActionId.GotoMarker]: {
@@ -199,7 +199,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const marker = await getNumberWithVariables(event, 'marker')
 				const cmd = Commands.WLiveCardGotoMarker(card)
-				send(cmd, marker)
+				await send(cmd, marker)
 			},
 		},
 		[CardsActionId.DeleteMarker]: {
@@ -214,7 +214,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 				const card = await getNumberWithVariables(event, 'card')
 				const marker = await getNumberWithVariables(event, 'marker')
 				const cmd = Commands.WLiveCardDeleteMarker(card)
-				send(cmd, marker)
+				await send(cmd, marker)
 			},
 		},
 		[CardsActionId.FormatCard]: {
@@ -224,7 +224,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			callback: async (event) => {
 				const card = await getNumberWithVariables(event, 'card')
 				const cmd = Commands.WLiveCardFormat(card)
-				send(cmd, 1)
+				await send(cmd, 1)
 			},
 		},
 	}

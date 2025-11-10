@@ -18,9 +18,10 @@ export enum ChannelActions {
 }
 
 export function createChannelActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
-	const ensureLoaded = self.ensureLoaded
-	const state = self.state
+	const send = self.connection!.sendCommand.bind(self.connection)
+	const ensureLoaded = self.stateHandler!.ensureLoaded.bind(self.stateHandler)
+	const state = self.stateHandler?.state
+	if (!state) throw new Error('State handler or state is not available')
 
 	const actions: { [id in ChannelActions]: CompanionActionWithCallback | undefined } = {
 		[ChannelActions.SetChannelFilterModel]: {
@@ -34,7 +35,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
 				const filter = await ActionUtil.getStringWithVariables(event, 'filter')
 				const cmd = Commands.FilterModel(ActionUtil.getNodeNumberFromID(channel))
-				send(cmd, filter)
+				await send(cmd, filter)
 			},
 		},
 		[ChannelActions.SetChannelEqType]: {
@@ -48,7 +49,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
 				const model = await ActionUtil.getStringWithVariables(event, 'model')
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumberFromID(channel))
-				send(cmd, model)
+				await send(cmd, model)
 			},
 		},
 		[ChannelActions.SetChannelEqParameter]: {
@@ -61,10 +62,10 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			],
 			callback: async (event) => {
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel'))
-				send(cmd, ActionUtil.getString(event, 'model'))
+				await send(cmd, ActionUtil.getString(event, 'model'))
 			},
-			subscribe: (event) => {
-				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
+			subscribe: async (event) => {
+				await ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 			learn: (event) => {
 				return {
@@ -84,7 +85,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
 				const order = await ActionUtil.getStringWithVariables(event, 'order')
 				const cmd = Commands.ProcessOrder(ActionUtil.getNodeNumberFromID(channel))
-				send(cmd, order)
+				await send(cmd, order)
 			},
 		},
 	}
