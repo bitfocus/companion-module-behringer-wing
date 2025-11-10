@@ -14,12 +14,20 @@ export interface WingDeviceDetector {
 	listKnown(): DeviceInfo[]
 }
 
+/**
+ * Detects Behringer Wing devices on the network via OSC broadcast.
+ * Manages subscribers and tracks known devices.
+ */
 class WingDeviceDetectorImpl implements WingDeviceDetector {
 	private readonly subscribers = new Set<string>()
 	private osc?: osc.UDPPort
 	private knownDevices = new Map<string, DeviceInfo>()
 	private queryTimer: NodeJS.Timeout | undefined
 
+	/**
+	 * Register a subscriber to start device detection.
+	 * @param instanceId Unique identifier for the subscriber.
+	 */
 	public subscribe(instanceId: string): void {
 		const startListening = this.subscribers.size === 0
 
@@ -30,16 +38,27 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 		}
 	}
 
+	/**
+	 * Remove a subscriber and stop detection if none remain.
+	 * @param instanceId Unique identifier for the subscriber.
+	 */
 	public unsubscribe(instanceId: string): void {
 		if (this.subscribers.delete(instanceId) && this.subscribers.size === 0) {
 			this.stopListening()
 		}
 	}
 
+	/**
+	 * List all currently known devices, sorted by name.
+	 * @returns Array of DeviceInfo objects.
+	 */
 	public listKnown(): DeviceInfo[] {
 		return Array.from(this.knownDevices.values()).sort((a, b) => a.deviceName.localeCompare(b.deviceName))
 	}
 
+	/**
+	 * Start listening for device broadcasts and handle OSC events.
+	 */
 	private startListening(): void {
 		this.knownDevices.clear()
 
@@ -112,6 +131,9 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 		this.osc.open()
 	}
 
+	/**
+	 * Stop listening for device broadcasts and clean up resources.
+	 */
 	private stopListening(): void {
 		if (this.osc) {
 			try {
@@ -130,6 +152,9 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 		}
 	}
 
+	/**
+	 * Send a device discovery query via OSC broadcast.
+	 */
 	private sendQuery(): void {
 		if (this.osc) {
 			this.osc.send({ address: '/?', args: [] })

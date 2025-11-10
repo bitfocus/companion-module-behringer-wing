@@ -6,6 +6,10 @@ import PQueue from 'p-queue'
 import osc, { OscMessage } from 'osc'
 import debounceFn from 'debounce-fn'
 
+/**
+ * Manages the internal state of the Behringer Wing, processes OSC messages, and emits state updates.
+ * Handles request queueing and state synchronization.
+ */
 export class StateHandler extends EventEmitter {
 	private model: ModelSpec
 	state?: WingState
@@ -23,6 +27,11 @@ export class StateHandler extends EventEmitter {
 	private readonly reCtlLib = /\/\$ctl\/lib/
 	private readonly reScenes = /\$scenes\s+list\s+\[([^\]]+)\]/
 
+	/**
+	 * Create a new StateHandler.
+	 * @param model Model specification for the device.
+	 * @param logger Optional logger for debug output.
+	 */
 	constructor(model: ModelSpec, logger?: ModuleLogger) {
 		super()
 		this.model = model
@@ -43,10 +52,18 @@ export class StateHandler extends EventEmitter {
 		this.emit('update')
 	}
 
+	/**
+	 * Set the request queue timeout.
+	 * @param timeout Timeout in milliseconds.
+	 */
 	setTimeout(timeout: number): void {
 		this.requestQueue.timeout = timeout
 	}
 
+	/**
+	 * Update internal lists (e.g., scenes) based on OSC message content.
+	 * @param msg OSC message to process.
+	 */
 	private updateLists(msg: osc.OscMessage): void {
 		const args = msg.args as osc.MetaArgument[]
 
@@ -76,6 +93,10 @@ export class StateHandler extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Process an OSC message, update state, and emit events as needed.
+	 * @param msg OSC message to process.
+	 */
 	processMessage(msg: OscMessage): void {
 		const { address, args } = msg
 
@@ -91,6 +112,11 @@ export class StateHandler extends EventEmitter {
 		this.requestUpdate()
 	}
 
+	/**
+	 * Ensure a value is loaded by sending a request and waiting for a response.
+	 * @param path OSC address to request.
+	 * @param arg Optional argument for the request.
+	 */
 	async ensureLoaded(path: string, arg?: string | number): Promise<void> {
 		this.requestQueue
 			.add(async () => {
@@ -114,11 +140,17 @@ export class StateHandler extends EventEmitter {
 			})
 	}
 
+	/**
+	 * Reset the internal state to initial values.
+	 */
 	clearState(): void {
 		this.state = new WingState(this.model)
 		this.logger?.debug('State cleared')
 	}
 
+	/**
+	 * Request a debounced update to Companion with the current state.
+	 */
 	requestUpdate(): void {
 		this.debounceUpdateCompanion()
 	}
