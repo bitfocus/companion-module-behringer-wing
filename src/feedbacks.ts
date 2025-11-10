@@ -41,6 +41,9 @@ export enum FeedbackId {
 	WLivePlaybackState = 'wlive-playback-state',
 	GpioState = 'gpio-state',
 	Solo = 'solo',
+	SoloDim = 'solo-dim',
+	SoloMono = 'solo-mono',
+	SoloLRSwap = 'solo-lr-swap',
 	Talkback = 'talkback',
 	TalkbackAssign = 'talkback-assign',
 	InsertOn = 'insert-on',
@@ -406,6 +409,66 @@ export function GetFeedbacksList(
 					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
 					unsubscribeFeedback(subs, cmd, event)
 				}
+			},
+		},
+		[FeedbackId.SoloDim]: {
+			type: 'boolean',
+			name: 'Solo Dim',
+			description: 'React to the dim state of the solo output.',
+			options: [GetDropdown('Dim', 'dim', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = ConfigurationCommands.SoloDim()
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.dim
+			},
+			subscribe: (event): void => {
+				const cmd = ConfigurationCommands.SoloDim()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = ConfigurationCommands.SoloDim()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.SoloMono]: {
+			type: 'boolean',
+			name: 'Solo Mono',
+			description: 'React to the mono state of the solo output.',
+			options: [GetDropdown('Mono', 'mono', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = ConfigurationCommands.SoloMono()
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.mono
+			},
+			subscribe: (event): void => {
+				const cmd = ConfigurationCommands.SoloMono()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = ConfigurationCommands.SoloMono()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.SoloLRSwap]: {
+			type: 'boolean',
+			name: 'Solo LR Swap',
+			description: 'React to the left-right channel swap state of the solo output.',
+			options: [GetDropdown('Swap', 'swap', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const cmd = ConfigurationCommands.SoloLRSwap()
+				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentValue === 'number' && currentValue == event.options.swap
+			},
+			subscribe: (event): void => {
+				const cmd = ConfigurationCommands.SoloLRSwap()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = ConfigurationCommands.SoloLRSwap()
+				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
 		[FeedbackId.Talkback]: {
