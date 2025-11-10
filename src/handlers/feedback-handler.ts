@@ -5,6 +5,10 @@ import { FeedbackId } from '../feedbacks.js'
 import { OscMessage } from 'osc'
 import { WingSubscriptions } from '../state/index.js'
 
+/**
+ * Handles feedback updates based on incoming OSC messages and manages feedback subscriptions.
+ * Emits 'check-feedbacks' events.
+ */
 export class FeedbackHandler extends EventEmitter {
 	private readonly messageFeedbacks = new Set<FeedbackId>()
 	private readonly debounceMessageFeedbacks: () => void
@@ -12,6 +16,10 @@ export class FeedbackHandler extends EventEmitter {
 
 	subscriptions?: WingSubscriptions
 
+	/**
+	 * Create a new FeedbackHandler.
+	 * @param logger Optional logger for debug output.
+	 */
 	constructor(logger?: ModuleLogger) {
 		super()
 		this.logger = logger
@@ -33,6 +41,10 @@ export class FeedbackHandler extends EventEmitter {
 		)
 	}
 
+	/**
+	 * Process an OSC message and trigger feedback checks if needed.
+	 * @param msg OSC message to process.
+	 */
 	processMessage(msg: OscMessage): void {
 		this.logger?.debug(`Processing message for feedbacks: ${msg.address}`)
 
