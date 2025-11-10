@@ -30,6 +30,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	state: WingState
 	model: ModelSpec
 	osc: osc.UDPPort
+	oscForwarder: osc.UDPPort | undefined
 	subscriptions: WingSubscriptions
 	connected: boolean = false
 
@@ -112,6 +113,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.setupOscSocket()
 		}
 
+		this.setupOscForwarder()
+
 		this.variableUpdateInterval = setInterval(() => {
 			this.UpdateVariables()
 		}, this.config.variableUpdateRate)
@@ -153,6 +156,15 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				// Ignore
 			}
 		}
+
+		if (this.oscForwarder) {
+			try {
+				this.oscForwarder.close()
+			} catch (_e) {
+				// Ignore
+			}
+			this.oscForwarder = undefined
+		}
 	}
 
 	async configUpdated(config: WingConfig): Promise<void> {
@@ -185,6 +197,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.setupOscSocket()
 			this.updateCompanionWithState()
 		}
+
+		this.setupOscForwarder()
 
 		this.variableUpdateInterval = setInterval(() => {
 			this.UpdateVariables()
@@ -302,6 +316,15 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.log('debug', `Received ${JSON.stringify(message)}`)
 			this.state.set(message.address, args)
 
+			// Forward OSC message if forwarding is enabled
+			if (this.config.enableOscForwarding && this.oscForwarder) {
+				try {
+					this.oscForwarder.send(message)
+				} catch (err) {
+					this.log('warn', `Failed to forward OSC message: ${err}`)
+				}
+			}
+
 			if (this.inFlightRequests[message.address]) {
 				this.log('debug', `Received answer for request ${message.address}`)
 				this.inFlightRequests[message.address]()
@@ -321,6 +344,41 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		this.osc.open()
 	}
+
+	private setupOscForwarder(): void {
+		// Clean up existing forwarder if any
+		if (this.oscForwarder) {
+			try {
+				this.oscForwarder.close()
+			} catch (_e) {
+				// Ignore
+			}
+			this.oscForwarder = undefined
+		}
+
+		// Setup new forwarder if enabled
+		if (this.config.enableOscForwarding && this.config.oscForwardingHost && this.config.oscForwardingPort) {
+			try {
+				this.oscForwarder = new osc.UDPPort({
+					localAddress: '0.0.0.0',
+					localPort: 0,
+					metadata: true,
+					remoteAddress: this.config.oscForwardingHost,
+					remotePort: this.config.oscForwardingPort,
+				})
+
+				this.oscForwarder.on('error', (err: Error): void => {
+					this.log('warn', `OSC Forwarder Error: ${err.message}`)
+				})
+
+				this.oscForwarder.open()
+				this.log('info', `OSC forwarding enabled to ${this.config.oscForwardingHost}:${this.config.oscForwardingPort}`)
+			} catch (err) {
+				this.log('error', `Failed to setup OSC forwarder: ${err}`)
+			}
+		}
+	}
+
 	private subscribeForUpdates(): void {
 		if (this.osc) {
 			try {
