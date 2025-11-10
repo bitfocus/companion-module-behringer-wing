@@ -3,12 +3,20 @@ import { ModuleLogger } from './logger.js'
 import { EventEmitter } from 'events'
 import { OSCSomeArguments } from '@companion-module/base'
 
+/**
+ * Handles OSC UDP connection management, message sending, and event emission for the Behringer Wing module.
+ * Emits 'message', 'error', and 'close' events.
+ */
 export class ConnectionHandler extends EventEmitter {
 	private osc: osc.UDPPort
 	private logger?: ModuleLogger
 	private ready?: Promise<void>
 	private subscribeInterval?: NodeJS.Timeout
 
+	/**
+	 * Create a new ConnectionHandler.
+	 * @param logger Optional logger for debug/info/error output.
+	 */
 	constructor(logger?: ModuleLogger) {
 		super()
 		this.osc = new osc.UDPPort({})
@@ -18,6 +26,13 @@ export class ConnectionHandler extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Open and configure the OSC UDP connection.
+	 * @param localAddress Local IP address to bind.
+	 * @param localPort Local port to bind.
+	 * @param remoteAddress Remote IP address to connect.
+	 * @param remotePort Remote port to connect.
+	 */
 	async open(localAddress: string, localPort: number, remoteAddress: string, remotePort: number): Promise<void> {
 		this.logger?.info(`Opening OSC connection from ${localAddress}:${localPort} to ${remoteAddress}:${remotePort}`)
 		this.osc = new osc.UDPPort({
@@ -56,6 +71,10 @@ export class ConnectionHandler extends EventEmitter {
 		this.osc.open()
 	}
 
+	/**
+	 * Set or update the interval for sending OSC subscription commands.
+	 * @param interval Interval in milliseconds (default: 9000).
+	 */
 	setSubscriptionInterval(interval?: number): void {
 		if (this.subscribeInterval) {
 			clearInterval(this.subscribeInterval)
@@ -63,6 +82,10 @@ export class ConnectionHandler extends EventEmitter {
 		this.subscribeForUpdates(interval ?? 9000).catch(() => {})
 	}
 
+	/**
+	 * Start periodic OSC subscription updates at the given interval.
+	 * @param interval Interval in milliseconds.
+	 */
 	private async subscribeForUpdates(interval: number): Promise<void> {
 		await this.ready
 		this.sendSubscriptionCommand()
@@ -71,15 +94,27 @@ export class ConnectionHandler extends EventEmitter {
 		}, interval)
 	}
 
+	/**
+	 * Send the OSC subscription command to the remote device.
+	 */
 	private sendSubscriptionCommand(): void {
 		this.sendCommand('/*S').catch(() => {})
 	}
 
+	/**
+	 * Close the OSC connection and clean up resources.
+	 */
 	close(): void {
 		this.osc.close()
 		this.logger?.info('OSC Handler destroyed')
 	}
 
+	/**
+	 * Send an OSC command with an optional argument.
+	 * @param cmd OSC address string.
+	 * @param argument Optional argument (number or string).
+	 * @param preferFloat If true, send numbers as float (default: false).
+	 */
 	async sendCommand(cmd: string, argument?: number | string, preferFloat?: boolean): Promise<void> {
 		let args: OSCSomeArguments = []
 		if (typeof argument === 'number') {

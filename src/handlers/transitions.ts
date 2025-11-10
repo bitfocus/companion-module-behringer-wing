@@ -6,6 +6,9 @@ export interface TransitionInfo {
 	steps: number[]
 }
 
+/**
+ * Manages and executes OSC-based transitions (fades) for the Behringer Wing.
+ */
 export class WingTransitions {
 	private readonly transitions: Map<string, TransitionInfo>
 	private readonly instance: InstanceBaseExt<WingConfig>
@@ -13,22 +16,38 @@ export class WingTransitions {
 
 	private tickInterval: NodeJS.Timeout | undefined
 
+	/**
+	 * Create a new WingTransitions manager.
+	 * @param instance Module instance for OSC communication.
+	 */
 	constructor(instance: InstanceBaseExt<WingConfig>) {
 		this.transitions = new Map()
 		this.instance = instance
 		this.fadeUpdateRate = 50
 	}
 
+	/**
+	 * Set the update rate for transition ticks.
+	 * @param rate Update interval in milliseconds.
+	 */
 	public setUpdateRate(rate: number): void {
 		this.fadeUpdateRate = rate
 	}
 
+	/**
+	 * Send an OSC command with an optional argument.
+	 * @param cmd OSC address string.
+	 * @param arg Optional argument.
+	 */
 	private sendOsc(cmd: string, arg?: string | number): void {
 		if (this.instance.config.host) {
 			this.instance.connection!.sendCommand(cmd, arg, true).catch(() => {})
 		}
 	}
 
+	/**
+	 * Stop all running transitions and clear timers.
+	 */
 	public stopAll(): void {
 		this.transitions.clear()
 
@@ -65,7 +84,7 @@ export class WingTransitions {
 	}
 
 	/**
-	 * Schedule a transition between to values using an OSC command to be executed.
+	 * Schedule a transition between two values using an OSC command.
 	 * @param path The command to execute the transition with
 	 * @param from Value to start the transition from
 	 * @param to Value to end the transition with
@@ -118,7 +137,7 @@ export class WingTransitions {
 }
 
 /**
- * Converts a fader position to the value of that fader in dB
+ * Converts a fader position in float to the value of that fader in dB
  * @param f Fader position between 0.0 and 1.0
  * @returns Value of the fader position in dB
  */
