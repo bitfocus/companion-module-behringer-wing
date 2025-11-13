@@ -2,54 +2,6 @@
 
 See also HELP.md and LICENSE
 
-## Custom Control Surfaces
-
-This module supports creating virtual Satellite surfaces that respond to Custom Control button presses on your Behringer Wing console. This is an advanced feature that allows you to trigger Companion actions directly from the console's Custom Control (CC) buttons.
-
-### How It Works
-
-When enabled, the module creates virtual Satellite surfaces that appear in your Companion Surfaces configuration. When you press a Custom Control button on your Wing console, the corresponding button press is sent to Companion, where you can program any action you want.
-
-### Configuration
-
-To set up Custom Control Surfaces:
-
-1. **Enable Custom Control Surfaces** - Check the master toggle in the module configuration
-2. **Select Surface Types** - Choose which surface types you want to create:
-
-   - **User Pages (CC)** - Creates surfaces for User Pages (U1-U16) with encoders and buttons. You can select specific pages to create (1-16).
-   - **GPIO Buttons** - Creates a surface for GPIO buttons
-   - **User Buttons** - Creates a surface for User buttons (8 buttons)
-   - **DAW Buttons** - Creates surfaces for DAW buttons (4 sets of 8 buttons)
-
-3. **Configure in Companion** - After enabling, the surfaces will appear in Companion's **Surfaces** tab where you can assign them to pages
-
-### Recommended Page Mapping
-
-It is advisable to dedicate one Companion page per Wing User Page surface. This provides a clear one-to-one relationship between your console and Companion.
-
-**In the Surfaces section:**
-
-- Assign each surface to a page number with a matching last digit
-- For example:
-  - `WING_CC_01` → Page 71
-  - `WING_CC_02` → Page 72
-  - `WING_CC_03` → Page 73
-  - And so on...
-
-This numbering scheme makes it easy to identify which Companion page corresponds to which User Page on your Wing console.
-
-**In the Buttons section:**
-
-- Configure the actual button actions for each page
-- Each button on the virtual surface can trigger any Companion action
-
-### Requirements
-
-- Companion must have the Satellite service running (enabled by default)
-- The Wing console must be configured to send Custom Control messages to Companion's IP address
-- Make sure your firewall allows the connection on the Satellite port (default: 16623)
-
 # Changelog
 
 ## 2.2.0
