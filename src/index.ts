@@ -33,12 +33,14 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	oscForwarder: osc.UDPPort | undefined
 	subscriptions: WingSubscriptions
 	connected: boolean = false
+	ccHandler?: CustomControlsHandler
 
 	private reconnectTimer: NodeJS.Timeout | undefined
 	private syncInterval: NodeJS.Timeout | undefined
 	private subscribeInterval: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
 	private variableUpdateInterval: NodeJS.Timeout | undefined
+	private testButtonInterval: NodeJS.Timeout | undefined
 
 	/**
 	 * Keeps track of sent requests for values that have been sent and not yet answered.
@@ -124,9 +126,46 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.updateCompanionWithState()
 
 		if (this.config.useCcSurfaces) {
-			const ccHandler = new CustomControlsHandler()
-			await ccHandler.createCcSurfacesForModel(this.model)
+			this.ccHandler = new CustomControlsHandler(this.model)
+			await this.ccHandler.setupSurfaces({
+				useCcUserPages: this.config.useCcUserPages,
+				ccUserPagesToCreate: this.config.ccUserPagesToCreate,
+				useCcGpio: this.config.useCcGpio,
+				useCcUser: this.config.useCcUser,
+				useCcDaw: this.config.useCcDaw,
+			})
+
+			this.testCcConnection()
 		}
+	}
+
+	// TODO: remove
+	private testCcConnection(): void {
+		// TEST: Cycle button/row and send press/release every 500ms via OSC message for all 16 user surfaces
+		const numSurfaces = 16
+		let button = 1
+		let row: 'bu' | 'bd' = 'bu'
+		let pressCount = 0
+
+		this.testButtonInterval = setInterval(() => {
+			for (let surface = 1; surface <= numSurfaces; surface++) {
+				const address = `/$ctl/user/U${surface}/${button}/${row}/val`
+				void this.ccHandler?.handleMessage(address, [{ value: 127 }])
+				setTimeout(() => {
+					void this.ccHandler?.handleMessage(address, [{ value: 0 }])
+				}, 50)
+			}
+
+			pressCount++
+			if (pressCount >= 2) {
+				pressCount = 0
+				button++
+				if (button > 4) {
+					button = 1
+					row = row === 'bu' ? 'bd' : 'bu'
+				}
+			}
+		}, 200)
 	}
 
 	async destroy(): Promise<void> {
@@ -149,6 +188,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		if (this.variableUpdateInterval) {
 			clearInterval(this.variableUpdateInterval)
 			this.variableUpdateInterval = undefined
+		}
+		if (this.testButtonInterval) {
+			clearInterval(this.testButtonInterval)
+			this.testButtonInterval = undefined
 		}
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
@@ -212,8 +255,14 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		WingDeviceDetectorInstance.subscribe(this.id)
 
 		if (this.config.useCcSurfaces) {
-			const ccHandler = new CustomControlsHandler()
-			await ccHandler.createCcSurfacesForModel(this.model)
+			this.ccHandler = new CustomControlsHandler(this.model)
+			await this.ccHandler.setupSurfaces({
+				useCcUserPages: this.config.useCcUserPages,
+				ccUserPagesToCreate: this.config.ccUserPagesToCreate,
+				useCcGpio: this.config.useCcGpio,
+				useCcUser: this.config.useCcUser,
+				useCcDaw: this.config.useCcDaw,
+			})
 		}
 	}
 
@@ -339,6 +388,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				this.log('debug', `Received answer for request ${message.address}`)
 				this.inFlightRequests[message.address]()
 				delete this.inFlightRequests[message.address]
+			}
+
+			if (this.config.useCcSurfaces) {
+				void this.ccHandler?.handleMessage(message.address, message.args as osc.MetaArgument[])
 			}
 
 			// setImmediate(() => {
