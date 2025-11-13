@@ -68,8 +68,10 @@ export class SatelliteClient {
 			}
 		})
 	}
+
 	disconnect(): void {
 		if (this.socket) {
+			this.sendCommand('QUIT')
 			this.socket.close()
 			this.socket = null
 		}
@@ -78,6 +80,7 @@ export class SatelliteClient {
 			this.heartbeatInterval = null
 		}
 	}
+
 	/**
 	 * Sends a command to the connected WebSocket server.
 	 *
