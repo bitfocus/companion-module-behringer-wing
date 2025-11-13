@@ -23,6 +23,11 @@ export interface WingConfig {
 	/** When enabled, the module will request values for all variables on startup */
 	prefetchVariablesOnStartup?: boolean
 	useCcSurfaces?: boolean
+	useCcUserPages?: boolean
+	ccUserPagesToCreate?: number[]
+	useCcGpio?: boolean
+	useCcUser?: boolean
+	useCcDaw?: boolean
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
@@ -127,10 +132,73 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		{
 			type: 'checkbox',
 			id: 'useCcSurfaces',
-			label: 'Use Control Center Surfaces',
-			tooltip: 'Enable support for Control Center surfaces.',
+			label: 'Enable Custom Control Surfaces (Advanced)',
+			tooltip:
+				'Master toggle for Custom Control surface support. This is an advanced feature - see documentation for setup details.',
+			width: 12,
+			default: false,
+		},
+		{
+			type: 'static-text',
+			id: 'cc-surfaces-info',
+			width: 12,
+			label: 'Custom Control Surfaces',
+			value:
+				'<strong>Advanced Feature:</strong> Creates virtual Satellite surfaces that respond to Custom Control button presses on your Wing console. ' +
+				"This allows you to trigger Companion actions directly from the console's CC buttons. " +
+				'Requires proper network configuration and Satellite service running. ' +
+				'<a href="https://github.com/bitfocus/companion-module-behringer-wing#custom-control-surfaces" target="_blank">View setup documentation</a>',
+			isVisible: (config) => config.useCcSurfaces === true,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcUserPages',
+			label: 'Enable User Pages (CC)',
+			tooltip: 'Create surfaces for User Pages (U1-U16) with encoders and buttons.',
 			width: 6,
 			default: false,
+			isVisible: (config) => config.useCcSurfaces === true,
+		},
+		{
+			type: 'multidropdown',
+			id: 'ccUserPagesToCreate',
+			label: 'User Pages to Create',
+			tooltip: 'Select which User Pages (1-16) to create as CC surfaces.',
+			width: 12,
+			choices: Array.from({ length: 16 }, (_, i) => ({
+				id: i + 1,
+				label: `Page ${i + 1}`,
+			})),
+			default: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+			minSelection: 0,
+			isVisible: (config) => config.useCcSurfaces === true && config.useCcUserPages === true,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcGpio',
+			label: 'Enable GPIO Buttons',
+			tooltip: 'Create surface for GPIO buttons.',
+			width: 6,
+			default: false,
+			isVisible: (config) => config.useCcSurfaces === true,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcUser',
+			label: 'Enable User Buttons',
+			tooltip: 'Create surface for User buttons (8 buttons).',
+			width: 6,
+			default: false,
+			isVisible: (config) => config.useCcSurfaces === true,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcDaw',
+			label: 'Enable DAW Buttons',
+			tooltip: 'Create surfaces for DAW buttons (4 sets of 8 buttons).',
+			width: 6,
+			default: false,
+			isVisible: (config) => config.useCcSurfaces === true,
 		},
 	]
 }

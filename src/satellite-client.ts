@@ -1,3 +1,4 @@
+// eslint-disable-next-line n/no-extraneous-import
 import WebSocket from 'ws'
 export class SatelliteClient {
 	host: string
@@ -93,7 +94,7 @@ export class SatelliteClient {
 				args = ''
 			}
 			const message = `${command} ${args}\n`
-			this.log('Sending:', message)
+			// this.log('Sending:', message)
 			this.socket.send(message)
 		}
 	}
@@ -112,11 +113,13 @@ export class SatelliteClient {
 	 */
 	addSurface(deviceId: string, surfaceName: string, rows?: number, columns?: number): void {
 		const keys_total = rows && columns ? rows * columns : 0
-		let args = `DEVICEID=${deviceId} PRODUCT_NAME=${surfaceName}`
+		// eslint-disable-next-line no-useless-escape
+		let args = `DEVICEID=${deviceId} PRODUCT_NAME=\"${surfaceName}\"`
 		if (keys_total > 0) {
 			args += ` KEYS_TOTAL=${keys_total}`
 			args += ` KEYS_PER_ROW=${columns}`
 		}
+		args += ` BRIGHTNESS=false`
 		this.sendCommand('ADD-DEVICE', args)
 	}
 	/**
@@ -138,11 +141,61 @@ export class SatelliteClient {
 	 *
 	 * The button is indexed by its row and column on the surface from top left (0/0) to bottom right.
 	 */
-	pressButton(deviceId: string, row: number, column: number): void {
+	buttonPressRelease(deviceId: string, row: number, column: number): void {
+		this.buttonPress(deviceId, row, column)
+		this.buttonRelease(deviceId, row, column)
+	}
+
+	/**
+	 * Sends a button press event for a specified button.
+	 *
+	 * @param page - The page number.
+	 * @param row - The row number.
+	 * @param column - The column number.
+	 */
+	buttonPress(deviceId: string, row: number, column: number): void {
 		const COMMAND = 'KEY-PRESS'
 		const args = `DEVICEID=${deviceId} KEY=${row}/${column}`
 		this.sendCommand(COMMAND, args + ' PRESSED=1')
+	}
+
+	/**
+	 * Sends a button release event for a specified button.
+	 *
+	 * @param deviceId - The device identifier.
+	 * @param row - The row number.
+	 * @param column - The column number.
+	 */
+	buttonRelease(deviceId: string, row: number, column: number): void {
+		const COMMAND = 'KEY-PRESS'
+		const args = `DEVICEID=${deviceId} KEY=${row}/${column}`
 		this.sendCommand(COMMAND, args + ' PRESSED=0')
+	}
+
+	/**
+	 * Sends a key rotate left event for a specified encoder.
+	 *
+	 * @param deviceId - The device identifier.
+	 * @param row - The row number.
+	 * @param column - The column number.
+	 */
+	keyRotateLeft(deviceId: string, row: number, column: number): void {
+		const COMMAND = 'KEY-ROTATE'
+		const args = `DEVICEID=${deviceId} KEY=${row}/${column} DIRECTION=-1`
+		this.sendCommand(COMMAND, args)
+	}
+
+	/**
+	 * Sends a key rotate right event for a specified encoder.
+	 *
+	 * @param deviceId - The device identifier.
+	 * @param row - The row number.
+	 * @param column - The column number.
+	 */
+	keyRotateRight(deviceId: string, row: number, column: number): void {
+		const COMMAND = 'KEY-ROTATE'
+		const args = `DEVICEID=${deviceId} KEY=${row}/${column} DIRECTION=1`
+		this.sendCommand(COMMAND, args)
 	}
 }
 //# sourceMappingURL=satellite-client.js.map
