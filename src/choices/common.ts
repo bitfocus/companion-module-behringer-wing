@@ -204,12 +204,17 @@ export function GetDropdownWithVariables(
 ): [CompanionInputFieldCheckbox, CompanionInputFieldDropdown, CompanionInputFieldTextInput] {
 	// if no isVisibleExpression is provided, default to always visible
 	isVisibleExpression = isVisibleExpression ?? 'true'
+	// If defaultChoice is an empty string, prepend a 'Do not set' option
+	let dropdownChoices = choices
+	if (defaultChoice === '') {
+		dropdownChoices = [getIdLabelPair('', 'Do not set'), ...choices]
+	}
 	// create comma-separated list of choice IDs for tooltip using format id:name
-	const choiceList = choices.map((choice) => `${choice.id}=${choice.label}`).join(', ')
+	const choiceList = dropdownChoices.map((choice) => `${choice.id}=${choice.label}`).join(', ')
 	const dropdown: CompanionInputFieldDropdown = GetDropdown(
 		label,
 		id,
-		choices,
+		dropdownChoices,
 		defaultChoice,
 		tooltip ?? `Available choices: ${choiceList}`,
 	)
