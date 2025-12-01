@@ -17,6 +17,7 @@ export class OscForwarder {
 			return
 		}
 
+		this.logger.info(`Setting up OSC forwarder to ${host}:${port}`)
 		try {
 			this.port = new osc.UDPPort({
 				localAddress: '0.0.0.0',
