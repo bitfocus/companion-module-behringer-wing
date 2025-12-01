@@ -15,12 +15,11 @@ import { ModuleLogger } from './handlers/logger.js'
 import { StateHandler } from './handlers/state-handler.js'
 import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './variables/variable-handler.js'
-import osc  from 'osc'
+import { OscForwarder } from './handlers/osc-forwarder.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
 	model: ModelSpec
-	oscForwarder: osc.UDPPort | undefined
 	connected: boolean = false
 
 	private reconnectTimer: NodeJS.Timeout | undefined
@@ -32,6 +31,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	feedbackHandler: FeedbackHandler | undefined
 	variableHandler: VariableHandler | undefined
 	transitions: WingTransitions
+	oscForwarder: OscForwarder | undefined
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -70,14 +70,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.connection?.close()
 		this.stateHandler?.clearState()
 
-		if (this.oscForwarder) {
-			try {
-				this.oscForwarder.close()
-			} catch (_e) {
-				// Ignore
-			}
-			this.oscForwarder = undefined
-		}
+		this.oscForwarder?.close()
+		this.oscForwarder = undefined
 		this.variableHandler?.destroy()
 	}
 
@@ -180,7 +174,15 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.updateActions()
 		this.updateFeedbacks()
 
-		this.setupOscForwarder()
+		// Setup OSC forwarder
+		if (!this.oscForwarder && this.logger) {
+			this.oscForwarder = new OscForwarder(this.logger)
+		}
+		this.oscForwarder?.setup(
+			this.config.enableOscForwarding,
+			this.config.oscForwardingHost,
+			this.config.oscForwardingPort,
+		)
 
 		if (this.reconnectTimer) {
 			clearTimeout(this.reconnectTimer)
@@ -218,45 +220,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	updateFeedbacks(): void {
-		this.setFeedbackDefinitions(
-			GetFeedbacksList(
-				this
-			),
-		)
-	}
-
-	private setupOscForwarder(): void {
-		// Clean up existing forwarder if any
-		if (this.oscForwarder) {
-			try {
-				this.oscForwarder.close()
-			} catch (_e) {
-				// Ignore
-			}
-			this.oscForwarder = undefined
-		}
-
-		// Setup new forwarder if enabled
-		if (this.config.enableOscForwarding && this.config.oscForwardingHost && this.config.oscForwardingPort) {
-			try {
-				this.oscForwarder = new osc.UDPPort({
-					localAddress: '0.0.0.0',
-					localPort: 0,
-					metadata: true,
-					remoteAddress: this.config.oscForwardingHost,
-					remotePort: this.config.oscForwardingPort,
-				})
-
-				this.oscForwarder.on('error', (err: Error): void => {
-					this.log('warn', `OSC Forwarder Error: ${err.message}`)
-				})
-
-				this.oscForwarder.open()
-				this.log('info', `OSC forwarding enabled to ${this.config.oscForwardingHost}:${this.config.oscForwardingPort}`)
-			} catch (err) {
-				this.log('error', `Failed to setup OSC forwarder: ${err}`)
-			}
-		}
+		this.setFeedbackDefinitions(GetFeedbacksList(this))
 	}
 
 	// TODO: get rid of this
