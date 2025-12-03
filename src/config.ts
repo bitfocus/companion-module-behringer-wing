@@ -33,13 +33,7 @@ export interface WingConfig {
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
-	const spacer = {
-		type: 'static-text',
-		id: 'spacer',
-		width: 12,
-		label: '',
-		value: '',
-	} as SomeCompanionConfigField
+	const spacer = { type: 'static-text', id: 'spacer', width: 12, label: '', value: '' } as SomeCompanionConfigField
 
 	function calcUpdateRate(ms: number): number {
 		if (ms > 0) {
@@ -56,7 +50,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			width: 12,
 			label: 'Information',
 			value:
-				'This module works with all Berhinger Wing desks. Make sure to have the latest firmware installed. </br>' +
+				'This module works with all Behringer Wing desks. Make sure to have the latest firmware installed. </br>' +
 				'You can find the firmware and more information on the <a href="https://www.behringer.com/product.html?modelCode=0603-AEN" target="_blank">official Behringer website</a>',
 		},
 		spacer,
@@ -94,7 +88,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		{
 			type: 'number',
 			id: 'fadeUpdateRate',
-			label: `Fader Update Rate (${calcUpdateRate(_self.config.fadeUpdateRate ?? fadeUpdateRateDefault)} updates/sec)`,
+			label: `Fader Update Rate (${calcUpdateRate(_self.config?.fadeUpdateRate ?? fadeUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Update rate of the faders in milliseconds. A lower values makes the transitions smoother but increases system load.',
 			width: 6,
@@ -105,7 +99,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		{
 			type: 'number',
 			id: 'statusPollUpdateRate',
-			label: `Status Poll Rate (${calcUpdateRate(_self.config.statusPollUpdateRate ?? pollUpdateRateDefault)} updates/sec)`,
+			label: `Status Poll Rate (${calcUpdateRate(_self.config?.statusPollUpdateRate ?? pollUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Some values need to be actively requested from the desk, this number sets the interval in milliseconds at which those requests occur.',
 			width: 6,
@@ -116,7 +110,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		{
 			type: 'number',
 			id: 'variableUpdateRate',
-			label: `Variable Update Rate (${calcUpdateRate(_self.config.variableUpdateRate ?? variableUpdateRateDefault)} updates/sec)`,
+			label: `Variable Update Rate (${calcUpdateRate(_self.config?.variableUpdateRate ?? variableUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Defines how many milliseconds elapse between variable updates. A lower number makes variables more responsive but may decrease system performance.',
 			width: 6,
