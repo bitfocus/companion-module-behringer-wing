@@ -48,6 +48,7 @@ export enum FeedbackId {
 	TalkbackAssign = 'talkback-assign',
 	InsertOn = 'insert-on',
 	MainAltSwitch = 'main-alt-switch',
+	ActiveScene = 'active-scene',
 }
 
 function subscribeFeedback(
@@ -576,6 +577,28 @@ export function GetFeedbacksList(
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
 				unsubscribeFeedback(subs, cmd, event)
 				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.ActiveScene]: {
+			type: 'boolean',
+			name: 'Active Scene',
+			description: 'React to the currently active scene',
+			options: [GetDropdown('Scene', 'scene', state.namedChoices.scenes)],
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const sceneName = event.options.scene as string
+				const sceneNumber = state.sceneNameToIdMap.get(sceneName) ?? 0
+				const cmd = ControlCommands.LibraryActiveSceneIndex()
+				const currentSceneNumber = StateUtil.getNumberFromState(cmd, state)
+				return typeof currentSceneNumber === 'number' && currentSceneNumber === sceneNumber
+			},
+			subscribe: (event): void => {
+				const cmd = ControlCommands.LibraryActiveSceneIndex()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
