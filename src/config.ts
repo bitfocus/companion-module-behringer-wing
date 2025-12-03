@@ -33,13 +33,7 @@ export interface WingConfig {
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
-	const spacer = {
-		type: 'static-text',
-		id: 'spacer',
-		width: 12,
-		label: '',
-		value: '',
-	} as SomeCompanionConfigField
+	const spacer = { type: 'static-text', id: 'spacer', width: 12, label: '', value: '' } as SomeCompanionConfigField
 
 	function calcUpdateRate(ms: number): number {
 		if (ms > 0) {
@@ -56,7 +50,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			width: 12,
 			label: 'Information',
 			value:
-				'This module works with all Berhinger Wing desks. Make sure to have the latest firmware installed. </br>' +
+				'This module works with all Behringer Wing desks. Make sure to have the latest firmware installed. </br>' +
 				'You can find the firmware and more information on the <a href="https://www.behringer.com/product.html?modelCode=0603-AEN" target="_blank">official Behringer website</a>',
 		},
 		spacer,

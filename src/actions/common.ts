@@ -277,10 +277,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Gain',
 			description: 'Set the input gain of a channel or aux.',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', [
-					...state.namedChoices.channels,
-					...state.namedChoices.auxes,
-				]),
+				...GetDropdownWithVariables('Channel', 'sel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
 				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0),
 				...FadeDurationChoice(),
 			],
