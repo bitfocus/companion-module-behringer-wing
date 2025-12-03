@@ -91,6 +91,7 @@ If you continue to experience issues, you can open an issue on the [GitHub repos
 | Common | Set Delay | Enable or disable the delay of a channel, bus, matrix or main. |
 | Common | Set Delay Mode | Set the delay mode of a channel, bus, matrix or main. |
 | Common | Set Dynamics On | Enable, disable or toggle the on-state of dynamics on a channel, bus, aux, matrix or main. |
+| Common | Set Dynamics Parameter | Set the dynamics parameter for a channel, aux, bus, matrix or main. |
 | Common | Set EQ On | Enable, disable or toggle the on-state of an EQ on a channel, bus, aux, matrix or main. |
 | Common | Set Gain | Set the input gain of a channel or aux. |
 | Common | Set Gate On | Enable, disable or toggle the on-state of a gate on a channel |

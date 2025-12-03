@@ -20,6 +20,41 @@ import {
 	GetPanoramaDeltaSliderWithVariables,
 	GetSendSourceDestinationFieldsWithVariables,
 } from '../choices/common.js'
+import {
+	getDynamicsChoices,
+	getStandardGateFields,
+	getStandardDuckerFields,
+	getEven88GateFields,
+	getSSL9000GateExpanderFields,
+	getDrawMoreExpanderGate241Fields,
+	getDBX902DeEsserFields,
+	getDynamicEQFields,
+	getDualDynamicEQFields,
+	getWaveDesignerFields,
+	getPSESourceExtractorFields,
+	getPSELAComboFields,
+	getAutoRiderFields,
+	getSoulWarmthFields,
+	getWingCompressorFields,
+	getWingExpanderFields,
+	getBDX160Fields,
+	getBDX560Fields,
+	getDrawMoreCompressorFields,
+	getEvenCompressorLimiterFields,
+	getSoul9000Fields,
+	getSoulGBussFields,
+	getRed3Fields,
+	get76LAFields,
+	getLALevelerFields,
+	getF670Fields,
+	getEternalBlissFields,
+	getNoStressorFields,
+	getPIA2250Fields,
+	getLTA100Fields,
+	getEven88CompressorFields,
+	getLMTCompressorFields,
+	getOneKnobCompressorFields,
+} from '../choices/dynamics.js'
 import { runTransition } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
@@ -28,6 +63,7 @@ import { StateUtil } from '../state/index.js'
 import { FadeDurationChoice } from '../choices/fades.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import { getSourceGroupChoices } from '../choices/common.js'
+import { buildDynamicsModelCommands } from '../commands/dynamics.js'
 
 export enum CommonActions {
 	// Setup
@@ -89,6 +125,9 @@ export enum CommonActions {
 
 	// Inserts
 	SetInsertOn = 'set-insert-on',
+
+	// Dynamics
+	SetDynamicsParameter = 'set-dynamics-parameter',
 }
 
 export function createCommonActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -1071,6 +1110,60 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				if (insert.includes('post')) {
 					const cmd = ActionUtil.getPreInsertOnCommand(sel, nodeNum)
 					ensureLoaded(cmd)
+				}
+			},
+		},
+		[CommonActions.SetDynamicsParameter]: {
+			name: 'Set Dynamics Parameter',
+			description: 'Set the dynamics parameter for a channel, aux, bus, matrix or main.',
+			options: [
+				...GetDropdownWithVariables('Selection', 'sel', allChannels),
+				GetDropdown('Dynamics Model', 'model', getDynamicsChoices()),
+				...getStandardGateFields(`$(options:model) == 'GATE'`),
+				...getStandardDuckerFields(`$(options:model) == 'DUCK'`),
+				...getEven88GateFields(`$(options:model) == 'E88'`),
+				...getSSL9000GateExpanderFields(`$(options:model) == '9000G'`),
+				...getDrawMoreExpanderGate241Fields(`$(options:model) == 'D241G'`),
+				...getDBX902DeEsserFields(`$(options:model) == 'DS902'`),
+				...getDynamicEQFields(`$(options:model) == 'DEQ'`),
+				...getDualDynamicEQFields(`$(options:model) == 'DEQ2'`),
+				...getWaveDesignerFields(`$(options:model) == 'WAVE'`),
+				...getPSESourceExtractorFields(`$(options:model) == 'PSE'`),
+				...getPSELAComboFields(`$(options:model) == 'CMB'`),
+				...getAutoRiderFields(`$(options:model) == 'RIDE'`),
+				...getSoulWarmthFields(`$(options:model) == 'WARM'`),
+				...getWingCompressorFields(`$(options:model) == 'COMP'`),
+				...getWingExpanderFields(`$(options:model) == 'EXP'`),
+				...getBDX160Fields(`$(options:model) == 'B160'`),
+				...getBDX560Fields(`$(options:model) == 'B560'`),
+				...getDrawMoreCompressorFields(`$(options:model) == 'D241C'`),
+				...getEvenCompressorLimiterFields(`$(options:model) == 'ECL33'`),
+				...getSoul9000Fields(`$(options:model) == '9000C'`),
+				...getSoulGBussFields(`$(options:model) == 'SBUS'`),
+				...getRed3Fields(`$(options:model) == 'RED3'`),
+				...get76LAFields(`$(options:model) == '76LA'`),
+				...getLALevelerFields(`$(options:model) == 'LA'`),
+				...getF670Fields(`$(options:model) == 'F670'`),
+				...getEternalBlissFields(`$(options:model) == 'BLISS'`),
+				...getNoStressorFields(`$(options:model) == 'NSTR'`),
+				...getPIA2250Fields(`$(options:model) == '2250'`),
+				...getLTA100Fields(`$(options:model) == 'L100'`),
+				...getEven88CompressorFields(`$(options:model) == 'E88C'`),
+				...getLMTCompressorFields(`$(options:model) == 'LMT'`),
+				...getOneKnobCompressorFields(`$(options:model) == 'ONEC'`),
+			],
+			callback: async (event) => {
+				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const model = await ActionUtil.getStringWithVariables(event, 'model')
+				const commands = buildDynamicsModelCommands(sel, model, event.options)
+				for (const tuple of commands) {
+					if (tuple.length === 3) {
+						const [cmd, arg, asFloat] = tuple
+						send(cmd, arg as any, asFloat)
+					} else {
+						const [cmd, arg] = tuple
+						send(cmd, arg as any)
+					}
 				}
 			},
 		},
