@@ -145,7 +145,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			min: 50,
 			max: 10000,
 			default: 200,
-			isVisible: (configValues) => configValues['show-advanced-options'] === true,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'checkbox',
@@ -155,7 +155,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 				'If enabled, the module will log an error when a sent command does not receive a response within the specified timeframe.',
 			width: 6,
 			default: false,
-			isVisible: (configValues) => configValues['show-advanced-options'] === true,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'number',
@@ -165,8 +165,8 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			width: 6,
 			min: 100,
 			max: 9999,
-			default: 200,
-			isVisible: (configValues) => configValues['show-advanced-options'] === true,
+			default: 9000,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 		spacer,
 		{
@@ -177,7 +177,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			value:
 				'Allows forwarding all received OSC messages to another OSC endpoint. </br>' +
 				'This can be useful if you want to use multiple OSC clients that rely on subscription data.',
-			isVisible: (config) => config['show-advanced-options'] === true,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'checkbox',
@@ -186,7 +186,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'Forward all received OSC messages to another OSC endpoint',
 			width: 12,
 			default: false,
-			isVisible: (config) => config['show-advanced-options'] === true,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'textinput',
@@ -195,7 +195,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'IP address or hostname to forward OSC messages to',
 			width: 6,
 			default: '',
-			isVisible: (config) => config.enableOscForwarding === true && config['show-advanced-options'] === true,
+			isVisibleExpression: `$(options:enableOscForwarding) == true && $(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'number',
@@ -206,7 +206,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			min: 1,
 			max: 65535,
 			default: 2223,
-			isVisible: (config) => config.enableOscForwarding === true && config['show-advanced-options'] === true,
+			isVisibleExpression: `$(options:enableOscForwarding) == true && $(options:show-advanced-options) == true`,
 		},
 	]
 }
