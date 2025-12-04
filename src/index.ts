@@ -48,6 +48,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.logger.setLoggerFn((level, message) => {
 			this.log(level, message)
 		})
+		if (config.debugMode === true) {
+			this.logger.debugMode = true
+			this.logger.timestamps = true
+		}
 
 		await this.configUpdated(config)
 
@@ -79,6 +83,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.config = config
 		this.model = getDeskModel(this.config.model)
 		// this.subscriptions = new WingSubscriptions()
+
+		if (config.debugMode === true) {
+			this.logger!.debugMode = true
+			this.logger!.timestamps = true
+		}
 
 		WingDeviceDetectorInstance.unsubscribe(this.id)
 		this.transitions.stopAll()
