@@ -20,10 +20,7 @@ export class ConnectionHandler extends EventEmitter {
 	constructor(logger?: ModuleLogger) {
 		super()
 		this.osc = new osc.UDPPort({})
-
-		if (logger) {
-			this.logger = logger
-		}
+		this.logger = logger
 	}
 
 	/**
