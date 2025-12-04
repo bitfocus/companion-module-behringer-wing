@@ -58,7 +58,7 @@ export class SatelliteClient {
 					resolve()
 				}
 			}
-			this.socket.onerror = (error) => {
+			this.socket.onerror = (error: { message: any }) => {
 				if (!settled) {
 					settled = true
 					clearTimeout(timer)
