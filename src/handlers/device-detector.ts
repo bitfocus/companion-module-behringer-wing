@@ -1,6 +1,7 @@
 import osc from 'osc'
 import { WingModel } from '../models/types.js'
 import { ModuleLogger } from './logger.js'
+import { EventEmitter } from 'events'
 
 export interface DeviceInfo {
 	deviceName: string
@@ -19,14 +20,16 @@ export interface WingDeviceDetectorInterface {
  * Detects Behringer Wing devices on the network via OSC broadcast.
  * Manages subscribers and tracks known devices.
  */
-export class WingDeviceDetector implements WingDeviceDetectorInterface {
+export class WingDeviceDetector extends EventEmitter implements WingDeviceDetectorInterface {
 	private readonly subscribers = new Set<string>()
 	private osc?: osc.UDPPort
 	private knownDevices = new Map<string, DeviceInfo>()
 	private queryTimer: NodeJS.Timeout | undefined
 	private logger?: ModuleLogger
+	private noDeviceTimeout: NodeJS.Timeout | undefined
 
 	constructor(logger?: ModuleLogger) {
+		super()
 		this.logger = logger
 	}
 
@@ -63,7 +66,8 @@ export class WingDeviceDetector implements WingDeviceDetectorInterface {
 	}
 
 	/**
-	 * Start listening for device broadcasts and handle OSC events.
+	 * Start listening for device broadcasts upon request.
+	 * Emits 'no-device-detected' event if no devices are found within 30 seconds.
 	 */
 	private startListening(): void {
 		this.knownDevices.clear()
@@ -71,6 +75,16 @@ export class WingDeviceDetector implements WingDeviceDetectorInterface {
 		if (this.subscribers.size === 0) {
 			return
 		}
+
+		if (this.noDeviceTimeout) {
+			clearTimeout(this.noDeviceTimeout)
+		}
+		this.noDeviceTimeout = setTimeout(() => {
+			if (this.knownDevices.size === 0) {
+				this.emit('no-device-detected')
+			}
+			this.noDeviceTimeout = undefined
+		}, 30000)
 
 		this.osc = new osc.UDPPort({
 			localAddress: '0.0.0.0',
@@ -131,6 +145,11 @@ export class WingDeviceDetector implements WingDeviceDetectorInterface {
 					this.logger?.info(`Removing console ${data.deviceName} at ${data.address} from known devices due to timeout`)
 					this.knownDevices.delete(id)
 				}
+			}
+
+			if (this.noDeviceTimeout && this.knownDevices.size > 0) {
+				clearTimeout(this.noDeviceTimeout)
+				this.noDeviceTimeout = undefined
 			}
 		})
 

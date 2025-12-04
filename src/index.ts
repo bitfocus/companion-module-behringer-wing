@@ -22,7 +22,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	model: ModelSpec
 	connected: boolean = false
 
-	private reconnectTimer: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
 
 	deviceDetector: WingDeviceDetector | undefined
@@ -36,23 +35,17 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	constructor(internal: unknown) {
 		super(internal)
-
-		// this.subscriptions = new WingSubscriptions()
-		this.model = getDeskModel(WingModel.Full) // default, later set in init
-
+		this.model = getDeskModel(WingModel.Full) // later populated correctly
 		this.transitions = new WingTransitions(this)
 	}
 
 	async init(config: WingConfig): Promise<void> {
-		// Setup Logger
 		this.logger = new ModuleLogger('Wing')
 		this.logger.setLoggerFn((level, message) => {
 			this.log(level, message)
 		})
-		if (config.debugMode === true) {
-			this.logger.debugMode = true
-			this.logger.timestamps = true
-		}
+		this.logger.debugMode = config.debugMode ?? false
+		this.logger.timestamps = config.debugMode ?? false
 
 		await this.configUpdated(config)
 	}
@@ -61,10 +54,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		if (this.statusUpdateInterval) {
 			clearInterval(this.statusUpdateInterval)
 			this.statusUpdateInterval = undefined
-		}
-		if (this.reconnectTimer) {
-			clearTimeout(this.reconnectTimer)
-			this.reconnectTimer = undefined
 		}
 
 		this.deviceDetector?.unsubscribe(this.id)
@@ -87,140 +76,25 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.logger!.timestamps = true
 		}
 
-		this.deviceDetector = new WingDeviceDetector(this.logger)
-		this.deviceDetector?.unsubscribe(this.id)
+		this.setupDeviceDetector()
 		this.transitions.stopAll()
 
 		if (this.config.host !== undefined) {
-			// Setup OSC
-			this.connection = new ConnectionHandler(this.logger)
-			this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
-			await this.connection?.open('0.0.0.0', 0, this.config.host, 2223)
-
-			this.connection?.on('ready', () => {
-				this.updateStatus(InstanceStatus.Ok, 'Connection Ready')
-				void this.requestStatusUpdates()
-				this.stateHandler?.state?.requestNames(this)
-				if (this.config.prefetchVariablesOnStartup) {
-					this.stateHandler?.state?.requestAllVariables(this)
-				}
-			})
-
-			this.connection?.on('error', (err: Error) => {
-				this.updateStatus(InstanceStatus.ConnectionFailure, err.message)
-				if (this.statusUpdateInterval) {
-					clearInterval(this.statusUpdateInterval)
-					this.statusUpdateInterval = undefined
-				}
-			})
-
-			this.connection?.on('close', () => {
-				this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
-				this.connected = false
-				if (this.statusUpdateInterval) {
-					clearInterval(this.statusUpdateInterval)
-					this.statusUpdateInterval = undefined
-				}
-				this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
-				this.stateHandler?.clearState()
-			})
-
-			this.connection?.on('message', (msg: OscMessage) => {
-				if (this.connected == false) {
-					this.updateStatus(InstanceStatus.Ok)
-					this.connected = true
-				}
-				if (this.reconnectTimer) {
-					clearTimeout(this.reconnectTimer)
-					this.reconnectTimer = undefined
-				}
-				this.stateHandler?.processMessage(msg)
-				this.feedbackHandler?.processMessage(msg)
-				this.variableHandler?.processMessage(msg)
-				this.oscForwarder?.send(msg)
-			})
-
-			// Setup State Handler
-			this.stateHandler = new StateHandler(this.model, this.logger)
-			this.stateHandler.setTimeout(this.config.requestTimeout ?? 200)
-			if (this.stateHandler) {
-				this.stateHandler.on('request', (path: string, arg?: string | number) => {
-					this.connection!.sendCommand(path, arg).catch(() => {})
-				})
-				this.stateHandler.on('request-failed', (path: string) => {
-					if (this.config.panicOnLostRequest) {
-						this.updateStatus(InstanceStatus.ConnectionFailure, `Request failed for ${path}`)
-					}
-				})
-
-				this.stateHandler.on('update', () => {
-					this.setPresetDefinitions(GetPresets(this))
-					this.setActionDefinitions(createActions(this))
-					this.setFeedbackDefinitions(GetFeedbacksList(this))
-					this.checkFeedbacks()
-				})
-			}
-
-			// Setup Feedback Handler
-			this.feedbackHandler = new FeedbackHandler(this.logger)
-			this.feedbackHandler?.on('check-feedbacks', (feedbacks: string[]) => {
-				this.checkFeedbacks(...feedbacks)
-			})
+			await this.setupConnectionHandler()
+			this.setupStateHandler()
+			this.setupFeedbackHandler()
 		}
 
-		// Setup Variable Handler
-		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate, this.logger)
-		this.variableHandler.on('create-variables', (variables) => {
-			this.setVariableDefinitions(variables)
-		})
-		this.variableHandler.on('update-variable', (variable, value) => {
-			this.setVariableValues({ [variable]: value })
-		})
-		this.variableHandler.on('send', (cmd: string, arg?: number | string) => {
-			this.connection?.sendCommand(cmd, arg).catch(() => {})
-		})
-		this.variableHandler?.setupVariables()
+		this.setupVariableHandler()
 
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
 		this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
 		this.updateActions()
 		this.updateFeedbacks()
 
-		// Setup OSC forwarder
-		if (!this.oscForwarder && this.logger) {
-			this.oscForwarder = new OscForwarder(this.logger)
-		}
-		this.oscForwarder?.setup(
-			this.config.enableOscForwarding,
-			this.config.oscForwardingHost,
-			this.config.oscForwardingPort,
-		)
-
-		if (this.reconnectTimer) {
-			clearTimeout(this.reconnectTimer)
-			this.reconnectTimer = undefined
-		}
+		this.setupOscForwarder()
 
 		this.deviceDetector?.subscribe(this.id)
-	}
-
-	private async requestStatusUpdates(): Promise<void> {
-		const subs = this.feedbackHandler?.subscriptions
-		if (!subs) return
-		// create timeout to verify that the desk is still connected, if we are actively polling
-		if (subs.getPollPaths().length > 0) {
-			if (this.reconnectTimer) {
-				clearTimeout(this.reconnectTimer)
-				this.reconnectTimer = undefined
-			}
-			this.reconnectTimer = setTimeout(() => {
-				this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
-				this.connected = false
-			}, this.config.statusPollUpdateRate ?? 3000)
-		}
-		subs.getPollPaths().forEach((c) => {
-			void this.connection?.sendCommand(c)
-		})
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
@@ -235,19 +109,133 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.setFeedbackDefinitions(GetFeedbacksList(this))
 	}
 
-	// TODO: get rid of this
-	sendCommand = (cmd: string, argument?: number | string, preferFloat?: boolean): void => {
-		this.connection?.sendCommand(cmd, argument, preferFloat).catch((err) => {
-			this.logger?.error(`Error sending command ${cmd}: ${err.message}`)
+	private setupDeviceDetector(): void {
+		this.deviceDetector = new WingDeviceDetector(this.logger)
+		this.deviceDetector?.unsubscribe(this.id)
+
+		if (this.deviceDetector) {
+			;(this.deviceDetector as any).on?.('no-device-detected', () => {
+				this.logger?.warn('No console detected on the network')
+				this.updateStatus(InstanceStatus.Disconnected, 'Unable to detect a console on the network')
+			})
+		}
+	}
+
+	private async setupConnectionHandler(): Promise<void> {
+		this.connection = new ConnectionHandler(this.logger)
+		this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
+		await this.connection?.open('0.0.0.0', 0, this.config.host!, 2223)
+
+		this.connection?.on('ready', () => {
+			this.updateStatus(InstanceStatus.Ok, 'Connection Ready')
+			this.feedbackHandler?.startPolling()
+			this.stateHandler?.state?.requestNames(this)
+			if (this.config.prefetchVariablesOnStartup) {
+				this.stateHandler?.state?.requestAllVariables(this)
+			}
+		})
+
+		this.connection?.on('error', (err: Error) => {
+			this.updateStatus(InstanceStatus.ConnectionFailure, err.message)
+			if (this.statusUpdateInterval) {
+				clearInterval(this.statusUpdateInterval)
+				this.statusUpdateInterval = undefined
+			}
+		})
+
+		this.connection?.on('close', () => {
+			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
+			this.connected = false
+			if (this.statusUpdateInterval) {
+				clearInterval(this.statusUpdateInterval)
+				this.statusUpdateInterval = undefined
+			}
+			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
+			this.stateHandler?.clearState()
+		})
+
+		this.connection?.on('message', (msg: OscMessage) => {
+			if (this.connected == false) {
+				this.updateStatus(InstanceStatus.Ok)
+				this.connected = true
+			}
+			this.feedbackHandler?.clearPollTimeout()
+			this.stateHandler?.processMessage(msg)
+			this.feedbackHandler?.processMessage(msg)
+			this.variableHandler?.processMessage(msg)
+			this.oscForwarder?.send(msg)
 		})
 	}
 
-	// TODO: get rid of this
-	ensureLoaded = (path: string, arg?: string | number): void => {
-		this.stateHandler?.ensureLoaded(path, arg).catch((err) => {
-			this.logger?.error(`Error ensuring loaded ${path}: ${err.message}`)
+	private setupStateHandler(): void {
+		this.stateHandler = new StateHandler(this.model, this.logger)
+		this.stateHandler.setTimeout(this.config.requestTimeout ?? 200)
+
+		this.stateHandler.on('request', (path: string, arg?: string | number) => {
+			this.connection!.sendCommand(path, arg).catch(() => {})
 		})
-		this.setFeedbackDefinitions(GetFeedbacksList(this))
+
+		this.stateHandler.on('request-failed', (path: string) => {
+			if (this.config.panicOnLostRequest) {
+				this.updateStatus(InstanceStatus.ConnectionFailure, `Request failed for ${path}`)
+			}
+		})
+
+		this.stateHandler.on('update', () => {
+			this.setPresetDefinitions(GetPresets(this))
+			this.setActionDefinitions(createActions(this))
+			this.setFeedbackDefinitions(GetFeedbacksList(this))
+			this.checkFeedbacks()
+		})
+	}
+
+	private setupFeedbackHandler(): void {
+		this.feedbackHandler = new FeedbackHandler(this.logger)
+		this.feedbackHandler.setPollInterval(this.config.statusPollUpdateRate ?? 3000)
+
+		this.feedbackHandler.on('check-feedbacks', (feedbacks: string[]) => {
+			this.checkFeedbacks(...feedbacks)
+		})
+
+		this.feedbackHandler.on('poll-request', (paths: string[]) => {
+			paths.forEach((path) => {
+				void this.connection?.sendCommand(path)
+			})
+		})
+
+		this.feedbackHandler.on('poll-connection-timeout', () => {
+			this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
+			this.connected = false
+		})
+	}
+
+	private setupVariableHandler(): void {
+		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate, this.logger)
+
+		this.variableHandler.on('create-variables', (variables) => {
+			this.setVariableDefinitions(variables)
+		})
+
+		this.variableHandler.on('update-variable', (variable, value) => {
+			this.setVariableValues({ [variable]: value })
+		})
+
+		this.variableHandler.on('send', (cmd: string, arg?: number | string) => {
+			this.connection?.sendCommand(cmd, arg).catch(() => {})
+		})
+
+		this.variableHandler?.setupVariables()
+	}
+
+	private setupOscForwarder(): void {
+		if (!this.oscForwarder && this.logger) {
+			this.oscForwarder = new OscForwarder(this.logger)
+		}
+		this.oscForwarder?.setup(
+			this.config.enableOscForwarding,
+			this.config.oscForwardingHost,
+			this.config.oscForwardingPort,
+		)
 	}
 }
 
