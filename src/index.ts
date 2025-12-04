@@ -92,6 +92,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.connection?.on('ready', () => {
 				this.updateStatus(InstanceStatus.Ok, 'Connection Ready')
 				void this.requestStatusUpdates()
+				this.stateHandler?.state?.requestNames(this)
+				if (this.config.prefetchVariablesOnStartup) {
+					this.stateHandler?.state?.requestAllVariables(this)
+				}
 			})
 
 			this.connection?.on('error', (err: Error) => {
