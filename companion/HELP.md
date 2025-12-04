@@ -15,6 +15,7 @@ Using this Companion module, you can do all these cool things!
 - Control mutes
 - Recall scenes
 - Control talkbacks
+- Use the WING's CC buttons as Companion buttons
 - and much more...
 
 See the [Supported Actions](#supported-actions) section below for a complete list of available actions.
@@ -37,6 +38,36 @@ This module uses a subscription to receive updates from the console. When any ch
 Unlike other Behringer consoles, the WING series only supports one active subscription at a time, with the most recent one being the **only** receiver.
 
 If you want to use another application that depends on WING subscription data, some of the data may not be coherent across subscribers.
+
+## Use WING as Companion Surface
+
+You can use the WING console itself as a Companion surface by configuring enabling the 'Use CC Buttons' option in the module's settings. This will allow you to map the CC buttons on the WING to Companion actions.
+For the console to send messages upon a CC button press, you need to assign an action to that button. Prefe
+
+You can use the following buttons on the WING console as Companion buttons:
+
+- **User Pages (CC)**: Creates surfaces for User Pages (U1-U16) with encoders and buttons. You can select specific pages to create (1-16).
+- **GPIO Buttons**: Creates a surface for GPIO buttons.
+- **User Buttons**: Creates a surface for User buttons (8 buttons).
+- **DAW Buttons**: Creates surfaces for DAW buttons (4 sets of 8 buttons).
+
+It is advisable to dedicate one Companion page per Wing User Page surface. This provides a clear one-to-one relationship between your console and Companion.
+
+**In the Surfaces section:**
+Assign each surface to a page number with a matching last digit. Deactivate "Use last page at startup" and select the desired page number for "Startup Page" and "Current Page".
+
+- Example:
+  - **WING_CC_01** → Page 71
+  - **WING_CC_02** → Page 72
+  - **WING_CC_03** → Page 73
+
+This numbering scheme makes it easy to identify which Companion page corresponds to which User Page on your Wing console.
+
+**In the Buttons section:**
+
+- Configure the actual button actions for each page in the "Buttons" section of Companion.
+
+**Important:** On the Wing console, each Custom Control button must have a MIDI command assigned for it to send OSC event updates to Companion. The same MIDI command can be used for all buttons.
 
 ## Troubleshooting
 
