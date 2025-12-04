@@ -10,8 +10,8 @@ import { OSCSomeArguments } from '@companion-module/base'
 export class ConnectionHandler extends EventEmitter {
 	private osc: osc.UDPPort
 	private logger?: ModuleLogger
-	private ready?: Promise<void>
-	private subscribeInterval?: NodeJS.Timeout
+	private subscriptionTimer?: NodeJS.Timeout
+	private subscriptionInterval: number = 9000
 
 	/**
 	 * Create a new ConnectionHandler.
@@ -30,7 +30,7 @@ export class ConnectionHandler extends EventEmitter {
 	 * @param remoteAddress Remote IP address to connect.
 	 * @param remotePort Remote port to connect.
 	 */
-	async open(localAddress: string, localPort: number, remoteAddress: string, remotePort: number): Promise<void> {
+	open(localAddress: string, localPort: number, remoteAddress: string, remotePort: number): void {
 		this.logger?.info(`Opening OSC connection from ${localAddress}:${localPort} to ${remoteAddress}:${remotePort}`)
 		this.osc = new osc.UDPPort({
 			localAddress,
@@ -42,7 +42,6 @@ export class ConnectionHandler extends EventEmitter {
 		})
 
 		this.osc.on('ready', () => {
-			this.logger?.info('OSC connection is ready')
 			this.emit('ready')
 		})
 
@@ -53,9 +52,9 @@ export class ConnectionHandler extends EventEmitter {
 
 		this.osc.on('close' as any, () => {
 			this.logger?.info('OSC connection closed')
-			if (this.subscribeInterval) {
-				clearInterval(this.subscribeInterval)
-				this.subscribeInterval = undefined
+			if (this.subscriptionTimer) {
+				clearInterval(this.subscriptionTimer)
+				this.subscriptionTimer = undefined
 			}
 			this.emit('close')
 		})
@@ -73,25 +72,31 @@ export class ConnectionHandler extends EventEmitter {
 	 * @param interval Interval in milliseconds
 	 */
 	setSubscriptionInterval(interval: number): void {
-		if (this.subscribeInterval) {
-			clearInterval(this.subscribeInterval)
-		}
-		this.subscribeForUpdates(interval).catch(() => {})
+		this.logger?.info(`Setting subscription interval to ${interval} ms`)
+		this.subscriptionInterval = interval
 	}
 
+	startSubscription(): void {
+		this.sendSubscriptionCommand()
+		this.logger?.info('Started subscription for OSC updates')
+		this.subscribeForUpdates()
+	}
+
+	stopSubscription(): void {
+		if (this.subscriptionTimer) {
+			clearInterval(this.subscriptionTimer)
+			this.subscriptionTimer = undefined
+			this.logger?.info('Stopped OSC subscription updates')
+		}
+	}
 	/**
 	 * Start periodic OSC subscription updates at the given interval.
 	 * @param interval Interval in milliseconds.
 	 */
-	private async subscribeForUpdates(interval: number): Promise<void> {
-		await this.ready
-		this.sendSubscriptionCommand()
-		if (this.subscribeInterval) {
-			clearInterval(this.subscribeInterval)
-		}
-		this.subscribeInterval = setInterval(() => {
-			this.sendSubscriptionCommand()
-		}, interval)
+	private subscribeForUpdates(): void {
+		this.subscriptionTimer = setInterval(() => {
+			void this.sendSubscriptionCommand()
+		}, this.subscriptionInterval)
 	}
 
 	/**
