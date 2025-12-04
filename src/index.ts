@@ -1,4 +1,4 @@
-import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
+import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField, Regex } from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
 import { UpgradeScripts } from './upgrades.js'
@@ -20,9 +20,8 @@ import { OscForwarder } from './handlers/osc-forwarder.js'
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
 	model: ModelSpec
-	connected: boolean = false
 
-	private statusUpdateInterval: NodeJS.Timeout | undefined
+	connected: boolean = false
 
 	deviceDetector: WingDeviceDetector | undefined
 	logger: ModuleLogger | undefined
@@ -51,11 +50,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	async destroy(): Promise<void> {
-		if (this.statusUpdateInterval) {
-			clearInterval(this.statusUpdateInterval)
-			this.statusUpdateInterval = undefined
-		}
-
 		this.deviceDetector?.unsubscribe(this.id)
 		this.transitions.stopAll()
 
@@ -79,16 +73,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.setupDeviceDetector()
 		this.transitions.stopAll()
 
-		if (this.config.host !== undefined) {
-			await this.setupConnectionHandler()
-			this.setupStateHandler()
-			this.setupFeedbackHandler()
-		}
+		this.setupConnectionHandler()
+		this.setupStateHandler()
+		this.setupFeedbackHandler()
 
 		this.setupVariableHandler()
 
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
-		this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
 		this.updateActions()
 		this.updateFeedbacks()
 
@@ -121,36 +112,32 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		}
 	}
 
-	private async setupConnectionHandler(): Promise<void> {
+	private setupConnectionHandler(): void {
 		this.connection = new ConnectionHandler(this.logger)
+
+		const ipPattern = Regex.IP.replace(/^\/|\/$/g, '')
+		const ipRegex = new RegExp(ipPattern)
+
+		if (!ipRegex.test(this.config.host ?? '')) {
+			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
+			return
+		}
+
+		this.connection.open('0.0.0.0', 0, this.config.host!, 2223)
 		this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
-		await this.connection?.open('0.0.0.0', 0, this.config.host!, 2223)
+		this.connection.startSubscription()
 
 		this.connection?.on('ready', () => {
-			this.updateStatus(InstanceStatus.Ok, 'Connection Ready')
-			this.feedbackHandler?.startPolling()
-			this.stateHandler?.state?.requestNames(this)
-			if (this.config.prefetchVariablesOnStartup) {
-				this.stateHandler?.state?.requestAllVariables(this)
-			}
+			this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
 		})
 
 		this.connection?.on('error', (err: Error) => {
 			this.updateStatus(InstanceStatus.ConnectionFailure, err.message)
-			if (this.statusUpdateInterval) {
-				clearInterval(this.statusUpdateInterval)
-				this.statusUpdateInterval = undefined
-			}
 		})
 
 		this.connection?.on('close', () => {
 			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
 			this.connected = false
-			if (this.statusUpdateInterval) {
-				clearInterval(this.statusUpdateInterval)
-				this.statusUpdateInterval = undefined
-			}
-			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
 			this.stateHandler?.clearState()
 		})
 
@@ -158,6 +145,14 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			if (this.connected == false) {
 				this.updateStatus(InstanceStatus.Ok)
 				this.connected = true
+
+				this.logger?.info('OSC connection established')
+
+				this.feedbackHandler?.startPolling()
+				this.stateHandler?.state?.requestNames(this)
+				if (this.config.prefetchVariablesOnStartup) {
+					this.stateHandler?.state?.requestAllVariables(this)
+				}
 			}
 			this.feedbackHandler?.clearPollTimeout()
 			this.stateHandler?.processMessage(msg)
@@ -172,7 +167,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.stateHandler.setTimeout(this.config.requestTimeout ?? 200)
 
 		this.stateHandler.on('request', (path: string, arg?: string | number) => {
-			this.connection!.sendCommand(path, arg).catch(() => {})
+			this.connection?.sendCommand(path, arg).catch(() => {})
 		})
 
 		this.stateHandler.on('request-failed', (path: string) => {
