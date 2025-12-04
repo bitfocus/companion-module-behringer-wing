@@ -6,7 +6,7 @@ import { createActions } from './actions/index.js'
 import { GetFeedbacksList } from './feedbacks.js'
 import { OscMessage } from 'osc'
 import { WingTransitions } from './handlers/transitions.js'
-import { WingDeviceDetectorInstance } from './handlers/device-detector.js'
+import { WingDeviceDetector } from './handlers/device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets.js'
@@ -25,6 +25,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	private reconnectTimer: NodeJS.Timeout | undefined
 	private statusUpdateInterval: NodeJS.Timeout | undefined
 
+	deviceDetector: WingDeviceDetector | undefined
 	logger: ModuleLogger | undefined
 	connection: ConnectionHandler | undefined
 	stateHandler: StateHandler | undefined
@@ -54,8 +55,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		}
 
 		await this.configUpdated(config)
-
-		WingDeviceDetectorInstance.subscribe(this.id)
 	}
 
 	async destroy(): Promise<void> {
@@ -68,7 +67,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.reconnectTimer = undefined
 		}
 
-		WingDeviceDetectorInstance.unsubscribe(this.id)
+		this.deviceDetector?.unsubscribe(this.id)
 		this.transitions.stopAll()
 
 		this.connection?.close()
@@ -82,20 +81,20 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	async configUpdated(config: WingConfig): Promise<void> {
 		this.config = config
 		this.model = getDeskModel(this.config.model)
-		// this.subscriptions = new WingSubscriptions()
 
 		if (config.debugMode === true) {
 			this.logger!.debugMode = true
 			this.logger!.timestamps = true
 		}
 
-		WingDeviceDetectorInstance.unsubscribe(this.id)
+		this.deviceDetector = new WingDeviceDetector(this.logger)
+		this.deviceDetector?.unsubscribe(this.id)
 		this.transitions.stopAll()
 
 		if (this.config.host !== undefined) {
 			// Setup OSC
 			this.connection = new ConnectionHandler(this.logger)
-			this.connection.setSubscriptionInterval(this.config.subscriptionInterval)
+			this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
 			await this.connection?.open('0.0.0.0', 0, this.config.host, 2223)
 
 			this.connection?.on('ready', () => {
@@ -202,7 +201,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.reconnectTimer = undefined
 		}
 
-		WingDeviceDetectorInstance.subscribe(this.id)
+		this.deviceDetector?.subscribe(this.id)
 	}
 
 	private async requestStatusUpdates(): Promise<void> {

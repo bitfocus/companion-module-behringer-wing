@@ -1,5 +1,6 @@
 import osc from 'osc'
 import { WingModel } from '../models/types.js'
+import { ModuleLogger } from './logger.js'
 
 export interface DeviceInfo {
 	deviceName: string
@@ -8,7 +9,7 @@ export interface DeviceInfo {
 	lastSeen: number
 }
 
-export interface WingDeviceDetector {
+export interface WingDeviceDetectorInterface {
 	subscribe(instanceId: string): void
 	unsubscribe(instanceId: string): void
 	listKnown(): DeviceInfo[]
@@ -18,11 +19,16 @@ export interface WingDeviceDetector {
  * Detects Behringer Wing devices on the network via OSC broadcast.
  * Manages subscribers and tracks known devices.
  */
-class WingDeviceDetectorImpl implements WingDeviceDetector {
+export class WingDeviceDetector implements WingDeviceDetectorInterface {
 	private readonly subscribers = new Set<string>()
 	private osc?: osc.UDPPort
 	private knownDevices = new Map<string, DeviceInfo>()
 	private queryTimer: NodeJS.Timeout | undefined
+	private logger?: ModuleLogger
+
+	constructor(logger?: ModuleLogger) {
+		this.logger = logger
+	}
 
 	/**
 	 * Register a subscriber to start device detection.
@@ -114,15 +120,15 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 				lastSeen: Date.now(),
 			}
 
-			/*if (!this.knownDevices.has(info.address)) {
-				console.log(`Detected new Device: ${JSON.stringify(msg)}`)
-			}*/
+			if (!this.knownDevices.has(info.address)) {
+				this.logger?.info(`Detected console ${info.deviceName} at ${info.address}`)
+			}
 
+			// If a device has not been seen for over a minute, remove it
 			this.knownDevices.set(info.address, info)
-
-			// Prune out any not seen for over a minute
 			for (const [id, data] of Array.from(this.knownDevices.entries())) {
 				if (data.lastSeen < Date.now() - 60000) {
+					this.logger?.info(`Removing console ${data.deviceName} at ${data.address} from known devices due to timeout`)
 					this.knownDevices.delete(id)
 				}
 			}
@@ -162,4 +168,4 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 	}
 }
 
-export const WingDeviceDetectorInstance: WingDeviceDetector = new WingDeviceDetectorImpl()
+export const WingDeviceDetectorInstance: WingDeviceDetectorInterface = new WingDeviceDetector()
