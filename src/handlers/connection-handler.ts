@@ -46,7 +46,7 @@ export class ConnectionHandler extends EventEmitter {
 
 		this.osc.on('ready', () => {
 			this.logger?.info('OSC connection is ready')
-			this.subscribeForUpdates(9000).catch(() => {})
+			this.emit('ready')
 		})
 
 		this.osc.on('error', (err) => {
@@ -73,13 +73,13 @@ export class ConnectionHandler extends EventEmitter {
 
 	/**
 	 * Set or update the interval for sending OSC subscription commands.
-	 * @param interval Interval in milliseconds (default: 9000).
+	 * @param interval Interval in milliseconds
 	 */
-	setSubscriptionInterval(interval?: number): void {
+	setSubscriptionInterval(interval: number): void {
 		if (this.subscribeInterval) {
 			clearInterval(this.subscribeInterval)
 		}
-		this.subscribeForUpdates(interval ?? 9000).catch(() => {})
+		this.subscribeForUpdates(interval).catch(() => {})
 	}
 
 	/**
@@ -89,6 +89,9 @@ export class ConnectionHandler extends EventEmitter {
 	private async subscribeForUpdates(interval: number): Promise<void> {
 		await this.ready
 		this.sendSubscriptionCommand()
+		if (this.subscribeInterval) {
+			clearInterval(this.subscribeInterval)
+		}
 		this.subscribeInterval = setInterval(() => {
 			this.sendSubscriptionCommand()
 		}, interval)
@@ -98,7 +101,8 @@ export class ConnectionHandler extends EventEmitter {
 	 * Send the OSC subscription command to the remote device.
 	 */
 	private sendSubscriptionCommand(): void {
-		this.sendCommand('/*S').catch(() => {})
+		this.logger?.debug('Sending subscription command')
+		this.sendCommand('/*S', undefined, undefined, true).catch(() => {})
 	}
 
 	/**
@@ -115,7 +119,7 @@ export class ConnectionHandler extends EventEmitter {
 	 * @param argument Optional argument (number or string).
 	 * @param preferFloat If true, send numbers as float (default: false).
 	 */
-	async sendCommand(cmd: string, argument?: number | string, preferFloat?: boolean): Promise<void> {
+	async sendCommand(cmd: string, argument?: number | string, preferFloat?: boolean, preventLog = false): Promise<void> {
 		let args: OSCSomeArguments = []
 		if (typeof argument === 'number') {
 			if (preferFloat) {
@@ -150,8 +154,9 @@ export class ConnectionHandler extends EventEmitter {
 			address: cmd,
 			args: args,
 		}
-		this.logger?.debug(`Sending OSC command: ${JSON.stringify(command)}`)
 		this.osc.send(command)
 		this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
+		if (preventLog) return
+		this.logger?.debug(`Sending OSC command: ${JSON.stringify(command)}`)
 	}
 }
