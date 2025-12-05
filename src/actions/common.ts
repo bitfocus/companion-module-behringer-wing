@@ -287,7 +287,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ActionUtil.runTransition(cmd, 'gain', event, state, transitions, gain, false)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -307,7 +307,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -342,7 +342,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -362,7 +362,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'gain', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -405,7 +405,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				runTransition(cmd, 'level', event, state, transitions, level)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -425,7 +425,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -477,7 +477,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -500,7 +500,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -520,7 +520,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				runTransition(cmd, 'pan', event, state, transitions, pan, false)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -540,7 +540,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -575,7 +575,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -595,7 +595,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
@@ -793,7 +793,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				runTransition(cmd, 'level', event, state, transitions, level)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
@@ -814,7 +814,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
@@ -871,7 +871,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
@@ -898,7 +898,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
@@ -944,7 +944,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				runTransition(cmd, 'pan', event, state, transitions, pan, false)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
 				const dest = ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
@@ -970,7 +970,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
 				const dest = ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
@@ -1013,7 +1013,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
 				const dest = ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
@@ -1039,7 +1039,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'pan', event, state, transitions, targetValue, false)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
 				const dest = ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
@@ -1083,7 +1083,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					}
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const insert = ActionUtil.getStringWithVariables(event, 'insert')
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const nodeNum = ActionUtil.getNodeNumberFromID(sel)

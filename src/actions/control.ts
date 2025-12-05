@@ -48,7 +48,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				await send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
 				await send(ControlCommands.LibraryAction(), 'GO')
 			},
-			subscribe: async () => {
+			subscribe: () => {
 				subscriptions.subscribePoll(ControlCommands.LibraryScenes())
 				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
@@ -63,7 +63,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				await send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
 				await send(ControlCommands.LibraryAction(), 'GO')
 			},
-			subscribe: async () => {
+			subscribe: () => {
 				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
