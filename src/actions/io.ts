@@ -27,7 +27,7 @@ export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			],
 			callback: async (event) => {
 				const cmd = IoCommands.MainAltSwitch()
-				const val = await ActionUtil.getNumberWithVariables(event, 'sel')
+				const val = ActionUtil.getNumberWithVariables(event, 'sel')
 				await send(cmd, val)
 			},
 		},

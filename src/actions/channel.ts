@@ -32,8 +32,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('Filter', 'filter', getFilterModelOptions()),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
-				const filter = await ActionUtil.getStringWithVariables(event, 'filter')
+				const channel = ActionUtil.getStringWithVariables(event, 'channel')
+				const filter = ActionUtil.getStringWithVariables(event, 'filter')
 				const cmd = Commands.FilterModel(ActionUtil.getNodeNumberFromID(channel))
 				await send(cmd, filter)
 			},
@@ -46,8 +46,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('EQ Model', 'model', EqModelChoice),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
-				const model = await ActionUtil.getStringWithVariables(event, 'model')
+				const channel = ActionUtil.getStringWithVariables(event, 'channel')
+				const model = ActionUtil.getStringWithVariables(event, 'model')
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumberFromID(channel))
 				await send(cmd, model)
 			},
@@ -65,7 +65,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				await send(cmd, ActionUtil.getString(event, 'model'))
 			},
 			subscribe: async (event) => {
-				await ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
+				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 			learn: (event) => {
 				return {
@@ -82,8 +82,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('Order', 'order', getChannelProcessOrderChoices()),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
-				const order = await ActionUtil.getStringWithVariables(event, 'order')
+				const channel = ActionUtil.getStringWithVariables(event, 'channel')
+				const order = ActionUtil.getStringWithVariables(event, 'order')
 				const cmd = Commands.ProcessOrder(ActionUtil.getNodeNumberFromID(channel))
 				await send(cmd, order)
 			},

@@ -66,11 +66,11 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
  * @param defaultValue - An optional default value to return if the result is undefined or empty.
  * @returns A promise that resolves to the resulting string
  */
-export async function getStringWithVariables(
+export function getStringWithVariables(
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
 	defaultValue?: string,
-): Promise<string> {
+): string {
 	const useVariables = event.options[`${id}_use_variables`] as boolean
 	let res = ''
 	if (useVariables === false || useVariables === undefined) {
@@ -92,11 +92,11 @@ export async function getStringWithVariables(
  * @returns A promise that resolves to the resulting number
  * @throws If the value is invalid and no default value is provided.
  */
-export async function getNumberWithVariables(
+export function getNumberWithVariables(
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
 	defaultValue?: number,
-): Promise<number> {
+): number {
 	const useVariables = event.options[`${id}_use_variables`] as boolean
 	let res = 0
 	if (useVariables === false || useVariables === undefined) {
