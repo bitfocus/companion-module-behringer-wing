@@ -95,7 +95,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
@@ -114,7 +114,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
 				}
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
@@ -129,7 +129,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
@@ -147,7 +147,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, level)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
@@ -161,7 +161,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},

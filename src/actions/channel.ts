@@ -64,7 +64,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel'))
 				await send(cmd, ActionUtil.getString(event, 'model'))
 			},
-			subscribe: async (event) => {
+			subscribe: (event) => {
 				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
 			},
 			learn: (event) => {
