@@ -2,6 +2,7 @@ import { combineRgb, CompanionPresetDefinitions, CompanionButtonPresetDefinition
 import { InstanceBaseExt } from './types.js'
 import { WingConfig } from './config.js'
 import { CommonActions } from './actions/common.js'
+import { OtherActionId } from './actions/control.js'
 import { FeedbackId } from './feedbacks.js'
 import { ConfigActions } from './actions/config.js'
 
@@ -46,6 +47,9 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 
 	presets[`talkback-a-button`] = getTalkbackPreset('A')
 	presets[`talkback-b-button`] = getTalkbackPreset('B')
+
+	presets[`lights-bright`] = getLightPresetBright()
+	presets[`lights-dark`] = getLightPresetDark()
 
 	return presets
 }
@@ -230,5 +234,87 @@ function getTalkbackPreset(talkback: 'A' | 'B'): CompanionButtonPresetDefinition
 				},
 			},
 		],
+	}
+}
+
+function getLightPresetBright(): CompanionButtonPresetDefinition {
+	return {
+		name: 'Lights: Bright',
+		category: 'Lighting',
+		type: 'button',
+		style: {
+			text: 'Lights\\nBright',
+			size: 'auto',
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0),
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: OtherActionId.SetLightIntensities,
+						options: {
+							lamp: '100',
+							btns: '100',
+							leds: '100',
+							meters: '100',
+							rgbleds: '100',
+							chlcds: '80',
+							chlcdctr: '',
+							chedit: '100',
+							main: '100',
+							glow: '100',
+							patch: '100',
+							fadeDuration: 1000,
+							fadeAlgorithm: 'linear',
+							snapToGrid: false,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
+	}
+}
+
+function getLightPresetDark(): CompanionButtonPresetDefinition {
+	return {
+		name: 'Lights: Dark',
+		category: 'Lighting',
+		type: 'button',
+		style: {
+			text: 'Lights\\nDark',
+			size: 'auto',
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0),
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: OtherActionId.SetLightIntensities,
+						options: {
+							lamp: '10',
+							btns: '80',
+							leds: '40',
+							meters: '30',
+							rgbleds: '10',
+							chlcds: '30',
+							chlcdctr: '',
+							chedit: '10',
+							main: '10',
+							glow: '10',
+							patch: '10',
+							fadeDuration: 1000,
+							fadeAlgorithm: 'linear',
+							snapToGrid: false,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [],
 	}
 }

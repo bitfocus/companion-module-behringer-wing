@@ -1,4 +1,4 @@
-import { CompanionActionDefinitions } from '@companion-module/base'
+import { CompanionActionDefinitions, Regex } from '@companion-module/base'
 import { CompanionActionWithCallback } from './common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
@@ -12,6 +12,7 @@ import {
 import { getIdLabelPair } from '../choices/utils.js'
 import { getGpioModes } from '../choices/control.js'
 import { getGpios } from '../choices/control.js'
+import { FadeDurationChoice } from '../choices/fades.js'
 import * as ActionUtil from './utils.js'
 
 export enum OtherActionId {
@@ -23,6 +24,7 @@ export enum OtherActionId {
 	SaveNow = 'save-now',
 	SetSOF = 'set-sof',
 	SetSelected = 'set-selected',
+	SetLightIntensities = 'set-light-intensities',
 }
 
 export function createControlActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
@@ -179,6 +181,154 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				// send the SOF command with the channel index
 				send(ControlCommands.SetSelect(), channelIndex)
+			},
+		},
+		////////////////////////////////////////////////////////////////
+		// Light Controls
+		////////////////////////////////////////////////////////////////
+		[OtherActionId.SetLightIntensities]: {
+			name: 'Set Light Intensities',
+			description: 'Set the intensities of console lights.',
+			options: [
+				{
+					type: 'textinput',
+					label: 'Lamp',
+					id: 'lamp',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Lamp light intensity (0-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Buttons',
+					id: 'btns',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Button backlight intensity (0-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Layer Buttons',
+					id: 'leds',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Layer button LED intensity (5-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Meters',
+					id: 'meters',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Meter display intensity (0-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Channel Color',
+					id: 'rgbleds',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'RGB LED color indicator intensity (0-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Channel LCD',
+					id: 'chlcds',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Channel LCD screen intensity (5-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Channel LCD Contrast',
+					id: 'chlcdctr',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Channel LCD screen contrast (0-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Channel Strip LCD',
+					id: 'chedit',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Channel edit strip LCD intensity (5-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Touchscreen',
+					id: 'main',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Main touchscreen intensity (5-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Under Console',
+					id: 'glow',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Under console ambient light intensity (0-100%)',
+				},
+				{
+					type: 'textinput',
+					label: 'Patch Panel',
+					id: 'patch',
+					default: '',
+					useVariables: true,
+					regex: Regex.PERCENT,
+					tooltip: 'Patch panel light intensity (0-100%)',
+				},
+				...FadeDurationChoice(),
+			],
+			callback: async (event) => {
+				const lightControls = [
+					{ id: 'btns', cmd: ControlCommands.ButtonsBacklightIntensity },
+					{ id: 'leds', cmd: ControlCommands.ButtonsLEDIntensity },
+					{ id: 'meters', cmd: ControlCommands.MetersIntensity },
+					{ id: 'rgbleds', cmd: ControlCommands.ColorLEDIntensity },
+					{ id: 'chlcds', cmd: ControlCommands.ChannelLCDIntensity },
+					{ id: 'chlcdctr', cmd: ControlCommands.ChannelLCDContrast },
+					{ id: 'chedit', cmd: ControlCommands.ChannelStripIntensity },
+					{ id: 'main', cmd: ControlCommands.TouchscreenIntensity },
+					{ id: 'glow', cmd: ControlCommands.UnderConsoleLightIntensity },
+					{ id: 'patch', cmd: ControlCommands.PatchPanelLightIntensity },
+					{ id: 'lamp', cmd: ControlCommands.LampLightIntensity },
+				]
+
+				for (const control of lightControls) {
+					const value = await ActionUtil.getStringWithVariables(event, control.id)
+					if (value !== undefined && value !== null && value !== '') {
+						const intensity = parseFloat(value)
+						if (!isNaN(intensity)) {
+							const cmd = control.cmd()
+							ActionUtil.runTransition(cmd, control.id, event, state, self.transitions, intensity, false)
+						}
+					}
+				}
+			},
+			subscribe: () => {
+				ensureLoaded(ControlCommands.ButtonsBacklightIntensity())
+				ensureLoaded(ControlCommands.ButtonsLEDIntensity())
+				ensureLoaded(ControlCommands.MetersIntensity())
+				ensureLoaded(ControlCommands.ColorLEDIntensity())
+				ensureLoaded(ControlCommands.ChannelLCDIntensity())
+				ensureLoaded(ControlCommands.ChannelLCDContrast())
+				ensureLoaded(ControlCommands.ChannelStripIntensity())
+				ensureLoaded(ControlCommands.TouchscreenIntensity())
+				ensureLoaded(ControlCommands.UnderConsoleLightIntensity())
+				ensureLoaded(ControlCommands.PatchPanelLightIntensity())
+				ensureLoaded(ControlCommands.LampLightIntensity())
 			},
 		},
 	}
