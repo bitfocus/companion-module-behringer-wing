@@ -52,13 +52,13 @@ export enum FeedbackId {
 }
 
 function subscribeFeedback(
-	ensureLoaded: (path: string) => Promise<void>,
+	ensureLoaded: (path: string) => void,
 	subs: WingSubscriptions,
 	path: string,
 	event: CompanionFeedbackInfo,
 ): void {
 	subs.subscribe(path, event.id, event.feedbackId as FeedbackId)
-	ensureLoaded(path).catch(() => {})
+	ensureLoaded(path)
 }
 function unsubscribeFeedback(subs: WingSubscriptions, path: string, event: CompanionFeedbackInfo): void {
 	subs.unsubscribe(path, event.id)

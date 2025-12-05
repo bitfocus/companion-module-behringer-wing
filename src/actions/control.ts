@@ -43,15 +43,15 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				'ATTENTION: if you have the same scene name twice in your show, you will not be able to recall it by name! In this case, use the "Recall Scene by Number" action instead.',
 			options: [...GetDropdownWithVariables('Scene Name', 'sceneName', state.namedChoices.scenes)],
 			callback: async (event) => {
-				const sceneName = await ActionUtil.getStringWithVariables(event, 'sceneName')
+				const sceneName = ActionUtil.getStringWithVariables(event, 'sceneName')
 				const sceneId = state.sceneNameToIdMap.get(sceneName) ?? 0
 				await send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
 				await send(ControlCommands.LibraryAction(), 'GO')
 			},
 			subscribe: async () => {
 				subscriptions.subscribePoll(ControlCommands.LibraryScenes())
-				await ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
-				await ensureLoaded(ControlCommands.LibraryNode(), '?')
+				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
+				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
 		},
 		[OtherActionId.RecallSceneByNumber]: {
@@ -59,13 +59,13 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			description: 'Recall scene in a show by its number',
 			options: [...GetNumberFieldWithVariables('Scene Number', 'sceneId', 1, 16384)],
 			callback: async (event) => {
-				const sceneId = await ActionUtil.getNumberWithVariables(event, 'sceneId')
+				const sceneId = ActionUtil.getNumberWithVariables(event, 'sceneId')
 				await send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
 				await send(ControlCommands.LibraryAction(), 'GO')
 			},
 			subscribe: async () => {
-				await ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
-				await ensureLoaded(ControlCommands.LibraryNode(), '?')
+				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
+				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
 			learn: () => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
@@ -92,7 +92,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				),
 			],
 			callback: async (event) => {
-				const act = await ActionUtil.getStringWithVariables(event, 'act')
+				const act = ActionUtil.getStringWithVariables(event, 'act')
 				if (act === 'GO') {
 					await send(ControlCommands.LibrarySceneSelectionIndex(), 0) // required for 'GO' with PREV/NEXT
 				}
@@ -108,8 +108,8 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('GPIO', 'gpio', getGpios(model.gpio), '1'),
 			],
 			callback: async (event) => {
-				const gpio = await ActionUtil.getNumberWithVariables(event, 'gpio')
-				const val = await ActionUtil.getStringWithVariables(event, 'mode')
+				const gpio = ActionUtil.getNumberWithVariables(event, 'gpio')
+				const val = ActionUtil.getStringWithVariables(event, 'mode')
 				const cmd = ControlCommands.GpioMode(gpio)
 				await send(cmd, val)
 			},
@@ -122,8 +122,8 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetOnOffToggleDropdownWithVariables('state', 'State', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getNumberWithVariables(event, 'sel')
-				const gpioState = await ActionUtil.getNumberWithVariables(event, 'state')
+				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
+				const gpioState = ActionUtil.getNumberWithVariables(event, 'state')
 				const cmd = ControlCommands.GpioState(sel)
 
 				await send(cmd, gpioState)
@@ -158,7 +158,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const channel = ActionUtil.getStringWithVariables(event, 'channel')
 				// convert channel to index
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				// send the SOF command with the channel index
@@ -178,7 +178,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				]),
 			],
 			callback: async (event) => {
-				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const channel = ActionUtil.getStringWithVariables(event, 'channel')
 				// convert channel to index
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				// send the SOF command with the channel index

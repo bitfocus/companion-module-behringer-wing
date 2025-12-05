@@ -63,8 +63,9 @@ export class StateHandler extends EventEmitter {
 	/**
 	 * Update internal lists (e.g., scenes) based on OSC message content.
 	 * @param msg OSC message to process.
+	 * @returns true if a structural change occurred that requires updating Companion, false otherwise
 	 */
-	private updateLists(msg: osc.OscMessage): void {
+	private updateLists(msg: osc.OscMessage): boolean {
 		const args = msg.args as osc.MetaArgument[]
 
 		if (this.reCtlLib.test(msg.address)) {
@@ -87,10 +88,11 @@ export class StateHandler extends EventEmitter {
 					this.logger?.info('Updating scene map')
 					this.state!.namedChoices.scenes = newScenes
 					this.state!.sceneNameToIdMap = newSceneNameToIdMap
-					this.requestUpdate()
+					return true
 				}
 			}
 		}
+		return false
 	}
 
 	/**
@@ -100,6 +102,7 @@ export class StateHandler extends EventEmitter {
 	processMessage(msg: OscMessage): void {
 		const { address, args } = msg
 
+		const wasExpected = !!this.inFlightRequests[msg.address]
 		if (this.inFlightRequests[msg.address]) {
 			this.logger?.debug(`Received answer for request ${msg.address}`)
 			this.inFlightRequests[msg.address]()
@@ -108,8 +111,11 @@ export class StateHandler extends EventEmitter {
 
 		this.state?.set(address, args as osc.MetaArgument[])
 		this.logger?.debug(`State updated for ${address} with args: ${JSON.stringify(args)}`)
-		this.updateLists(msg)
-		this.requestUpdate()
+
+		const hadStructuralChange = this.updateLists(msg)
+		if (!wasExpected && hadStructuralChange) {
+			this.requestUpdate()
+		}
 	}
 
 	/**
@@ -117,10 +123,11 @@ export class StateHandler extends EventEmitter {
 	 * @param path OSC address to request.
 	 * @param arg Optional argument for the request.
 	 */
-	async ensureLoaded(path: string, arg?: string | number): Promise<void> {
+	ensureLoaded(path: string, arg?: string | number): void {
 		this.requestQueue
 			.add(async () => {
 				if (this.inFlightRequests[path]) {
+					this.logger?.debug(`Request already in flight for ${path}, skipping`)
 					return
 				}
 

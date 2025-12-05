@@ -42,8 +42,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetMuteDropdownWithVariables('mute', 'Mute', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				const mute = await ActionUtil.getNumberWithVariables(event, 'mute')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				const mute = ActionUtil.getNumberWithVariables(event, 'mute')
 				const cmd = Commands.DirectInputSwitch(ActionUtil.getNodeNumberFromID(sel))
 
 				await send(cmd, mute)
@@ -57,8 +57,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetDropdownWithVariables('Source', 'source', getMatrixDirectInInputs()),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				const source = await ActionUtil.getStringWithVariables(event, 'source')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				const source = ActionUtil.getStringWithVariables(event, 'source')
 				const cmd = Commands.DirectInputIn(ActionUtil.getNodeNumberFromID(sel))
 				await send(cmd, source)
 			},
@@ -71,8 +71,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetOnOffToggleDropdownWithVariables('invert', 'Invert', true),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				const invert = await ActionUtil.getNumberWithVariables(event, 'invert')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				const invert = ActionUtil.getNumberWithVariables(event, 'invert')
 				const cmd = Commands.DirectInputInvert(ActionUtil.getNodeNumberFromID(sel))
 				await send(cmd, invert)
 			},
@@ -107,8 +107,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInUndoDeltaFader]: {
@@ -116,7 +116,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Undo the previous level adjustment of a direct input on a matrix',
 			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
@@ -126,8 +126,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInRecallFader]: {
@@ -135,14 +135,14 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Recall the level of a direct input on a matrix',
 			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInSetFader]: {
@@ -153,14 +153,14 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetFaderInputFieldWithVariables('level'),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				const level = await ActionUtil.getNumberWithVariables(event, 'level')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				const level = ActionUtil.getNumberWithVariables(event, 'level')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, level)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 		[MatrixActions.MatrixDirectInStoreFader]: {
@@ -168,13 +168,13 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Store the fader level of a direct input on a matrix',
 			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices)],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				await ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
 		},
 	}
