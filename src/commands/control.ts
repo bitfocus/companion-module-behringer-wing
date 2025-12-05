@@ -67,4 +67,52 @@ export namespace ControlCommands {
 	export function SaveNow(): string {
 		return `${ConfigNode()}/$savenow`
 	}
+
+	export function LightsNode(): string {
+		return `${ConfigNode()}/lights`
+	}
+
+	export function ButtonsBacklightIntensity(): string {
+		return `${LightsNode()}/btns`
+	}
+
+	export function ButtonsLEDIntensity(): string {
+		return `${LightsNode()}/leds`
+	}
+
+	export function MetersIntensity(): string {
+		return `${LightsNode()}/meters`
+	}
+
+	export function ColorLEDIntensity(): string {
+		return `${LightsNode()}/rgbleds`
+	}
+
+	export function ChannelLCDIntensity(): string {
+		return `${LightsNode()}/chlcds`
+	}
+
+	export function ChannelLCDContrast(): string {
+		return `${LightsNode()}/chlcdctr`
+	}
+
+	export function ChannelStripIntensity(): string {
+		return `${LightsNode()}/chedit`
+	}
+
+	export function TouchscreenIntensity(): string {
+		return `${LightsNode()}/main`
+	}
+
+	export function UnderConsoleLightIntensity(): string {
+		return `${LightsNode()}/glow`
+	}
+
+	export function PatchPanelLightIntensity(): string {
+		return `${LightsNode()}/patch`
+	}
+
+	export function LampLightIntensity(): string {
+		return `${LightsNode()}/lamp`
+	}
 }
