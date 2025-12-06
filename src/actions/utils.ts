@@ -120,9 +120,10 @@ export function getNumberWithVariables(
 	return res
 }
 
-export async function GetSendSourceDestinationFieldsWithVariables(
-	event: CompanionActionInfo | CompanionFeedbackInfo,
-): Promise<{ src: string; dest: string }> {
+export function GetSendSourceDestinationFieldsWithVariables(event: CompanionActionInfo | CompanionFeedbackInfo): {
+	src: string
+	dest: string
+} {
 	const useVariables = event.options.send_src_dest_use_variables as boolean
 	let src = ''
 	let dest = ''
