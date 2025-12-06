@@ -1,5 +1,7 @@
 import osc from 'osc'
-import { WingModel } from './models/types.js'
+import { WingModel } from '../models/types.js'
+import { ModuleLogger } from './logger.js'
+import { EventEmitter } from 'events'
 
 export interface DeviceInfo {
 	deviceName: string
@@ -8,18 +10,33 @@ export interface DeviceInfo {
 	lastSeen: number
 }
 
-export interface WingDeviceDetector {
+export interface WingDeviceDetectorInterface {
 	subscribe(instanceId: string): void
 	unsubscribe(instanceId: string): void
 	listKnown(): DeviceInfo[]
 }
 
-class WingDeviceDetectorImpl implements WingDeviceDetector {
+/**
+ * Detects Behringer Wing devices on the network via OSC broadcast.
+ * Manages subscribers and tracks known devices.
+ */
+export class WingDeviceDetector extends EventEmitter implements WingDeviceDetectorInterface {
 	private readonly subscribers = new Set<string>()
 	private osc?: osc.UDPPort
 	private knownDevices = new Map<string, DeviceInfo>()
 	private queryTimer: NodeJS.Timeout | undefined
+	private logger?: ModuleLogger
+	private noDeviceTimeout: NodeJS.Timeout | undefined
 
+	constructor(logger?: ModuleLogger) {
+		super()
+		this.logger = logger
+	}
+
+	/**
+	 * Register a subscriber to start device detection.
+	 * @param instanceId Unique identifier for the subscriber.
+	 */
 	public subscribe(instanceId: string): void {
 		const startListening = this.subscribers.size === 0
 
@@ -30,22 +47,44 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 		}
 	}
 
+	/**
+	 * Remove a subscriber and stop detection if none remain.
+	 * @param instanceId Unique identifier for the subscriber.
+	 */
 	public unsubscribe(instanceId: string): void {
 		if (this.subscribers.delete(instanceId) && this.subscribers.size === 0) {
 			this.stopListening()
 		}
 	}
 
+	/**
+	 * List all currently known devices, sorted by name.
+	 * @returns Array of DeviceInfo objects.
+	 */
 	public listKnown(): DeviceInfo[] {
 		return Array.from(this.knownDevices.values()).sort((a, b) => a.deviceName.localeCompare(b.deviceName))
 	}
 
+	/**
+	 * Start listening for device broadcasts upon request.
+	 * Emits 'no-device-detected' event if no devices are found within 30 seconds.
+	 */
 	private startListening(): void {
 		this.knownDevices.clear()
 
 		if (this.subscribers.size === 0) {
 			return
 		}
+
+		if (this.noDeviceTimeout) {
+			clearTimeout(this.noDeviceTimeout)
+		}
+		this.noDeviceTimeout = setTimeout(() => {
+			if (this.knownDevices.size === 0) {
+				this.emit('no-device-detected')
+			}
+			this.noDeviceTimeout = undefined
+		}, 30000)
 
 		this.osc = new osc.UDPPort({
 			localAddress: '0.0.0.0',
@@ -95,23 +134,31 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 				lastSeen: Date.now(),
 			}
 
-			/*if (!this.knownDevices.has(info.address)) {
-				console.log(`Detected new Device: ${JSON.stringify(msg)}`)
-			}*/
+			if (!this.knownDevices.has(info.address)) {
+				this.logger?.info(`Detected console ${info.deviceName} at ${info.address}`)
+			}
 
+			// If a device has not been seen for over a minute, remove it
 			this.knownDevices.set(info.address, info)
-
-			// Prune out any not seen for over a minute
 			for (const [id, data] of Array.from(this.knownDevices.entries())) {
 				if (data.lastSeen < Date.now() - 60000) {
+					this.logger?.info(`Removing console ${data.deviceName} at ${data.address} from known devices due to timeout`)
 					this.knownDevices.delete(id)
 				}
+			}
+
+			if (this.noDeviceTimeout && this.knownDevices.size > 0) {
+				clearTimeout(this.noDeviceTimeout)
+				this.noDeviceTimeout = undefined
 			}
 		})
 
 		this.osc.open()
 	}
 
+	/**
+	 * Stop listening for device broadcasts and clean up resources.
+	 */
 	private stopListening(): void {
 		if (this.osc) {
 			try {
@@ -130,6 +177,9 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 		}
 	}
 
+	/**
+	 * Send a device discovery query via OSC broadcast.
+	 */
 	private sendQuery(): void {
 		if (this.osc) {
 			this.osc.send({ address: '/?', args: [] })
@@ -137,4 +187,4 @@ class WingDeviceDetectorImpl implements WingDeviceDetector {
 	}
 }
 
-export const WingDeviceDetectorInstance: WingDeviceDetector = new WingDeviceDetectorImpl()
+export const WingDeviceDetectorInstance: WingDeviceDetectorInterface = new WingDeviceDetector()

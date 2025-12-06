@@ -14,7 +14,7 @@ export enum UsbPlayerActionId {
 }
 
 export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.sendCommand
+	const send = self.connection!.sendCommand.bind(self.connection)
 
 	const actions: { [id in UsbPlayerActionId]: CompanionActionWithCallback | undefined } = {
 		[UsbPlayerActionId.PlaybackAction]: {
@@ -22,9 +22,9 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 			description: 'Start, stop, pause, jump to previous or next in the USB player.',
 			options: [...GetDropdownWithVariables('Action', 'action', getUsbPlayerActionChoices())],
 			callback: async (event) => {
-				const action = await getStringWithVariables(event, 'action')
+				const action = getStringWithVariables(event, 'action')
 				const cmd = Commands.PlayerAction()
-				send(cmd, action)
+				await send(cmd, action)
 			},
 		},
 		[UsbPlayerActionId.SetRepeat]: {
@@ -32,9 +32,9 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 			description: 'Enable the repeat functionality of the USB player',
 			options: [...GetCheckboxWithVariables('Repeat', 'repeat', false, 'Enable or disable repeat functionality')],
 			callback: async (event) => {
-				const repeat = await getNumberWithVariables(event, 'repeat')
+				const repeat = getNumberWithVariables(event, 'repeat')
 				const cmd = Commands.PlayerRepeat()
-				send(cmd, repeat == 1 ? 1 : 0)
+				await send(cmd, repeat == 1 ? 1 : 0)
 			},
 		},
 		[UsbPlayerActionId.RecordAction]: {
@@ -42,9 +42,9 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 			description: 'Start, stop, pause or create a new file in the USB recorder.',
 			options: [...GetDropdownWithVariables('Action', 'action', getUsbRecorderActionChoices())],
 			callback: async (event) => {
-				const action = await getStringWithVariables(event, 'action')
+				const action = getStringWithVariables(event, 'action')
 				const cmd = Commands.RecorderAction()
-				send(cmd, action)
+				await send(cmd, action)
 			},
 		},
 	}
