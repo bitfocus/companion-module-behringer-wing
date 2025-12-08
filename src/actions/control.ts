@@ -188,7 +188,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 		////////////////////////////////////////////////////////////////
 		[OtherActionId.SetLightIntensities]: {
 			name: 'Set Light Intensities',
-			description: 'Set the intensities of console lights.',
+			description: 'Set the intensities of console lights. (leave empty for no change)',
 			options: [
 				{
 					type: 'textinput',
