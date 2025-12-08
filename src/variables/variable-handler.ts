@@ -113,6 +113,7 @@ export class VariableHandler extends EventEmitter {
 
 		const base = match[1]
 		const num = match[2]
+		value = this.round(value, 1)
 		this.emit('update-variable', `${base}${num}_gain`, value)
 	}
 
@@ -178,6 +179,7 @@ export class VariableHandler extends EventEmitter {
 			varName = `${source}_level`
 		}
 
+		value = this.round(value, 1)
 		if (value > -140) {
 			this.emit('update-variable', varName, value)
 		} else {
@@ -211,6 +213,7 @@ export class VariableHandler extends EventEmitter {
 		} else {
 			varName = `${source}_pan`
 		}
+		value = this.round(value, 0)
 		this.emit('update-variable', varName, Math.round(value))
 	}
 
@@ -570,5 +573,9 @@ export class VariableHandler extends EventEmitter {
 			clearInterval(this.variableUpdateInterval)
 			this.variableUpdateInterval = undefined
 		}
+	}
+
+	round(num: number, precision: number): number {
+		return Math.round(num * Math.pow(10, precision)) / Math.pow(10, precision)
 	}
 }
