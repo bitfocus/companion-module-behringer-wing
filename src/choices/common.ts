@@ -542,6 +542,9 @@ export function GetFaderDeltaInputFieldWithVariables(
 	isVisibleExpression?: string,
 ): [
 	CompanionInputFieldCheckbox,
+	CompanionInputFieldCheckbox,
+	CompanionInputFieldNumber,
+	CompanionInputFieldTextInput,
 	CompanionInputFieldNumber,
 	CompanionInputFieldTextInput,
 	CompanionInputFieldNumber,
@@ -549,8 +552,21 @@ export function GetFaderDeltaInputFieldWithVariables(
 	CompanionInputFieldDropdown,
 ] {
 	isVisibleExpression = isVisibleExpression ?? 'true'
-	const number = GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0, true)
-	number.isVisibleExpression = `!$(options:${id}_use_variables) && (${isVisibleExpression})`
+	const number = GetNumberField(name ? name + ' (dB)' : 'Level (dB)', id, -154, 154, 1, 0, true)
+	number.isVisibleExpression = `!$(options:${id}_use_variables) && !$(options:${id}_use_percentage) && (${isVisibleExpression})`
+
+	const percentNumber = GetNumberField(name ? name + ' (%)' : 'Level (%)', `${id}_percent`, -100, 100, 1, 0, true)
+	percentNumber.isVisibleExpression = `!$(options:${id}_use_variables) && $(options:${id}_use_percentage) && (${isVisibleExpression})`
+
+	const percentVariables = {
+		type: 'textinput' as const,
+		id: `${id}_percent_variables`,
+		label: name ?? 'Level (%)',
+		default: '',
+		useVariables: true,
+		isVisibleExpression: `$(options:${id}_use_variables) && $(options:${id}_use_percentage) && (${isVisibleExpression})`,
+	}
+
 	return [
 		{
 			type: 'checkbox',
@@ -560,6 +576,14 @@ export function GetFaderDeltaInputFieldWithVariables(
 			tooltip: 'Enable to use variables',
 			isVisibleExpression: isVisibleExpression,
 		},
+		{
+			type: 'checkbox',
+			label: 'Use Percentage',
+			id: `${id}_use_percentage`,
+			default: false,
+			tooltip: 'Use percentage adjustment (±100%) instead of dB.',
+			isVisibleExpression: isVisibleExpression,
+		},
 		number,
 		{
 			type: 'textinput',
@@ -567,8 +591,10 @@ export function GetFaderDeltaInputFieldWithVariables(
 			label: name ?? 'Level (dB)',
 			default: '',
 			useVariables: true,
-			isVisibleExpression: `$(options:${id}_use_variables) && (${isVisibleExpression})`,
+			isVisibleExpression: `$(options:${id}_use_variables) && !$(options:${id}_use_percentage) && (${isVisibleExpression})`,
 		},
+		percentNumber,
+		percentVariables,
 		...FadeDurationChoice(isVisibleExpression),
 	]
 }
@@ -597,10 +623,7 @@ export function GetSendSourceDestinationFieldsWithVariables(
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
-		{
-			...GetDropdown('From', 'src', sendSources),
-			isVisibleExpression: `!$(options:send_src_dest_use_variables)`,
-		},
+		{ ...GetDropdown('From', 'src', sendSources), isVisibleExpression: `!$(options:send_src_dest_use_variables)` },
 		{
 			...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
 			isVisibleExpression: `!$(options:send_src_dest_use_variables) && indexOf($(options:src), '/main') != 0`,

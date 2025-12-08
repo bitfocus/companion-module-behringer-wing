@@ -449,20 +449,31 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Adjust the level of a channel, aux, bus, dca, matrix or main.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
+				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+				const usePercentage = event.options.delta_use_percentage as boolean
+				let delta: number
+				if (usePercentage) {
+					const useVariables = event.options.delta_use_variables as boolean
+					if (useVariables) {
+						delta = Number(event.options.delta_percent_variables) / 100
+					} else {
+						delta = Number(event.options.delta_percent) / 100
+					}
+				} else {
+					delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+				}
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
-					if (targetValue < -90) {
+					if (!usePercentage && targetValue < -90) {
 						targetValue = -90
 					}
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
 				}
 			},
 			subscribe: async (event) => {
@@ -835,17 +846,28 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					channelAuxBusSendDestinations,
 					mainSendDestinations,
 				),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
+				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+				const usePercentage = event.options.delta_use_percentage as boolean
+				let delta: number
+				if (usePercentage) {
+					const useVariables = event.options.delta_use_variables as boolean
+					if (useVariables) {
+						delta = Number(event.options.delta_percent_variables) / 100
+					} else {
+						delta = Number(event.options.delta_percent) / 100
+					}
+				} else {
+					delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+				}
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
 				}
 			},
 			subscribe: async (event) => {
