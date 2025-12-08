@@ -85,13 +85,24 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
-				const delta = await ActionUtil.getNumberWithVariables(event, 'delta')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
+				const usePercentage = event.options.delta_use_percentage as boolean
+				let delta: number
+				if (usePercentage) {
+					const useVariables = event.options.delta_use_variables as boolean
+					if (useVariables) {
+						delta = Number(event.options.delta_percent_variables) / 100
+					} else {
+						delta = Number(event.options.delta_percent) / 100
+					}
+				} else {
+					delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+				}
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
 				}
 			},
 			subscribe: async (event) => {

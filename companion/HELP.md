@@ -129,7 +129,7 @@ If you continue to experience issues, you can open an issue on the [GitHub repos
 | Control | Send Library Action | Trigger a library action (Select and navigate scenes in a show) |
 | Control | Set GPIO Mode | Configure the mode of a GPIO |
 | Control | Set GPIO State | Set the state of a GPIO |
-| Control | Set Light Intensities | Set the intensities of console lights. |
+| Control | Set Light Intensities | Set the intensities of console lights. (leave empty for no change) |
 | Control | Set Selected | Set Selected Channel Strip |
 | Control | Set SOF | Set Sends on Fader |
 | IO | Set Main/Alt Switch | Sets the desk to use the configured main/alt input sources. |
