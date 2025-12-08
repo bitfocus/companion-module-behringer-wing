@@ -449,7 +449,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Adjust the level of a channel, aux, bus, dca, matrix or main.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
+				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
@@ -846,7 +846,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					channelAuxBusSendDestinations,
 					mainSendDestinations,
 				),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
+				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const { src, dest } = await ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)

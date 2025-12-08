@@ -552,10 +552,10 @@ export function GetFaderDeltaInputFieldWithVariables(
 	CompanionInputFieldDropdown,
 ] {
 	isVisibleExpression = isVisibleExpression ?? 'true'
-	const number = GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0, true)
+	const number = GetNumberField(name ? name + ' (dB)' : 'Level (dB)', id, -154, 154, 1, 0, true)
 	number.isVisibleExpression = `!$(options:${id}_use_variables) && !$(options:${id}_use_percentage) && (${isVisibleExpression})`
 
-	const percentNumber = GetNumberField(name ?? 'Level (%)', `${id}_percent`, -100, 100, 1, 0, true)
+	const percentNumber = GetNumberField(name ? name + ' (%)' : 'Level (%)', `${id}_percent`, -100, 100, 1, 0, true)
 	percentNumber.isVisibleExpression = `!$(options:${id}_use_variables) && $(options:${id}_use_percentage) && (${isVisibleExpression})`
 
 	const percentVariables = {
@@ -623,10 +623,7 @@ export function GetSendSourceDestinationFieldsWithVariables(
 			default: false,
 			tooltip: 'Enable to use variables',
 		},
-		{
-			...GetDropdown('From', 'src', sendSources),
-			isVisibleExpression: `!$(options:send_src_dest_use_variables)`,
-		},
+		{ ...GetDropdown('From', 'src', sendSources), isVisibleExpression: `!$(options:send_src_dest_use_variables)` },
 		{
 			...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
 			isVisibleExpression: `!$(options:send_src_dest_use_variables) && indexOf($(options:src), '/main') != 0`,

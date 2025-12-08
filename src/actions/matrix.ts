@@ -81,7 +81,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Adjust the level of a direct input on a matrix',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust (dB)'),
+				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
