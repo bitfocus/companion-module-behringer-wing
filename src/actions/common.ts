@@ -221,7 +221,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const led = ActionUtil.getNumberWithVariables(event, 'led')
-				console.log(led)
 				const cmd = ActionUtil.getScribblelightCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				await send(cmd, led)
 			},

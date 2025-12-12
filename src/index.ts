@@ -139,6 +139,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.connection?.on('close', () => {
 			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
 			this.connected = false
+			this.feedbackHandler?.startPolling()
 			this.stateHandler?.clearState()
 		})
 
@@ -154,13 +155,13 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				if (this.config.prefetchVariablesOnStartup) {
 					this.stateHandler?.state?.requestAllVariables(this)
 				}
+				this.stateHandler?.requestUpdate()
 			}
 			this.feedbackHandler?.clearPollTimeout()
 			this.stateHandler?.processMessage(msg)
 			this.feedbackHandler?.processMessage(msg)
 			this.variableHandler?.processMessage(msg)
 			this.oscForwarder?.send(msg)
-			this.stateHandler?.requestUpdate()
 		})
 	}
 
@@ -196,7 +197,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		this.feedbackHandler.on('poll-request', (paths: string[]) => {
 			paths.forEach((path) => {
-				void this.connection?.sendCommand(path)
+				this.logger?.info(path)
+				this.stateHandler?.ensureLoaded(path)
 			})
 		})
 

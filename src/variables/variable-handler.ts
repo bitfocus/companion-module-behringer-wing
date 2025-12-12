@@ -17,7 +17,6 @@ import osc, { OscMessage } from 'osc'
 import { CompanionVariableDefinition, OSCMetaArgument } from '@companion-module/base'
 import * as ActionUtil from '../actions/utils.js'
 import { IoCommands } from '../commands/io.js'
-import { ControlCommands } from '../commands/control.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
 const RE_GAIN = /\/(\w+)\/(\d+)\/in\/set\/\$g/
@@ -477,8 +476,6 @@ export class VariableHandler extends EventEmitter {
 
 				this.emit('update-variable', 'active_scene_name', scene)
 				this.emit('update-variable', 'active_scene_folder', parent)
-			} else if (subcommand === '$scenes') {
-				this.emit('send', ControlCommands.LibraryNode(), 'actidx')
 			}
 		} else if (command === '$stat') {
 			if (subcommand === 'sof') {

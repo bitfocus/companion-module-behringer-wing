@@ -53,6 +53,9 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
+			unsubscribe: () => {
+				subscriptions.unsubscribePoll(ControlCommands.LibraryScenes())
+			},
 		},
 		[OtherActionId.RecallSceneByNumber]: {
 			name: 'Recall Scene by Number',
@@ -309,7 +312,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				]
 
 				for (const control of lightControls) {
-					const value = await ActionUtil.getStringWithVariables(event, control.id)
+					const value = ActionUtil.getStringWithVariables(event, control.id)
 					if (value !== undefined && value !== null && value !== '') {
 						const intensity = parseFloat(value)
 						if (!isNaN(intensity)) {
