@@ -85,7 +85,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
 			],
 			callback: async (event) => {
-				const sel = await ActionUtil.getStringWithVariables(event, 'sel')
+				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const usePercentage = event.options.delta_use_percentage as boolean
@@ -98,7 +98,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 						delta = Number(event.options.delta_percent) / 100
 					}
 				} else {
-					delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+					delta = ActionUtil.getNumberWithVariables(event, 'delta')
 				}
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
