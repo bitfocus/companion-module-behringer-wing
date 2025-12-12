@@ -216,7 +216,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.variableHandler.on('update-variable', (variable, value) => {
-			this.setVariableValues({ [variable]: value })
+			let rounded = Math.round((value + Number.EPSILON) * 10) / 10
+			if (Number.isInteger(value)) {
+				rounded = Math.round(value)
+			}
+			this.setVariableValues({ [variable]: rounded })
 		})
 
 		this.variableHandler.on('send', (cmd: string, arg?: number | string) => {
