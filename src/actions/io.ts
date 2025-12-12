@@ -20,8 +20,8 @@ export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			description: 'Sets the desk to use the configured main/alt input sources.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', [
-					getIdLabelPair('0', 'Alt'),
-					getIdLabelPair('1', 'Main'),
+					getIdLabelPair('1', 'Alt'),
+					getIdLabelPair('0', 'Main'),
 					getIdLabelPair('-1', 'Toggle'),
 				]),
 			],
