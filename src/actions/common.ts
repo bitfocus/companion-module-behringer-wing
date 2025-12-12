@@ -216,11 +216,12 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			description: 'Set or toggle the scribble light state of a channel, aux, bus, dca, matrix, or main.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetOnOffToggleDropdownWithVariables('Scribble Light', 'led', true),
+				...GetOnOffToggleDropdownWithVariables('led', 'Scribble Light', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const led = ActionUtil.getNumberWithVariables(event, 'led')
+				console.log(led)
 				const cmd = ActionUtil.getScribblelightCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				await send(cmd, led)
 			},
