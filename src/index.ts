@@ -129,6 +129,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		this.connection?.on('ready', () => {
 			this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
+			void this.connection?.sendCommand('/*', undefined, undefined, true) // send something to trigger response from console
 		})
 
 		this.connection?.on('error', (err: Error) => {
@@ -159,6 +160,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.feedbackHandler?.processMessage(msg)
 			this.variableHandler?.processMessage(msg)
 			this.oscForwarder?.send(msg)
+			this.stateHandler?.requestUpdate()
 		})
 	}
 

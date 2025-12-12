@@ -205,6 +205,7 @@ export class WingState implements IStoredChannelSubject {
 
 	public requestNames(self: WingInstance): void {
 		const model = self.model
+		console.info('Requesting all names')
 		const sendCommand = self.connection!.sendCommand.bind(self.connection)
 
 		for (let ch = 1; ch <= model.channels; ch++) {
