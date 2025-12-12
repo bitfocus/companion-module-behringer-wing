@@ -330,6 +330,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', allChannels),
 				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0),
+				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -466,7 +467,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 						delta = Number(event.options.delta_percent) / 100
 					}
 				} else {
-					delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+					delta = ActionUtil.getNumberWithVariables(event, 'delta')
 				}
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
@@ -863,7 +864,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 						delta = Number(event.options.delta_percent) / 100
 					}
 				} else {
-					delta = await ActionUtil.getNumberWithVariables(event, 'delta')
+					delta = ActionUtil.getNumberWithVariables(event, 'delta')
 				}
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
