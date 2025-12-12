@@ -8,8 +8,8 @@ import {
 	CompanionFeedbackDefinitions,
 	CompanionFeedbackInfo,
 } from '@companion-module/base'
-// import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
 import {
+	GetDropdown,
 	GetDropdownWithVariables,
 	GetMuteDropdownWithVariables,
 	GetSendSourceDestinationFieldsWithVariables,
