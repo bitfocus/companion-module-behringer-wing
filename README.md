@@ -4,6 +4,32 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.2.0
+
+### Added
+
+- Action to set the channel "Main Input Source" -> "Set Channel/Aux Main Connection"
+- Action to set the channel "Alt Input Source" -> "Set Channel/Aux Alt Connection"
+- Action to set the automatic switch between Main and Alt input source -> "Set Channel/Aux Auto Source Switch"
+- Action to select whether a channel uses the Main or Alt input source -> "Set Channel/Aux Switch"
+- Action to edit a channel strip's Icon -> "Set Channel Icon"
+- Action to recall a schene by name -> "Recall Scene by Name"
+- Action to recall a scene by number -> "Recall Scene by Number"
+- Action to set light intensities of various console light sources -> "Set Light Intensities"
+- New colors for Wing firmware 3.1
+- Module option to prefetch all variables on startup
+- Module option to enable forwarding of OSC messages from the Wing to another host with programmable IP and Port
+- Presets for "Bright Lights" and "Dark Lights"
+- All channel selection dropdowns now support selection using variables
+- Issue Templates for bug reports and feature requests
+- HELP.md file
+
+### Changed
+
+- Version bumb of companion-module/base to 1.13
+- Renamed color "Orange" to "Brown"
+- Loads of under-the-hood refactoring and code cleanup for future release with better maintainability
+
 ## 2.1.0
 
 ### Added
