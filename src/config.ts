@@ -89,7 +89,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		{
 			type: 'number',
 			id: 'fadeUpdateRate',
-			label: `Fader Update Rate (${calcUpdateRate(_self.config.fadeUpdateRate ?? fadeUpdateRateDefault)} updates/sec)`,
+			label: `Fader Update Rate (${calcUpdateRate(_self.config?.fadeUpdateRate ?? fadeUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Update rate of the faders in milliseconds. A lower values makes the transitions smoother but increases system load.',
 			width: 6,
@@ -100,7 +100,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		{
 			type: 'number',
 			id: 'statusPollUpdateRate',
-			label: `Status Poll Rate (${calcUpdateRate(_self.config.statusPollUpdateRate ?? pollUpdateRateDefault)} updates/sec)`,
+			label: `Status Poll Rate (${calcUpdateRate(_self.config?.statusPollUpdateRate ?? pollUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Some values need to be actively requested from the desk, this number sets the interval in milliseconds at which those requests occur.',
 			width: 6,
@@ -111,7 +111,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		{
 			type: 'number',
 			id: 'variableUpdateRate',
-			label: `Variable Update Rate (${calcUpdateRate(_self.config.variableUpdateRate ?? variableUpdateRateDefault)} updates/sec)`,
+			label: `Variable Update Rate (${calcUpdateRate(_self.config?.variableUpdateRate ?? variableUpdateRateDefault)} updates/sec)`,
 			tooltip:
 				'Defines how many milliseconds elapse between variable updates. A lower number makes variables more responsive but may decrease system performance.',
 			width: 6,
