@@ -4,6 +4,16 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.2.3
+
+### Fixed
+
+- Fixed mishandling of undefined variable in config file that would prevent a fresh instance of the module from starting
+
+### Added
+
+- Added variables for channel, aux, bus, dca, matrix and main color names
+
 ## 2.2.0
 
 ### Added
