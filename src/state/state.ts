@@ -299,6 +299,7 @@ export class WingState implements IStoredChannelSubject {
 		// Channel strips
 		for (let ch = 1; ch <= model.channels; ch++) {
 			self.sendCommand(Commands.Channel.InputGain(ch))
+			self.sendCommand(Commands.Channel.Color(ch))
 			self.sendCommand(Commands.Channel.Mute(ch))
 			self.sendCommand(Commands.Channel.Fader(ch))
 			self.sendCommand(Commands.Channel.Pan(ch))
@@ -322,6 +323,7 @@ export class WingState implements IStoredChannelSubject {
 		// Auxes
 		for (let aux = 1; aux <= model.auxes; aux++) {
 			self.sendCommand(Commands.Aux.InputGain(aux))
+			self.sendCommand(Commands.Aux.Color(aux))
 			self.sendCommand(Commands.Aux.Mute(aux))
 			self.sendCommand(Commands.Aux.Fader(aux))
 			self.sendCommand(Commands.Aux.Pan(aux))
@@ -345,6 +347,7 @@ export class WingState implements IStoredChannelSubject {
 		// Busses
 		for (let bus = 1; bus <= model.busses; bus++) {
 			self.sendCommand(Commands.Bus.Mute(bus))
+			self.sendCommand(Commands.Bus.Color(bus))
 			self.sendCommand(Commands.Bus.Fader(bus))
 			self.sendCommand(Commands.Bus.Pan(bus))
 
@@ -368,6 +371,7 @@ export class WingState implements IStoredChannelSubject {
 		// Matrices
 		for (let mtx = 1; mtx <= model.matrices; mtx++) {
 			self.sendCommand(Commands.Matrix.Mute(mtx))
+			self.sendCommand(Commands.Matrix.Color(mtx))
 			self.sendCommand(Commands.Matrix.Fader(mtx))
 			self.sendCommand(Commands.Matrix.Pan(mtx))
 		}
@@ -375,6 +379,7 @@ export class WingState implements IStoredChannelSubject {
 		// Mains
 		for (let main = 1; main <= model.mains; main++) {
 			self.sendCommand(Commands.Main.Mute(main))
+			self.sendCommand(Commands.Main.Color(main))
 			self.sendCommand(Commands.Main.Fader(main))
 			self.sendCommand(Commands.Main.Pan(main))
 
@@ -388,6 +393,7 @@ export class WingState implements IStoredChannelSubject {
 		// DCAs
 		for (let dca = 1; dca <= model.dcas; dca++) {
 			self.sendCommand(Commands.Dca.Mute(dca))
+			self.sendCommand(Commands.Dca.Color(dca))
 			self.sendCommand(Commands.Dca.Fader(dca))
 		}
 
