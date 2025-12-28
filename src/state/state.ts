@@ -299,6 +299,7 @@ export class WingState implements IStoredChannelSubject {
 		// Channel strips
 		for (let ch = 1; ch <= model.channels; ch++) {
 			self.sendCommand(Commands.Channel.InputGain(ch))
+			self.sendCommand(Commands.Channel.Color(ch))
 			self.sendCommand(Commands.Channel.Mute(ch))
 			self.sendCommand(Commands.Channel.Fader(ch))
 			self.sendCommand(Commands.Channel.Pan(ch))
