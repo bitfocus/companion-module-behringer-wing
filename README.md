@@ -4,6 +4,16 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.2.4
+
+### Added
+
+- Added pre-push checks to ensure package version, README.md and git tag are in sync
+
+### Changed
+
+- Refactored module for easier maintainability and expansion
+
 ## 2.2.3
 
 ### Fixed
@@ -82,7 +92,6 @@ See also HELP.md and LICENSE
 ### Changed
 
 - Re-structued repository to accomodate for large number of commands (inspired by [ATEM](https://github.com/bitfocus/companion-module-bmd-atem))
-
   - chaned from `action.ts` to `action/` as directory with one file per category
   - OSC commands are documented the `commands/` directory, with one file per category. Each command category is its own namespace.
 
