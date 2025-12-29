@@ -1,210 +1,91 @@
-import {
-	InstanceBase,
-	runEntrypoint,
-	InstanceStatus,
-	SomeCompanionConfigField,
-	OSCSomeArguments,
-} from '@companion-module/base'
-import PQueue from 'p-queue'
+import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField, Regex } from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
-import {
-	UpdateVariables as UpdateAllVariables,
-	UpdateShowControlVariables,
-	UpdateVariableDefinitions,
-} from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
-import { FeedbackId, GetFeedbacksList } from './feedbacks.js'
-import { WingState, WingSubscriptions } from './state/index.js'
-import osc, { OscMessage } from 'osc'
-import debounceFn from 'debounce-fn'
-import { WingTransitions } from './transitions.js'
-import { WingDeviceDetectorInstance } from './device-detector.js'
+import { GetFeedbacksList } from './feedbacks.js'
+import { OscMessage } from 'osc'
+import { WingTransitions } from './handlers/transitions.js'
+import { WingDeviceDetector } from './handlers/device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets.js'
+import { ConnectionHandler } from './handlers/connection-handler.js'
+import { ModuleLogger } from './handlers/logger.js'
+import { StateHandler } from './handlers/state-handler.js'
+import { FeedbackHandler } from './handlers/feedback-handler.js'
+import { VariableHandler } from './variables/variable-handler.js'
+import { OscForwarder } from './handlers/osc-forwarder.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
-	state: WingState
 	model: ModelSpec
-	osc: osc.UDPPort
-	oscForwarder: osc.UDPPort | undefined
-	subscriptions: WingSubscriptions
+
 	connected: boolean = false
 
-	private reconnectTimer: NodeJS.Timeout | undefined
-	private syncInterval: NodeJS.Timeout | undefined
-	private subscribeInterval: NodeJS.Timeout | undefined
-	private statusUpdateInterval: NodeJS.Timeout | undefined
-	private variableUpdateInterval: NodeJS.Timeout | undefined
-
-	/**
-	 * Keeps track of sent requests for values that have been sent and not yet answered.
-	 */
-	private inFlightRequests: { [path: string]: () => void } = {}
-
-	private readonly debounceUpdateCompanion: () => void
-	private readonly requestQueue: PQueue = new PQueue({
-		concurrency: 100,
-		timeout: 200,
-		throwOnTimeout: true,
-	})
+	deviceDetector: WingDeviceDetector | undefined
+	logger: ModuleLogger | undefined
+	connection: ConnectionHandler | undefined
+	stateHandler: StateHandler | undefined
+	feedbackHandler: FeedbackHandler | undefined
+	variableHandler: VariableHandler | undefined
 	transitions: WingTransitions
-
-	private readonly messageFeedbacks = new Set<FeedbackId>()
-	private readonly debounceMessageFeedbacks: () => void
-
-	private variableMessages: { [path: string]: OscMessage } = {}
-
-	// Precompiled regexes to avoid per-message allocations
-	private readonly reCtlLib = /\/\$ctl\/lib/
-	private readonly reChName = /\/ch\/\d+\/\$name/
-	private readonly reAuxName = /\/aux\/\d+\/\$name/
-	private readonly reBusName = /\/bus\/\d+\/\$name/
-	private readonly reMtxName = /\/mtx\/\d+\/\$name/
-	private readonly reMainName = /\/main\/\d+\/\$name/
+	oscForwarder: OscForwarder | undefined
 
 	constructor(internal: unknown) {
 		super(internal)
-
-		this.osc = new osc.UDPPort({})
-		this.subscriptions = new WingSubscriptions()
-		this.model = getDeskModel(WingModel.Full) // default, later set in init
-		this.state = new WingState(this.model) // default, later set in init
-
-		this.debounceUpdateCompanion = debounceFn(this.updateCompanionWithState.bind(this), {
-			wait: 200,
-			maxWait: 2000,
-			before: false,
-			after: true,
-		})
-
-		this.debounceMessageFeedbacks = debounceFn(
-			() => {
-				const feedbacks = Array.from(this.messageFeedbacks).map((feedback) => feedback.toString())
-				this.messageFeedbacks.clear()
-				this.checkFeedbacks(...feedbacks)
-			},
-			{
-				wait: 100,
-				maxWait: 500,
-				before: true,
-				after: true,
-			},
-		)
-
+		this.model = getDeskModel(WingModel.Full) // later populated correctly
 		this.transitions = new WingTransitions(this)
 	}
 
 	async init(config: WingConfig): Promise<void> {
-		this.config = config
-		this.model = getDeskModel(this.config.model)
-		this.state = new WingState(this.model)
+		this.logger = new ModuleLogger('Wing')
+		this.logger.setLoggerFn((level, message) => {
+			this.log(level, message)
+		})
+		this.logger.debugMode = config.debugMode ?? false
+		this.logger.timestamps = config.debugMode ?? false
 
-		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
-		this.updateStatus(InstanceStatus.Connecting)
-		this.updateActions()
-		this.updateFeedbacks()
-		this.updateVariableDefinitions()
-
-		if (this.config.host !== undefined) {
-			this.setupOscSocket()
-		}
-
-		this.setupOscForwarder()
-
-		this.variableUpdateInterval = setInterval(() => {
-			this.UpdateVariables()
-		}, this.config.variableUpdateRate)
-
-		WingDeviceDetectorInstance.subscribe(this.id)
-
-		this.updateCompanionWithState()
+		await this.configUpdated(config)
 	}
 
 	async destroy(): Promise<void> {
-		if (this.reconnectTimer) {
-			clearTimeout(this.reconnectTimer)
-			this.reconnectTimer = undefined
-		}
-		if (this.syncInterval) {
-			clearInterval(this.syncInterval)
-			this.syncInterval = undefined
-		}
-		if (this.subscribeInterval) {
-			clearInterval(this.subscribeInterval)
-			this.subscribeInterval = undefined
-		}
-		if (this.statusUpdateInterval) {
-			clearInterval(this.statusUpdateInterval)
-			this.statusUpdateInterval = undefined
-		}
-		if (this.variableUpdateInterval) {
-			clearInterval(this.variableUpdateInterval)
-			this.variableUpdateInterval = undefined
-		}
-
-		WingDeviceDetectorInstance.unsubscribe(this.id)
+		this.deviceDetector?.unsubscribe(this.id)
 		this.transitions.stopAll()
 
-		if (this.osc) {
-			try {
-				this.osc.close()
-			} catch (_e) {
-				// Ignore
-			}
-		}
+		this.connection?.close()
+		this.stateHandler?.clearState()
 
-		if (this.oscForwarder) {
-			try {
-				this.oscForwarder.close()
-			} catch (_e) {
-				// Ignore
-			}
-			this.oscForwarder = undefined
-		}
+		this.oscForwarder?.close()
+		this.oscForwarder = undefined
+		this.variableHandler?.destroy()
 	}
 
 	async configUpdated(config: WingConfig): Promise<void> {
 		this.config = config
 		this.model = getDeskModel(this.config.model)
-		this.state = new WingState(this.model)
 
-		this.subscriptions = new WingSubscriptions()
-		this.state = new WingState(this.model)
-
-		if (this.subscribeInterval) {
-			clearInterval(this.subscribeInterval)
-			this.subscribeInterval = undefined
-		}
-		if (this.variableUpdateInterval) {
-			clearInterval(this.variableUpdateInterval)
-			this.variableUpdateInterval = undefined
+		if (config.debugMode === true) {
+			this.logger!.debugMode = true
+			this.logger!.timestamps = true
 		}
 
-		WingDeviceDetectorInstance.unsubscribe(this.id)
+		this.setupDeviceDetector()
 		this.transitions.stopAll()
 
+		this.setupConnectionHandler()
+		this.setupStateHandler()
+		this.setupFeedbackHandler()
+
+		this.setupVariableHandler()
+
 		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
-		this.updateStatus(InstanceStatus.Connecting)
 		this.updateActions()
 		this.updateFeedbacks()
-		this.updateVariableDefinitions()
-
-		if (this.config.host !== undefined) {
-			this.setupOscSocket()
-			this.updateCompanionWithState()
-		}
 
 		this.setupOscForwarder()
 
-		this.variableUpdateInterval = setInterval(() => {
-			this.UpdateVariables()
-		}, this.config.variableUpdateRate)
-
-		WingDeviceDetectorInstance.subscribe(this.id)
+		this.deviceDetector?.subscribe(this.id)
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
@@ -216,332 +97,148 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	updateFeedbacks(): void {
-		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.subscriptions, this.ensureLoaded))
+		this.setFeedbackDefinitions(GetFeedbacksList(this))
 	}
 
-	updateVariableDefinitions(): void {
-		UpdateVariableDefinitions(this)
+	private setupDeviceDetector(): void {
+		this.deviceDetector = new WingDeviceDetector(this.logger)
+		this.deviceDetector?.unsubscribe(this.id)
+
+		if (this.deviceDetector) {
+			;(this.deviceDetector as any).on?.('no-device-detected', () => {
+				this.logger?.warn('No console detected on the network')
+				this.updateStatus(InstanceStatus.Disconnected, 'Unable to detect a console on the network')
+			})
+		}
 	}
 
-	private setupOscSocket(): void {
-		this.updateStatus(InstanceStatus.Connecting)
+	private setupConnectionHandler(): void {
+		this.connection = new ConnectionHandler(this.logger)
 
-		if (this.reconnectTimer) {
-			clearTimeout(this.reconnectTimer)
-			this.reconnectTimer = undefined
-		}
-		if (this.syncInterval) {
-			clearInterval(this.syncInterval)
-			this.syncInterval = undefined
-		}
-		if (this.statusUpdateInterval) {
-			clearInterval(this.statusUpdateInterval)
-			this.statusUpdateInterval = undefined
+		const ipPattern = Regex.IP.replace(/^\/|\/$/g, '')
+		const ipRegex = new RegExp(ipPattern)
+
+		if (!ipRegex.test(this.config.host ?? '')) {
+			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
+			return
 		}
 
-		if (this.osc) {
-			try {
-				this.osc.close()
-			} catch (_e) {
-				// Ignore
-			}
-		}
+		this.connection.open('0.0.0.0', 0, this.config.host!, 2223)
+		this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
+		this.connection.startSubscription()
 
-		this.osc = new osc.UDPPort({
-			localAddress: '0.0.0.0',
-			localPort: 0,
-			broadcast: true,
-			metadata: true,
-			remoteAddress: this.config.host,
-			remotePort: 2223,
+		this.connection?.on('ready', () => {
+			this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
+			void this.connection?.sendCommand('/*', undefined, undefined, true) // send something to trigger response from console
 		})
 
-		this.osc.on('error', (err: Error): void => {
-			this.connected = false
-			this.log('error', `Error: ${err.message}`)
+		this.connection?.on('error', (err: Error) => {
 			this.updateStatus(InstanceStatus.ConnectionFailure, err.message)
-
-			this.requestQueue.clear()
-			this.inFlightRequests = {}
-
-			if (this.subscribeInterval) {
-				clearInterval(this.subscribeInterval)
-				this.subscribeInterval = undefined
-			}
-			if (this.statusUpdateInterval) {
-				clearInterval(this.statusUpdateInterval)
-				this.statusUpdateInterval = undefined
-			}
-		})
-		this.osc.on('ready', () => {
-			this.updateStatus(InstanceStatus.Connecting)
-
-			this.subscribeForUpdates()
-			this.subscribeInterval = setInterval(() => {
-				this.subscribeForUpdates()
-			}, 9000)
-			this.statusUpdateInterval = setInterval(() => {
-				this.requestStatusUpdates()
-			}, this.config.statusPollUpdateRate ?? 3000)
-
-			this.state.requestNames(this)
-			if (this.config.prefetchVariablesOnStartup) {
-				this.state.requestAllVariables(this)
-			}
 		})
 
-		this.osc.on('close' as any, () => {
+		this.connection?.on('close', () => {
 			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
 			this.connected = false
-			if (this.subscribeInterval) {
-				clearInterval(this.subscribeInterval)
-				this.subscribeInterval = undefined
-			}
-			if (this.statusUpdateInterval) {
-				clearInterval(this.statusUpdateInterval)
-				this.statusUpdateInterval = undefined
-			}
+			this.feedbackHandler?.startPolling()
+			this.stateHandler?.clearState()
 		})
 
-		this.osc.on('message', (message): void => {
-			if (this.reconnectTimer) {
-				clearTimeout(this.reconnectTimer)
-				this.reconnectTimer = undefined
-			}
+		this.connection?.on('message', (msg: OscMessage) => {
 			if (this.connected == false) {
 				this.updateStatus(InstanceStatus.Ok)
 				this.connected = true
-			}
-			const args = message.args as osc.MetaArgument[]
-			this.log('debug', `Received ${JSON.stringify(message)}`)
-			this.state.set(message.address, args)
 
-			// Forward OSC message if forwarding is enabled
-			if (this.config.enableOscForwarding && this.oscForwarder) {
-				try {
-					this.oscForwarder.send(message)
-				} catch (err) {
-					this.log('warn', `Failed to forward OSC message: ${err}`)
+				this.logger?.info('OSC connection established')
+
+				this.feedbackHandler?.startPolling()
+				this.stateHandler?.state?.requestNames(this)
+				if (this.config.prefetchVariablesOnStartup) {
+					this.stateHandler?.state?.requestAllVariables(this)
 				}
+				this.stateHandler?.requestUpdate()
 			}
+			this.feedbackHandler?.clearPollTimeout()
+			this.stateHandler?.processMessage(msg)
+			this.feedbackHandler?.processMessage(msg)
+			this.variableHandler?.processMessage(msg)
+			this.oscForwarder?.send(msg)
+		})
+	}
 
-			if (this.inFlightRequests[message.address]) {
-				this.log('debug', `Received answer for request ${message.address}`)
-				this.inFlightRequests[message.address]()
-				delete this.inFlightRequests[message.address]
-			}
+	private setupStateHandler(): void {
+		this.stateHandler = new StateHandler(this.model, this.logger)
+		this.stateHandler.setTimeout(this.config.requestTimeout ?? 200)
 
-			// setImmediate(() => {
-			this.checkFeedbackChanges(message)
-
-			this.updateLists(message)
-
-			this.variableMessages[message.address] = message
-			// this.debounceUpdateVariables()
-
-			// })
+		this.stateHandler.on('request', (path: string, arg?: string | number) => {
+			this.connection?.sendCommand(path, arg).catch(() => {})
 		})
 
-		this.osc.open()
+		this.stateHandler.on('request-failed', (path: string) => {
+			if (this.config.panicOnLostRequest) {
+				this.updateStatus(InstanceStatus.ConnectionFailure, `Request failed for ${path}`)
+			}
+		})
+
+		this.stateHandler.on('update', () => {
+			this.setPresetDefinitions(GetPresets(this))
+			this.setActionDefinitions(createActions(this))
+			this.setFeedbackDefinitions(GetFeedbacksList(this))
+			this.checkFeedbacks()
+		})
+	}
+
+	private setupFeedbackHandler(): void {
+		this.feedbackHandler = new FeedbackHandler(this.logger)
+		this.feedbackHandler.setPollInterval(this.config.statusPollUpdateRate ?? 3000)
+
+		this.feedbackHandler.on('check-feedbacks', (feedbacks: string[]) => {
+			this.checkFeedbacks(...feedbacks)
+		})
+
+		this.feedbackHandler.on('poll-request', (paths: string[]) => {
+			paths.forEach((path) => {
+				this.logger?.info(path)
+				this.stateHandler?.ensureLoaded(path)
+			})
+		})
+
+		this.feedbackHandler.on('poll-connection-timeout', () => {
+			this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
+			this.connected = false
+		})
+	}
+
+	private setupVariableHandler(): void {
+		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate, this.logger)
+
+		this.variableHandler.on('create-variables', (variables) => {
+			this.setVariableDefinitions(variables)
+		})
+
+		this.variableHandler.on('update-variable', (variable, value) => {
+			let rounded = Math.round((value + Number.EPSILON) * 10) / 10
+			if (Number.isInteger(value)) {
+				rounded = Math.round(value)
+			}
+			this.setVariableValues({ [variable]: rounded })
+		})
+
+		this.variableHandler.on('send', (cmd: string, arg?: number | string) => {
+			this.connection?.sendCommand(cmd, arg).catch(() => {})
+		})
+
+		this.variableHandler?.setupVariables()
 	}
 
 	private setupOscForwarder(): void {
-		// Clean up existing forwarder if any
-		if (this.oscForwarder) {
-			try {
-				this.oscForwarder.close()
-			} catch (_e) {
-				// Ignore
-			}
-			this.oscForwarder = undefined
+		if (!this.oscForwarder && this.logger) {
+			this.oscForwarder = new OscForwarder(this.logger)
 		}
-
-		// Setup new forwarder if enabled
-		if (this.config.enableOscForwarding && this.config.oscForwardingHost && this.config.oscForwardingPort) {
-			try {
-				this.oscForwarder = new osc.UDPPort({
-					localAddress: '0.0.0.0',
-					localPort: 0,
-					metadata: true,
-					remoteAddress: this.config.oscForwardingHost,
-					remotePort: this.config.oscForwardingPort,
-				})
-
-				this.oscForwarder.on('error', (err: Error): void => {
-					this.log('warn', `OSC Forwarder Error: ${err.message}`)
-				})
-
-				this.oscForwarder.open()
-				this.log('info', `OSC forwarding enabled to ${this.config.oscForwardingHost}:${this.config.oscForwardingPort}`)
-			} catch (err) {
-				this.log('error', `Failed to setup OSC forwarder: ${err}`)
-			}
-		}
-	}
-
-	private subscribeForUpdates(): void {
-		if (this.osc) {
-			try {
-				this.sendCommand('/*S', undefined)
-			} catch (_e) {
-				// Ignore
-			}
-		}
-	}
-
-	private requestStatusUpdates(): void {
-		// create timeout to verify that the desk is still connected, if we are actively polling
-		if (this.subscriptions.getPollPaths().length > 0) {
-			if (this.reconnectTimer) {
-				clearTimeout(this.reconnectTimer)
-				this.reconnectTimer = undefined
-			}
-			this.reconnectTimer = setTimeout(() => {
-				this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
-				this.connected = false
-			}, this.config.statusPollUpdateRate ?? 3000)
-		}
-		this.subscriptions.getPollPaths().forEach((c) => {
-			this.sendCommand(c)
-		})
-	}
-
-	private updateLists(msg: osc.OscMessage): void {
-		const args = msg.args as osc.MetaArgument[]
-
-		if (this.reCtlLib.test(msg.address)) {
-			const content = String(args[0]?.value ?? '')
-			const scenes = content.match(/\$scenes\s+list\s+\[([^\]]+)\]/)
-			UpdateShowControlVariables(this)
-			if (scenes) {
-				const sceneList = scenes[1].split(',').map((s) => s.trim())
-				const newScenes = sceneList.map((s) => ({ id: s, label: s }))
-				const newSceneNameToIdMap = new Map(sceneList.map((s, i) => [s, i + 1]))
-
-				const mapsEqual = (a: Map<string, number>, b: Map<string, number>): boolean => {
-					if (a.size !== b.size) return false
-					for (const [k, v] of a.entries()) {
-						if (b.get(k) !== v) return false
-					}
-					return true
-				}
-
-				if (!mapsEqual(this.state.sceneNameToIdMap, newSceneNameToIdMap)) {
-					this.log('info', 'Updating scene map')
-					this.state.namedChoices.scenes = newScenes
-					this.state.sceneNameToIdMap = newSceneNameToIdMap
-					this.debounceUpdateCompanion()
-				}
-			}
-		}
-	}
-
-	private checkFeedbackChanges(msg: osc.OscMessage): void {
-		const toUpdate = this.subscriptions.getFeedbacks(msg.address)
-		if (toUpdate.length > 0) {
-			toUpdate.forEach((f) => this.messageFeedbacks.add(f))
-			this.debounceMessageFeedbacks()
-		}
-
-		if (
-			this.reChName.test(msg.address) ||
-			this.reBusName.test(msg.address) ||
-			this.reAuxName.test(msg.address) ||
-			this.reMtxName.test(msg.address) ||
-			this.reMainName.test(msg.address)
-		) {
-			// this.log('info', 'Would update now')
-
-			this.debounceUpdateCompanion()
-		}
-	}
-
-	private updateCompanionWithState(): void {
-		this.state.updateNames(this.model)
-
-		this.setPresetDefinitions(GetPresets(this))
-		this.setActionDefinitions(createActions(this))
-		this.setFeedbackDefinitions(GetFeedbacksList(this, this.state, this.subscriptions, this.ensureLoaded))
-		this.checkFeedbacks()
-	}
-
-	private UpdateVariables(): void {
-		const messages: OscMessage[] = Object.values(this.variableMessages)
-		if (messages.length === 0) {
-			return
-		}
-		UpdateAllVariables(this, messages)
-		this.variableMessages = {}
-	}
-
-	sendCommand = (cmd: string, argument?: number | string, preferFloat?: boolean): void => {
-		if (!this.config.host) {
-			return
-		}
-
-		let args: OSCSomeArguments = []
-		if (typeof argument === 'number') {
-			if (preferFloat) {
-				args = {
-					type: 'f',
-					value: argument,
-				}
-			} else {
-				if (Number.isInteger(argument)) {
-					args = {
-						type: 'i',
-						value: argument,
-					}
-				} else {
-					args = {
-						type: 'f',
-						value: argument,
-					}
-				}
-			}
-		} else if (typeof argument === 'string') {
-			args = {
-				type: 's',
-				value: argument,
-			}
-		} else if (argument == undefined) {
-			args = []
-		} else {
-			console.error('Unsupported argument type. Command aborted.')
-		}
-		const command = {
-			address: cmd,
-			args: args,
-		}
-		this.osc.send(command)
-		this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
-	}
-
-	ensureLoaded = (path: string, arg?: string | number): void => {
-		this.requestQueue
-			.add(async () => {
-				if (this.inFlightRequests[path]) {
-					return
-				}
-
-				if (this.state.get(path)) {
-					return
-				}
-
-				this.log('debug', `Requesting ${path}`)
-
-				const p = new Promise<void>((resolve) => {
-					this.inFlightRequests[path] = resolve
-				})
-
-				this.sendCommand(path, arg ?? undefined)
-
-				await p
-			})
-			.catch((_e: unknown) => {
-				delete this.inFlightRequests[path]
-				this.log('warn', `Request failed (${_e}) for ${path}`)
-			})
+		this.oscForwarder?.setup(
+			this.config.enableOscForwarding,
+			this.config.oscForwardingHost,
+			this.config.oscForwardingPort,
+		)
 	}
 }
 

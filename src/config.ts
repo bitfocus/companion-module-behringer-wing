@@ -1,5 +1,5 @@
 import { type SomeCompanionConfigField } from '@companion-module/base'
-import { WingDeviceDetectorInstance } from './device-detector.js'
+import { WingDeviceDetectorInstance } from './handlers/device-detector.js'
 import { ModelChoices, WingModel } from './models/types.js'
 import { InstanceBaseExt } from './types.js'
 // import { ModelChoices, WingModel } from './models/types.js'
@@ -15,26 +15,27 @@ export const DeskTypes = [
 ]
 export interface WingConfig {
 	host?: string
-	port?: number
 	model?: WingModel
 	fadeUpdateRate?: number
 	statusPollUpdateRate?: number
 	variableUpdateRate?: number
 	/** When enabled, the module will request values for all variables on startup */
 	prefetchVariablesOnStartup?: boolean
+
+	// Advanced Option
+	requestTimeout?: number
+	panicOnLostRequest?: boolean
+	subscriptionInterval?: number
+
 	enableOscForwarding?: boolean
 	oscForwardingHost?: string
 	oscForwardingPort?: number
+
+	debugMode?: boolean
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
-	const spacer = {
-		type: 'static-text',
-		id: 'spacer',
-		width: 12,
-		label: '',
-		value: '',
-	} as SomeCompanionConfigField
+	const spacer = { type: 'static-text', id: 'spacer', width: 12, label: '', value: '' } as SomeCompanionConfigField
 
 	function calcUpdateRate(ms: number): number {
 		if (ms > 0) {
@@ -51,7 +52,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			width: 12,
 			label: 'Information',
 			value:
-				'This module works with all Berhinger Wing desks. Make sure to have the latest firmware installed. </br>' +
+				'This module works with all Behringer Wing desks. Make sure to have the latest firmware installed. </br>' +
 				'You can find the firmware and more information on the <a href="https://www.behringer.com/product.html?modelCode=0603-AEN" target="_blank">official Behringer website</a>',
 		},
 		spacer,
@@ -129,6 +130,48 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		},
 		spacer,
 		{
+			type: 'checkbox',
+			id: 'show-advanced-options',
+			label: 'Show advanced options',
+			tooltip:
+				'Show advanced configuration options. There is no guarantee that these options will work in any combination.',
+			width: 12,
+			default: false,
+		},
+		{
+			type: 'number',
+			id: 'requestTimeout',
+			label: 'Request Timeout (ms)',
+			tooltip: 'Time in milliseconds to wait for a response to a sent command before considering it lost.',
+			width: 6,
+			min: 50,
+			max: 10000,
+			default: 200,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
+		},
+		{
+			type: 'checkbox',
+			id: 'panicOnLostRequest',
+			label: 'Panic on lost request',
+			tooltip:
+				'If enabled, the module will log an error when a sent command does not receive a response within the specified timeframe.',
+			width: 6,
+			default: false,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
+		},
+		{
+			type: 'number',
+			id: 'subscriptionInterval',
+			label: 'Subscription Interval (ms)',
+			tooltip: 'Time in milliseconds to wait between subscription requests.',
+			width: 6,
+			min: 100,
+			max: 9999,
+			default: 9000,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
+		},
+		spacer,
+		{
 			type: 'static-text',
 			id: 'osc-forwarding-info',
 			width: 12,
@@ -136,6 +179,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			value:
 				'Allows forwarding all received OSC messages to another OSC endpoint. </br>' +
 				'This can be useful if you want to use multiple OSC clients that rely on subscription data.',
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'checkbox',
@@ -144,6 +188,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'Forward all received OSC messages to another OSC endpoint',
 			width: 12,
 			default: false,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'textinput',
@@ -152,7 +197,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'IP address or hostname to forward OSC messages to',
 			width: 6,
 			default: '',
-			isVisible: (config) => config.enableOscForwarding === true,
+			isVisibleExpression: `$(options:enableOscForwarding) == true && $(options:show-advanced-options) == true`,
 		},
 		{
 			type: 'number',
@@ -163,7 +208,27 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			min: 1,
 			max: 65535,
 			default: 2223,
-			isVisible: (config) => config.enableOscForwarding === true,
+			isVisibleExpression: `$(options:enableOscForwarding) == true && $(options:show-advanced-options) == true`,
+		},
+		spacer,
+		{
+			type: 'static-text',
+			id: 'debug-mode-info',
+			width: 12,
+			label: 'Debug Mode',
+			value:
+				'Enables detailed logging including timestamps and source location information. </br>' +
+				'Useful for troubleshooting and development purposes.',
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
+		},
+		{
+			type: 'checkbox',
+			id: 'debugMode',
+			label: 'Enable Debug Mode',
+			tooltip: 'Enable detailed logging including timestamps and source location information',
+			width: 12,
+			default: false,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 	]
 }
