@@ -1,3 +1,4 @@
 #!/bin/sh
 
 node scripts/check-tag.js
+node scripts/check-readme.js

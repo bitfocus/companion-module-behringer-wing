@@ -21,8 +21,10 @@ if (!tag) {
 	throw new Error('No git tag found on this branch')
 }
 
-if (!/^v\d+(\.\d+){2,3}$/.test(tag)) {
-	throw new Error(`Latest tag '${tag}' does not match vX.Y.Z or vX.Y.Z.W`)
+const VERSION_RE = /^v\d+\.\d+\.\d+(-(alpha|beta|rc)(\.\d+)?)?$/
+
+if (!VERSION_RE.test(tag)) {
+	throw new Error(`Latest tag '${tag}' does not match vX.Y.Z[-(alpha|beta|rc)[.n]]`)
 }
 
 let pkg
@@ -36,7 +38,7 @@ const pkgVersion = pkg.version
 const tagVersion = tag.slice(1)
 
 if (pkgVersion !== tagVersion) {
-	throw new Error(`ERROR: package.json version (${pkgVersion}) does not match git tag (${tag})`)
+	throw new Error(`package.json version (${pkgVersion}) does not match git tag (${tag})`)
 }
 
 console.log(`Git tag '${tag}' matches package.json version '${pkgVersion}'`)
