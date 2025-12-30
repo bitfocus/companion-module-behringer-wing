@@ -16,6 +16,7 @@ import { StateHandler } from './handlers/state-handler.js'
 import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './variables/variable-handler.js'
 import { OscForwarder } from './handlers/osc-forwarder.js'
+import { SurfaceAnnouncer as SurfaceHandler } from './handlers/surface-handler.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
@@ -29,6 +30,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	stateHandler: StateHandler | undefined
 	feedbackHandler: FeedbackHandler | undefined
 	variableHandler: VariableHandler | undefined
+	surfaceHandler: SurfaceHandler | undefined
 	transitions: WingTransitions
 	oscForwarder: OscForwarder | undefined
 
@@ -86,6 +88,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.setupOscForwarder()
 
 		this.deviceDetector?.subscribe(this.id)
+		this.surfaceHandler = new SurfaceHandler(this.logger)
+		this.surfaceHandler.start()
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
