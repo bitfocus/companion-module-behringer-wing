@@ -6,6 +6,10 @@ See also HELP.md and LICENSE
 
 ## 2.2.4
 
+### Fixed
+
+- Changed name of `variables/aux.ts` to `variables/auxiliary.ts` to avoid build issues on Windows
+
 ### Added
 
 - Added pre-push checks to ensure package version, README.md and git tag are in sync
@@ -92,6 +96,7 @@ See also HELP.md and LICENSE
 ### Changed
 
 - Re-structued repository to accomodate for large number of commands (inspired by [ATEM](https://github.com/bitfocus/companion-module-bmd-atem))
+
   - chaned from `action.ts` to `action/` as directory with one file per category
   - OSC commands are documented the `commands/` directory, with one file per category. Each command category is its own namespace.
 
