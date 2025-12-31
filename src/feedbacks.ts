@@ -1,4 +1,4 @@
-import { WingSubscriptions } from './state/index.js'
+import { WingState, WingSubscriptions } from './state/index.js'
 import { InstanceBaseExt } from './types.js'
 import { WingConfig } from './config.js'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
@@ -7,13 +7,10 @@ import {
 	CompanionBooleanFeedbackDefinition,
 	CompanionFeedbackDefinitions,
 	CompanionFeedbackInfo,
+	CompanionOptionValues,
 } from '@companion-module/base'
-import {
-	GetDropdown,
-	GetDropdownWithVariables,
-	GetMuteDropdownWithVariables,
-	GetSendSourceDestinationFieldsWithVariables,
-} from './choices/common.js'
+// import { compareNumber, GetDropdownFeedback, GetNumberComparator, GetPanoramaSliderFeedback } from './choices/common.js'
+import { GetDropdown, GetMuteDropdown } from './choices/common.js'
 import { getTalkbackOptions } from './choices/config.js'
 import { ConfigurationCommands } from './commands/config.js'
 import { getNodeNumber } from './actions/utils.js'
@@ -67,13 +64,12 @@ function unsubscribeFeedback(subs: WingSubscriptions, path: string, event: Compa
 	subs.unsubscribe(path, event.id)
 }
 
-export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionFeedbackDefinitions {
-	const state = _self.stateHandler?.state
-	if (!state) throw new Error('State handler or state is not available')
-	const subs = _self.feedbackHandler?.subscriptions
-	if (!subs) throw new Error('Feedback handler or subscriptions are not available')
-	const ensureLoaded = _self.stateHandler?.ensureLoaded.bind(_self.stateHandler)
-	if (!ensureLoaded) throw new Error('State handler or ensureLoaded is not available')
+export function GetFeedbacksList(
+	_self: InstanceBaseExt<WingConfig>,
+	state: WingState,
+	subs: WingSubscriptions,
+	ensureLoaded: (path: string) => void,
+): CompanionFeedbackDefinitions {
 	const allChannels = [
 		...state.namedChoices.channels,
 		...state.namedChoices.auxes,
@@ -103,18 +99,15 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Main/Alt Input Source',
 			description: 'React to the selected input source group (Main or Alt).',
-			options: [
-				...GetDropdownWithVariables('Selected', 'sel', [getIdLabelPair('1', 'Main'), getIdLabelPair('0', 'Alt')]),
-			],
+			options: [GetDropdown('Selected', 'sel', [getIdLabelPair('1', 'Main'), getIdLabelPair('0', 'Alt')])],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = IoCommands.MainAltSwitch()
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				// Wing reports 0 for Main, 1 for Alt; invert to match UI labels
-				return typeof currentValue === 'number' && `${Number(!currentValue)}` === sel
+				return typeof currentValue === 'number' && `${Number(!currentValue)}` === (event.options.sel as string)
 			},
-			subscribe: async (event): Promise<void> => {
+			subscribe: (event): void => {
 				const cmd = IoCommands.MainAltSwitch()
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -128,25 +121,24 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Mute',
 			description: "React to a change in a channel's mute state",
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannelsAndDcas, ...state.namedChoices.mutegroups]),
-				...GetMuteDropdownWithVariables('mute', 'State', false),
+				GetDropdown('Selection', 'sel', [...allChannelsAndDcas, ...state.namedChoices.mutegroups]),
+				GetMuteDropdown('mute', 'State', false),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				const mute = ActionUtil.getNumberWithVariables(event, 'mute')
-				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == mute
+				return typeof currentValue === 'number' && currentValue == event.options.mute
 			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+			subscribe: (event): void => {
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
+				const sel = event.options.sel as string
+				const cmd = ActionUtil.getMuteCommand(sel, getNodeNumber(event, 'sel'))
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
@@ -155,32 +147,55 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Send Mute',
 			description: "React to a change in a channel's send mute state",
 			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
-				...GetMuteDropdownWithVariables('mute', 'Mute', false),
+				GetDropdown('From', 'src', allSendSources),
+				{
+					...GetDropdown('To', 'dest', channelAuxBusSendDestinations),
+					isVisible: (options: CompanionOptionValues): boolean => {
+						const source = options.src as string
+						return !source.startsWith('/main')
+					},
+				},
+				{
+					...GetDropdown('To', 'mainDest', mainSendDestinations),
+					isVisible: (options: CompanionOptionValues): boolean => {
+						const source = options.src as string
+						return source.startsWith('/main')
+					},
+				},
+				GetMuteDropdown('mute', 'State', false),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
-				const cmd = ActionUtil.getSendMuteCommand(src, dest)
-				let val = ActionUtil.getNumberWithVariables(event, 'mute')
-				// Mute states are inverted for sends
-				if (val != -1) {
-					val = val == 0 ? 1 : 0
+				const src = event.options.src as string
+				let dest = ''
+				if (src.startsWith('/main')) {
+					dest = event.options.mainDest as string
+				} else {
+					dest = event.options.dest as string
 				}
+				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue != val
+				return typeof currentValue === 'number' && currentValue != event.options.mute
 			},
-			subscribe: async (event): Promise<void> => {
-				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+			subscribe: (event): void => {
+				const src = event.options.src as string
+				let dest = ''
+				if (src.startsWith('/main')) {
+					dest = event.options.mainDest as string
+				} else {
+					dest = event.options.dest as string
+				}
 				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				const src = event.options.src as string
+				let dest = ''
+				if (src.startsWith('/main')) {
+					dest = event.options.mainDest as string
+				} else {
+					dest = event.options.dest as string
+				}
 				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				unsubscribeFeedback(subs, cmd, event)
 			},
@@ -190,12 +205,12 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'AES Status',
 			description: 'Status of an AES Connection',
 			options: [
-				...GetDropdownWithVariables('Interface', 'aes', [
+				GetDropdown('Interface', 'aes', [
 					getIdLabelPair('A', 'AES A'),
 					getIdLabelPair('B', 'AES B'),
 					getIdLabelPair('C', 'AES C'),
 				]),
-				...GetDropdownWithVariables('Status', 'status', [
+				GetDropdown('Status', 'status', [
 					getIdLabelPair('OK', 'OK'),
 					getIdLabelPair('ERR', 'Error'),
 					getIdLabelPair('UPD', 'Updating'),
@@ -204,20 +219,16 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const aes = ActionUtil.getStringWithVariables(event, 'aes')
-				const status = ActionUtil.getStringWithVariables(event, 'status')
-				const cmd = StatusCommands.AesStatus(aes)
+				const cmd = StatusCommands.AesStatus(event.options.aes as string)
 				const val = StateUtil.getStringFromState(cmd, state) as string
-				return val === status
+				return val === event.options.status
 			},
-			subscribe: async (event): Promise<void> => {
-				const aes = ActionUtil.getStringWithVariables(event, 'aes')
-				const cmd = StatusCommands.AesStatus(aes)
+			subscribe: (event): void => {
+				const cmd = StatusCommands.AesStatus(event.options.aes as string)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const aes = ActionUtil.getStringWithVariables(event, 'aes')
-				const cmd = StatusCommands.AesStatus(aes)
+				const cmd = StatusCommands.AesStatus(event.options.aes as string)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
@@ -226,7 +237,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'USB Recorder State',
 			description: 'React to the current state of the USB Recorder',
 			options: [
-				...GetDropdownWithVariables('State', 'state', [
+				GetDropdown('State', 'state', [
 					getIdLabelPair('REC', 'Recording'),
 					getIdLabelPair('PAUSE', 'Paused'),
 					getIdLabelPair('STOP', 'Stopped'),
@@ -234,12 +245,11 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			],
 			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(255, 255, 255) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const val = ActionUtil.getStringWithVariables(event, 'state')
 				const cmd = UsbPlayerCommands.RecorderActiveState()
 				const recState = StateUtil.getStringFromState(cmd, state)
-				return recState === val
+				return recState === event.options.state
 			},
-			subscribe: async (event): Promise<void> => {
+			subscribe: (event): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -253,7 +263,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'USB Player State',
 			description: 'React to the current state of the USB Player',
 			options: [
-				...GetDropdownWithVariables('State', 'state', [
+				GetDropdown('State', 'state', [
 					getIdLabelPair('PLAY', 'Playing'),
 					getIdLabelPair('PAUSE', 'Paused'),
 					getIdLabelPair('STOP', 'Stopped'),
@@ -261,12 +271,11 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const val = ActionUtil.getStringWithVariables(event, 'state')
 				const cmd = UsbPlayerCommands.PlayerActiveState()
 				const playerState = StateUtil.getStringFromState(cmd, state)
-				return playerState === val
+				return playerState === event.options.state
 			},
-			subscribe: async (event): Promise<void> => {
+			subscribe: (event): void => {
 				const cmd = UsbPlayerCommands.PlayerActiveState()
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
@@ -279,26 +288,19 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'WLive SD State',
 			description: 'React to the state of the WLive SD Cards.',
-			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetDropdownWithVariables('State', 'state', getCardsStatusChoices()),
-			],
+			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsStatusChoices())],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const val = ActionUtil.getStringWithVariables(event, 'state')
-				const cmd = CardsCommands.WLiveCardSDState(card)
+				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
 				const currentValue = StateUtil.getStringFromState(cmd, state)
-				return currentValue == val
+				return currentValue == event.options.state
 			},
-			subscribe: async (event): Promise<void> => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const cmd = CardsCommands.WLiveCardSDState(card)
+			subscribe: (event): void => {
+				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const cmd = CardsCommands.WLiveCardSDState(card)
+				const cmd = CardsCommands.WLiveCardSDState(event.options.card as number)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
@@ -306,26 +308,19 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'WLive Playback State',
 			description: 'React to the playback state of a WLive Card.',
-			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetDropdownWithVariables('State', 'state', getCardsActionChoices()),
-			],
+			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsActionChoices())],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const val = ActionUtil.getStringWithVariables(event, 'state')
-				const cmd = CardsCommands.WLiveCardState(card)
+				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
 				const currentValue = StateUtil.getStringFromState(cmd, state)
-				return currentValue == val
+				return currentValue == event.options.state
 			},
-			subscribe: async (event): Promise<void> => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const cmd = CardsCommands.WLiveCardState(card)
+			subscribe: (event): void => {
+				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const cmd = CardsCommands.WLiveCardState(card)
+				const cmd = CardsCommands.WLiveCardState(event.options.card as number)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
@@ -334,24 +329,23 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'GPIO State',
 			description: "React to a change in a gpio's state",
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', getGpios(4)),
-				...GetDropdownWithVariables('State', 'state', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Selection', 'sel', getGpios(4)),
+				GetDropdown('State', 'state', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
-				const val = ActionUtil.getNumberWithVariables(event, 'state')
+				const sel = event.options.sel as number
 				const cmd = ControlCommands.GpioReadState(sel)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == val
+				return typeof currentValue === 'number' && currentValue == event.options.state
 			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
+			subscribe: (event): void => {
+				const sel = event.options.sel as number
 				const cmd = ControlCommands.GpioReadState(sel)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
+				const sel = event.options.sel as number
 				const cmd = ControlCommands.GpioReadState(sel)
 				unsubscribeFeedback(subs, cmd, event)
 			},
@@ -361,39 +355,38 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Solo',
 			description: "React to a change in a channel's solo state",
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [
+				GetDropdown('Selection', 'sel', [
 					getIdLabelPair('any', 'Any'),
 					getIdLabelPair('all', 'All'),
 					...allChannelsAndDcas,
 				]),
-				...GetDropdownWithVariables('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				const solo = ActionUtil.getNumberWithVariables(event, 'solo')
+				const sel = event.options.sel as string
 				if (sel == 'any') {
 					return allChannelsAndDcas.some((s) => {
 						const num = s.id.toString().split('/')[2] as unknown as number
 						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
 						const currentValue = StateUtil.getNumberFromState(cmd, state)
-						return currentValue == solo
+						return currentValue == event.options.solo
 					})
 				} else if (sel == 'all') {
 					return allChannelsAndDcas.every((s) => {
 						const num = s.id.toString().split('/')[2] as unknown as number
 						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
 						const currentValue = StateUtil.getNumberFromState(cmd, state)
-						return currentValue == solo
+						return currentValue == event.options.solo
 					})
 				} else {
 					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
 					const currentValue = StateUtil.getNumberFromState(cmd, state)
-					return typeof currentValue === 'number' && currentValue == solo
+					return typeof currentValue === 'number' && currentValue == event.options.solo
 				}
 			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+			subscribe: (event): void => {
+				const sel = event.options.sel as string
 				if (sel == 'any' || sel == 'all') {
 					allChannelsAndDcas.forEach((s) => {
 						const num = s.id.toString().split('/')[2] as unknown as number
@@ -406,7 +399,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				}
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				const sel = event.options.sel as string
 				if (sel == 'any' || sel == 'all') {
 					allChannelsAndDcas.forEach((s) => {
 						const num = s.id.toString().split('/')[2] as unknown as number
@@ -423,13 +416,12 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Solo Dim',
 			description: 'React to the dim state of the solo output.',
-			options: [...GetDropdownWithVariables('Dim', 'dim', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			options: [GetDropdown('Dim', 'dim', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const val = ActionUtil.getNumberWithVariables(event, 'dim')
 				const cmd = ConfigurationCommands.SoloDim()
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == val
+				return typeof currentValue === 'number' && currentValue == event.options.dim
 			},
 			subscribe: (event): void => {
 				const cmd = ConfigurationCommands.SoloDim()
@@ -444,13 +436,12 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Solo Mono',
 			description: 'React to the mono state of the solo output.',
-			options: [...GetDropdownWithVariables('Mono', 'mono', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			options: [GetDropdown('Mono', 'mono', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const val = ActionUtil.getNumberWithVariables(event, 'mono')
 				const cmd = ConfigurationCommands.SoloMono()
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == val
+				return typeof currentValue === 'number' && currentValue == event.options.mono
 			},
 			subscribe: (event): void => {
 				const cmd = ConfigurationCommands.SoloMono()
@@ -465,13 +456,12 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Solo LR Swap',
 			description: 'React to the left-right channel swap state of the solo output.',
-			options: [...GetDropdownWithVariables('Swap', 'swap', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			options: [GetDropdown('Swap', 'swap', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const val = ActionUtil.getNumberWithVariables(event, 'swap')
 				const cmd = ConfigurationCommands.SoloLRSwap()
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == val
+				return typeof currentValue === 'number' && currentValue == event.options.swap
 			},
 			subscribe: (event): void => {
 				const cmd = ConfigurationCommands.SoloLRSwap()
@@ -487,25 +477,21 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Talkback',
 			description: 'React to the status of a talkback channel.',
 			options: [
-				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
-				...GetDropdownWithVariables('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const tb = ActionUtil.getStringWithVariables(event, 'tb')
-				const val = ActionUtil.getNumberWithVariables(event, 'on')
-				const cmd = ConfigurationCommands.TalkbackOn(tb)
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == val
+				return typeof currentValue === 'number' && currentValue == event.options.on
 			},
-			subscribe: async (event): Promise<void> => {
-				const tb = ActionUtil.getStringWithVariables(event, 'tb')
-				const cmd = ConfigurationCommands.TalkbackOn(tb)
+			subscribe: (event): void => {
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const tb = ActionUtil.getStringWithVariables(event, 'tb')
-				const cmd = ConfigurationCommands.TalkbackOn(tb)
+				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
@@ -514,35 +500,31 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Talkback Assign',
 			description: 'React to the assignment of a talkback channel to a bus matrix or main',
 			options: [
-				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
-				...GetDropdownWithVariables('Destination', 'dest', [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('Destination', 'dest', [
 					...state.namedChoices.busses,
 					...state.namedChoices.matrices,
 					...state.namedChoices.mains,
 				]),
-				...GetDropdownWithVariables('Assign', 'assign', [
-					getIdLabelPair('1', 'Assigned'),
-					getIdLabelPair('0', 'Not Assigned'),
-				]),
+				GetDropdown('Assign', 'assign', [getIdLabelPair('1', 'Assigned'), getIdLabelPair('0', 'Not Assigned')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const talkback = ActionUtil.getStringWithVariables(event, 'tb')
-				const destination = ActionUtil.getStringWithVariables(event, 'dest')
-				const assign = ActionUtil.getNumberWithVariables(event, 'assign')
+				const talkback = event.options.tb as string
+				const destination = event.options.dest as string
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue == assign
+				return typeof currentValue === 'number' && currentValue == event.options.assign
 			},
-			subscribe: async (event): Promise<void> => {
-				const talkback = ActionUtil.getStringWithVariables(event, 'tb')
-				const destination = ActionUtil.getStringWithVariables(event, 'dest')
+			subscribe: (event): void => {
+				const talkback = event.options.tb as string
+				const destination = event.options.dest as string
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const talkback = ActionUtil.getStringWithVariables(event, 'tb')
-				const destination = ActionUtil.getStringWithVariables(event, 'dest')
+				const talkback = event.options.tb as string
+				const destination = event.options.dest as string
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
 				unsubscribeFeedback(subs, cmd, event)
 			},
@@ -552,31 +534,30 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Insert On',
 			description: 'React to a change for an insert on a channel, aux, bus, matrix or main.',
 			options: [
-				...GetDropdownWithVariables('Insert', 'insert', [
+				GetDropdown('Insert', 'insert', [
 					getIdLabelPair('pre', 'Pre-Insert'),
 					getIdLabelPair('post', 'Post-Insert'),
 					getIdLabelPair('both', 'Both'),
 					getIdLabelPair('either', 'Either'),
 				]),
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels]),
-				...GetDropdownWithVariables('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Selection', 'sel', [...allChannels]),
+				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const insert = ActionUtil.getStringWithVariables(event, 'insert')
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				const on = ActionUtil.getNumberWithVariables(event, 'on')
-
+				const insert = event.options.insert as string
 				let preOn = false
 				let postOn = false
 
+				const sel = event.options.sel as string
+
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
 				let currentValue = StateUtil.getNumberFromState(cmd, state)
-				preOn = (currentValue ?? 0) == on
+				preOn = Boolean(currentValue ?? 0 > 0)
 
 				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
 				currentValue = StateUtil.getNumberFromState(cmd, state)
-				postOn = (currentValue ?? 0) == on
+				postOn = Boolean(currentValue ?? 0 > 0)
 
 				if (insert === 'pre') return preOn
 				if (insert === 'post') return postOn
@@ -584,15 +565,15 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				if (insert === 'either') return preOn || postOn
 				return false
 			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+			subscribe: (event): void => {
+				const sel = event.options.sel as string
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
 				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
+				const sel = event.options.sel as string
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
 				unsubscribeFeedback(subs, cmd, event)
 				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))

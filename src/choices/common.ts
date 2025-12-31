@@ -258,7 +258,6 @@ export function GetMuteDropdownWithVariables(
 	// if no isVisibleExpression is provided, default to always visible
 	isVisibleExpression = isVisibleExpression ?? 'true'
 	const dropdown = GetMuteDropdown(id, label, includeToggle)
-	includeToggle = includeToggle ?? true
 	dropdown.isVisibleExpression = `!$(options:${id}_use_variables) && (${isVisibleExpression})`
 	return [
 		{
@@ -275,7 +274,7 @@ export function GetMuteDropdownWithVariables(
 			id: `${id}_variables`,
 			label: label ?? 'Mute',
 			default: '',
-			tooltip: includeToggle ? 'Mute: 1, Unmute: 0, Toggle: -1' : 'Mute: 1, Unmute: 0',
+			tooltip: 'Mute: 1, Unmute: 0, Toggle: -1',
 			useVariables: true,
 			isVisibleExpression: `$(options:${id}_use_variables) && (${isVisibleExpression})`,
 		},

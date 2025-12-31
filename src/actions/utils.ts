@@ -1,4 +1,4 @@
-import { WingTransitions } from '../handlers/transitions.js'
+import { WingTransitions } from '../transitions.js'
 import { WingState } from '../state/index.js'
 import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
 import { Easing } from '../easings.js'
@@ -66,11 +66,11 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
  * @param defaultValue - An optional default value to return if the result is undefined or empty.
  * @returns A promise that resolves to the resulting string
  */
-export function getStringWithVariables(
+export async function getStringWithVariables(
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
 	defaultValue?: string,
-): string {
+): Promise<string> {
 	const useVariables = event.options[`${id}_use_variables`] as boolean
 	let res = ''
 	if (useVariables === false || useVariables === undefined) {
@@ -92,11 +92,11 @@ export function getStringWithVariables(
  * @returns A promise that resolves to the resulting number
  * @throws If the value is invalid and no default value is provided.
  */
-export function getNumberWithVariables(
+export async function getNumberWithVariables(
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
 	defaultValue?: number,
-): number {
+): Promise<number> {
 	const useVariables = event.options[`${id}_use_variables`] as boolean
 	let res = 0
 	if (useVariables === false || useVariables === undefined) {
@@ -120,10 +120,9 @@ export function getNumberWithVariables(
 	return res
 }
 
-export function GetSendSourceDestinationFieldsWithVariables(event: CompanionActionInfo | CompanionFeedbackInfo): {
-	src: string
-	dest: string
-} {
+export async function GetSendSourceDestinationFieldsWithVariables(
+	event: CompanionActionInfo | CompanionFeedbackInfo,
+): Promise<{ src: string; dest: string }> {
 	const useVariables = event.options.send_src_dest_use_variables as boolean
 	let src = ''
 	let dest = ''

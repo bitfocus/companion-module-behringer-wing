@@ -12,7 +12,7 @@ export enum IoActionId {
 }
 
 export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.connection!.sendCommand.bind(self.connection)
+	const send = self.sendCommand
 
 	const actions: { [id in IoActionId]: CompanionActionWithCallback | undefined } = {
 		[IoActionId.MainAltSwitch]: {
@@ -20,15 +20,15 @@ export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			description: 'Sets the desk to use the configured main/alt input sources.',
 			options: [
 				...GetDropdownWithVariables('Selection', 'sel', [
-					getIdLabelPair('1', 'Alt'),
-					getIdLabelPair('0', 'Main'),
+					getIdLabelPair('0', 'Alt'),
+					getIdLabelPair('1', 'Main'),
 					getIdLabelPair('-1', 'Toggle'),
 				]),
 			],
 			callback: async (event) => {
 				const cmd = IoCommands.MainAltSwitch()
-				const val = ActionUtil.getNumberWithVariables(event, 'sel')
-				await send(cmd, val)
+				const val = await ActionUtil.getNumberWithVariables(event, 'sel')
+				send(cmd, val)
 			},
 		},
 	}

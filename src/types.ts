@@ -1,16 +1,16 @@
 import { InstanceBase } from '@companion-module/base'
-import { WingTransitions } from './handlers/transitions.js'
+import osc from 'osc'
+import { WingTransitions } from './transitions.js'
+import { WingState, WingSubscriptions } from './state/state.js'
 import { ModelSpec } from './models/types.js'
 
 export interface InstanceBaseExt<TConfig> extends InstanceBase<TConfig> {
 	config: TConfig
+	osc: osc.UDPPort
 	transitions: WingTransitions
-	// subscriptions: WingSubscriptions
+	state: WingState
+	subscriptions: WingSubscriptions
 	model: ModelSpec
-
-	logger?: import('./handlers/logger.js').ModuleLogger
-	connection?: import('./handlers/connection-handler.js').ConnectionHandler | undefined
-	stateHandler?: import('./handlers/state-handler.js').StateHandler | undefined
-	feedbackHandler?: import('./handlers/feedback-handler.js').FeedbackHandler | undefined
-	variableHandler?: import('./variables/variable-handler.js').VariableHandler | undefined
+	sendCommand: (cmd: string, argument?: number | string, preferFloat?: boolean) => void
+	ensureLoaded: (path: string, arg?: string | number) => void
 }

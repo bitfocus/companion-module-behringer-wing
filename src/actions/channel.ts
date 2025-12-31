@@ -18,10 +18,9 @@ export enum ChannelActions {
 }
 
 export function createChannelActions(self: InstanceBaseExt<WingConfig>): CompanionActionDefinitions {
-	const send = self.connection!.sendCommand.bind(self.connection)
-	const ensureLoaded = self.stateHandler!.ensureLoaded.bind(self.stateHandler)
-	const state = self.stateHandler?.state
-	if (!state) throw new Error('State handler or state is not available')
+	const send = self.sendCommand
+	const ensureLoaded = self.ensureLoaded
+	const state = self.state
 
 	const actions: { [id in ChannelActions]: CompanionActionWithCallback | undefined } = {
 		[ChannelActions.SetChannelFilterModel]: {
@@ -32,10 +31,10 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('Filter', 'filter', getFilterModelOptions()),
 			],
 			callback: async (event) => {
-				const channel = ActionUtil.getStringWithVariables(event, 'channel')
-				const filter = ActionUtil.getStringWithVariables(event, 'filter')
+				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const filter = await ActionUtil.getStringWithVariables(event, 'filter')
 				const cmd = Commands.FilterModel(ActionUtil.getNodeNumberFromID(channel))
-				await send(cmd, filter)
+				send(cmd, filter)
 			},
 		},
 		[ChannelActions.SetChannelEqType]: {
@@ -46,10 +45,10 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('EQ Model', 'model', EqModelChoice),
 			],
 			callback: async (event) => {
-				const channel = ActionUtil.getStringWithVariables(event, 'channel')
-				const model = ActionUtil.getStringWithVariables(event, 'model')
+				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const model = await ActionUtil.getStringWithVariables(event, 'model')
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumberFromID(channel))
-				await send(cmd, model)
+				send(cmd, model)
 			},
 		},
 		[ChannelActions.SetChannelEqParameter]: {
@@ -62,7 +61,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			],
 			callback: async (event) => {
 				const cmd = Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel'))
-				await send(cmd, ActionUtil.getString(event, 'model'))
+				send(cmd, ActionUtil.getString(event, 'model'))
 			},
 			subscribe: (event) => {
 				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
@@ -82,10 +81,10 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 				...GetDropdownWithVariables('Order', 'order', getChannelProcessOrderChoices()),
 			],
 			callback: async (event) => {
-				const channel = ActionUtil.getStringWithVariables(event, 'channel')
-				const order = ActionUtil.getStringWithVariables(event, 'order')
+				const channel = await ActionUtil.getStringWithVariables(event, 'channel')
+				const order = await ActionUtil.getStringWithVariables(event, 'order')
 				const cmd = Commands.ProcessOrder(ActionUtil.getNodeNumberFromID(channel))
-				await send(cmd, order)
+				send(cmd, order)
 			},
 		},
 	}
