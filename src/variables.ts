@@ -16,6 +16,7 @@ const RE_SD = /^\/cards\/wlive\/(\d)\/(\$?\w+)\/(\$?\w+)$/
 const RE_TALKBACK = /^\/cfg\/talk\/(A|B)\/(B|MX|M)(\d+)$/
 const RE_GPIO = /^\/\$ctl\/gpio\/(\d+)\/\$state$/
 const RE_CONTROL = /^\/\$ctl\/(lib|\$stat)\/(\$?\w+)/
+const RE_COLOR = /\/(\w+)\/(\d+)\/\$?col/
 
 export function UpdateVariableDefinitions(self: WingInstance): void {
 	const model = self.model
@@ -32,6 +33,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		variables.push({
 			variableId: `ch${ch}_name`,
 			name: `Channel ${ch} Name`,
+		})
+		variables.push({
+			variableId: `ch${ch}_color`,
+			name: `Channel ${ch} Color`,
 		})
 		variables.push({
 			variableId: `ch${ch}_gain`,
@@ -95,6 +100,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `Aux ${aux} Name`,
 		})
 		variables.push({
+			variableId: `aux${aux}_color`,
+			name: `Aux ${aux} Color`,
+		})
+		variables.push({
 			variableId: `aux${aux}_gain`,
 			name: `Aux ${aux} Gain`,
 		})
@@ -156,6 +165,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `Bus ${bus} Name`,
 		})
 		variables.push({
+			variableId: `bus${bus}_color`,
+			name: `Bus ${bus} Color`,
+		})
+		variables.push({
 			variableId: `bus${bus}_mute`,
 			name: `Bus ${bus} Mute`,
 		})
@@ -212,6 +225,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 			name: `Matrix ${mtx} Name`,
 		})
 		variables.push({
+			variableId: `mtx${mtx}_color`,
+			name: `Matrix ${mtx} Color`,
+		})
+		variables.push({
 			variableId: `mtx${mtx}_mute`,
 			name: `Matrix ${mtx} Mute`,
 		})
@@ -229,6 +246,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		variables.push({
 			variableId: `main${main}_name`,
 			name: `Main ${main} Name`,
+		})
+		variables.push({
+			variableId: `main${main}_color`,
+			name: `Main ${main} Color`,
 		})
 		variables.push({
 			variableId: `main${main}_mute`,
@@ -257,6 +278,10 @@ export function UpdateVariableDefinitions(self: WingInstance): void {
 		variables.push({
 			variableId: `dca${dca}_name`,
 			name: `DCA ${dca} Name`,
+		})
+		variables.push({
+			variableId: `dca${dca}_color`,
+			name: `DCA ${dca} Color`,
 		})
 		variables.push({
 			variableId: `dca${dca}_mute`,
@@ -379,6 +404,7 @@ export function UpdateVariables(self: WingInstance, msgs: OscMessage[]): void {
 
 		self.log('debug', 'Updating variables')
 		UpdateNameVariables(self, path, args[0]?.value as string)
+		UpdateColorVariables(self, path, args[0]?.value as number)
 		UpdateGainVariables(self, path, args[0]?.value as number)
 		UpdateMuteVariables(self, path, args[0]?.value as number)
 		UpdateFaderVariables(self, path, args[0]?.value as number)
@@ -425,6 +451,17 @@ function UpdateNameVariables(self: WingInstance, path: string, value: string): v
 	const base = match[1]
 	const num = match[2]
 	self.setVariableValues({ [`${base}${num}_name`]: value })
+}
+
+function UpdateColorVariables(self: WingInstance, path: string, value: number): void {
+	const match = path.match(RE_COLOR)
+	if (!match) {
+		return
+	}
+
+	const base = match[1]
+	const num = match[2]
+	self.setVariableValues({ [`${base}${num}_color`]: value })
 }
 
 function UpdateGainVariables(self: WingInstance, path: string, value: number): void {
