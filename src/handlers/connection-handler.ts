@@ -159,6 +159,7 @@ export class ConnectionHandler extends EventEmitter {
 			args: args,
 		}
 		this.osc.send(command)
+		this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
 		if (preventLog) return
 		this.logger?.debug(`Sending OSC command: ${command.address} ${argument ?? ''}`)
 	}
