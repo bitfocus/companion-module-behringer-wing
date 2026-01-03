@@ -300,7 +300,7 @@ export class WingState implements IStoredChannelSubject {
 
 		// Channel strips
 		for (let ch = 1; ch <= model.channels; ch++) {
-			await sleep(10)
+			await sleep(3)
 			self.sendCommand(Commands.Channel.InputGain(ch))
 			self.sendCommand(Commands.Channel.Color(ch))
 			self.sendCommand(Commands.Channel.Mute(ch))
@@ -308,7 +308,7 @@ export class WingState implements IStoredChannelSubject {
 			self.sendCommand(Commands.Channel.Pan(ch))
 
 			for (let bus = 1; bus <= model.busses; bus++) {
-				await sleep(10)
+				await sleep(3)
 				self.sendCommand(Commands.Channel.SendOn(ch, bus))
 				self.sendCommand(Commands.Channel.SendLevel(ch, bus))
 				self.sendCommand(Commands.Channel.SendPan(ch, bus))
@@ -318,7 +318,7 @@ export class WingState implements IStoredChannelSubject {
 				self.sendCommand(Commands.Channel.MainSendLevel(ch, main))
 			}
 			for (let mtx = 1; mtx <= model.matrices; mtx++) {
-				await sleep(10)
+				await sleep(3)
 				self.sendCommand(Commands.Channel.MatrixSendOn(ch, mtx))
 				self.sendCommand(Commands.Channel.MatrixSendLevel(ch, mtx))
 				self.sendCommand(Commands.Channel.MatrixSendPan(ch, mtx))
@@ -327,7 +327,7 @@ export class WingState implements IStoredChannelSubject {
 
 		// Auxes
 		for (let aux = 1; aux <= model.auxes; aux++) {
-			await sleep(10)
+			await sleep(3)
 			self.sendCommand(Commands.Aux.InputGain(aux))
 			self.sendCommand(Commands.Aux.Color(aux))
 			self.sendCommand(Commands.Aux.Mute(aux))
@@ -339,13 +339,13 @@ export class WingState implements IStoredChannelSubject {
 				self.sendCommand(Commands.Aux.MainSendLevel(aux, main))
 			}
 			for (let bus = 1; bus <= model.busses; bus++) {
-				await sleep(10)
+				await sleep(3)
 				self.sendCommand(Commands.Aux.SendOn(aux, bus))
 				self.sendCommand(Commands.Aux.SendLevel(aux, bus))
 				self.sendCommand(Commands.Aux.SendPan(aux, bus))
 			}
 			for (let mtx = 1; mtx <= model.matrices; mtx++) {
-				await sleep(10)
+				await sleep(3)
 				self.sendCommand(Commands.Aux.MatrixSendOn(aux, mtx))
 				self.sendCommand(Commands.Aux.MatrixSendLevel(aux, mtx))
 				self.sendCommand(Commands.Aux.MatrixSendPan(aux, mtx))
@@ -354,7 +354,7 @@ export class WingState implements IStoredChannelSubject {
 
 		// Busses
 		for (let bus = 1; bus <= model.busses; bus++) {
-			await sleep(10)
+			await sleep(3)
 			self.sendCommand(Commands.Bus.Mute(bus))
 			self.sendCommand(Commands.Bus.Color(bus))
 			self.sendCommand(Commands.Bus.Fader(bus))
@@ -366,13 +366,13 @@ export class WingState implements IStoredChannelSubject {
 			}
 			for (let other = 1; other <= model.busses; other++) {
 				if (other === bus) continue
-				await sleep(10)
+				await sleep(3)
 				self.sendCommand(Commands.Bus.SendOn(bus, other))
 				self.sendCommand(Commands.Bus.SendLevel(bus, other))
 				self.sendCommand(Commands.Bus.SendPan(bus, other))
 			}
 			for (let mtx = 1; mtx <= model.matrices; mtx++) {
-				await sleep(10)
+				await sleep(3)
 				self.sendCommand(Commands.Bus.MatrixSendOn(bus, mtx))
 				self.sendCommand(Commands.Bus.MatrixSendLevel(bus, mtx))
 				self.sendCommand(Commands.Bus.MatrixSendPan(bus, mtx))
@@ -389,7 +389,7 @@ export class WingState implements IStoredChannelSubject {
 
 		// Mains
 		for (let main = 1; main <= model.mains; main++) {
-			await sleep(10)
+			await sleep(3)
 			self.sendCommand(Commands.Main.Mute(main))
 			self.sendCommand(Commands.Main.Color(main))
 			self.sendCommand(Commands.Main.Fader(main))
