@@ -1,14 +1,27 @@
-import { CompanionVariableDefinition } from '@companion-module/base'
+import { VariableDefinition } from './index.js'
+import * as Commands from '../commands/index.js'
 
-export function getWliveVariables(): CompanionVariableDefinition[] {
-	const variables: CompanionVariableDefinition[] = []
+export function getWliveVariables(): VariableDefinition[] {
+	const variables: VariableDefinition[] = []
 
 	variables.push({ variableId: 'wlive_link_status', name: 'Wing Live SD Cards Link Status' })
 
 	for (let card = 1; card <= 2; card++) {
-		variables.push({ variableId: `wlive_${card}_state`, name: `Wing Live Card ${card} State` })
-		variables.push({ variableId: `wlive_${card}_sdstate`, name: `Wing Live Card ${card} SD State` })
-		variables.push({ variableId: `wlive_${card}_sdsize`, name: `Wing Live Card ${card} SD Size (GB)` })
+		variables.push({
+			variableId: `wlive_${card}_state`,
+			name: `Wing Live Card ${card} State`,
+			path: Commands.Cards.WLiveCardState(card),
+		})
+		variables.push({
+			variableId: `wlive_${card}_sdstate`,
+			name: `Wing Live Card ${card} SD State`,
+			path: Commands.Cards.WLiveCardSDState(card),
+		})
+		variables.push({
+			variableId: `wlive_${card}_sdsize`,
+			name: `Wing Live Card ${card} SD Size (GB)`,
+			path: Commands.Cards.WLiveCardSDSize(card),
+		})
 		variables.push({ variableId: `wlive_${card}_marker_total`, name: `Wing Live Card ${card} Total Markers` })
 		variables.push({ variableId: `wlive_${card}_marker_current`, name: `Wing Live Card ${card} Current Marker` })
 		variables.push({ variableId: `wlive_${card}_session_total`, name: `Wing Live Card ${card} Total Sessions` })
