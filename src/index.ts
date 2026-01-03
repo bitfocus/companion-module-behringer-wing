@@ -126,10 +126,15 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.connection.open('0.0.0.0', 0, this.config.host!, 2223)
 		this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
 		this.connection.startSubscription()
+		this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
 
 		this.connection?.on('ready', () => {
-			this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
-			void this.connection?.sendCommand('/*', undefined, undefined, true) // send something to trigger response from console
+			this.updateStatus(InstanceStatus.Ok)
+			this.stateHandler?.state?.requestNames(this)
+			if (this.config.prefetchVariablesOnStartup) {
+				this.stateHandler?.state?.requestAllVariables(this)
+			}
+			this.stateHandler?.requestUpdate()
 		})
 
 		this.connection?.on('error', (err: Error) => {
@@ -151,11 +156,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				this.logger?.info('OSC connection established')
 
 				this.feedbackHandler?.startPolling()
-				this.stateHandler?.state?.requestNames(this)
-				if (this.config.prefetchVariablesOnStartup) {
-					this.stateHandler?.state?.requestAllVariables(this)
-				}
-				this.stateHandler?.requestUpdate()
 			}
 			this.feedbackHandler?.clearPollTimeout()
 			this.stateHandler?.processMessage(msg)
