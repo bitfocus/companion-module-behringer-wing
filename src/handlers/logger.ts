@@ -8,21 +8,22 @@ type LoggerFunction = (level: LogLevel, message: string) => void
 export class ModuleLogger {
 	private moduleName: string
 	private loggerFn?: LoggerFunction
+	private enabled: boolean
 	debugMode: boolean
 	timestamps: boolean
 
 	/**
 	 * Create a new ModuleLogger.
+	 *
 	 * @param moduleName Name to prefix log messages.
 	 * @param loggerFn Optional custom log function.
-	 * @param debugMode Whether to include source location information in logs.
-	 * @param timestamps Whether to include timestamps in logs.
 	 */
 	constructor(moduleName: string, loggerFn?: LoggerFunction) {
 		this.moduleName = moduleName
 		this.loggerFn = loggerFn
 		this.debugMode = false
 		this.timestamps = false
+		this.enabled = true
 	}
 
 	/**
@@ -38,6 +39,7 @@ export class ModuleLogger {
 	 * @param message Message to log.
 	 */
 	debug(message: string): void {
+		if (!this.enabled) return
 		const msg = this.formatMessage(message)
 		if (this.loggerFn) {
 			this.loggerFn('debug', `[${this.moduleName}] ${msg}`)
@@ -51,6 +53,7 @@ export class ModuleLogger {
 	 * @param message Message to log.
 	 */
 	info(message: string): void {
+		if (!this.enabled) return
 		const msg = this.formatMessage(message)
 		if (this.loggerFn) {
 			this.loggerFn('info', `[${this.moduleName}] ${msg}`)
@@ -64,6 +67,7 @@ export class ModuleLogger {
 	 * @param message Message to log.
 	 */
 	error(message: string): void {
+		if (!this.enabled) return
 		const msg = this.formatMessage(message)
 		if (this.loggerFn) {
 			this.loggerFn('error', `[${this.moduleName}] ${msg}`)
@@ -77,12 +81,21 @@ export class ModuleLogger {
 	 * @param message Message to log.
 	 */
 	warn(message: string): void {
+		if (!this.enabled) return
 		const msg = this.formatMessage(message)
 		if (this.loggerFn) {
 			this.loggerFn('warn', `[${this.moduleName}] ${msg}`)
 		} else {
 			console.log(`[${this.moduleName}] ${msg}`)
 		}
+	}
+
+	enable(): void {
+		this.enabled = true
+	}
+
+	disable(): void {
+		this.enabled = false
 	}
 
 	/**

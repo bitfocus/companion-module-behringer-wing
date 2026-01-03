@@ -1,22 +1,12 @@
 import EventEmitter from 'events'
-import { ModuleLogger } from '../handlers/logger.js'
 import { ModelSpec } from '../models/types.js'
-import { getChannelVariables } from './channel.js'
-import { getAuxVariables } from './auxiliary.js'
-import { getMatrixVariables } from './matrix.js'
-import { getBusVariables } from './bus.js'
-import { getMainVariables } from './main.js'
-import { getDcaVariables } from './dca.js'
-import { getMuteGroupVariables } from './mutegroup.js'
-import { getUsbVariables } from './usb.js'
-import { getWliveVariables } from './wlive.js'
-import { getShowControlVariables } from './showcontrol.js'
-import { getGpioVariables } from './gpio.js'
-import { getTalkbackVariables } from './talkback.js'
 import osc, { OscMessage } from 'osc'
-import { CompanionVariableDefinition, OSCMetaArgument } from '@companion-module/base'
+import { CompanionVariableDefinition, CompanionVariableValues, OSCMetaArgument } from '@companion-module/base'
 import * as ActionUtil from '../actions/utils.js'
 import { IoCommands } from '../commands/io.js'
+import { getAllVariables } from './index.js'
+import debounceFn from 'debounce-fn'
+import { ModuleLogger } from '../handlers/logger.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
 const RE_GAIN = /\/(\w+)\/(\d+)\/in\/set\/\$g/
@@ -30,11 +20,12 @@ const RE_GPIO = /^\/\$ctl\/gpio\/(\d+)\/\$state$/
 const RE_CONTROL = /^\/\$ctl\/(lib|\$stat)\/(\$?\w+)/
 const RE_COLOR = /\/(\w+)\/(\d+)\/\$?col/
 
+export type VariableUpdate = { name: string; value: string | number }
 export class VariableHandler extends EventEmitter {
 	private model: ModelSpec
-	private variableUpdateInterval: NodeJS.Timeout | undefined
-	private logger?: ModuleLogger
-	private messages: { [path: string]: OscMessage } = {}
+	private readonly messages = new Set<OscMessage>()
+	private readonly debounceUpdateVariables: () => void
+	private logger: ModuleLogger | undefined
 
 	private variables: CompanionVariableDefinition[] = []
 
@@ -42,58 +33,72 @@ export class VariableHandler extends EventEmitter {
 		super()
 		this.model = model
 		this.logger = logger
-		this.variableUpdateInterval = setInterval(() => {
-			if (Object.keys(this.messages).length == 0) {
-				return
-			}
-			this.updateVariables()
-		}, updateRate ?? 1000)
+
+		this.debounceUpdateVariables = debounceFn(
+			() => {
+				this.updateVariables()
+				this.messages.clear()
+			},
+			{
+				wait: updateRate ?? 1000,
+				before: false,
+				after: true,
+			},
+		)
 	}
 
 	setupVariables(): void {
 		this.logger?.info('Setting up variables')
+		const vars = getAllVariables(this.model)
 
 		this.variables.push({ variableId: 'desk_ip', name: 'Desk IP Address' })
 		this.variables.push({ variableId: 'desk_name', name: 'Desk Name' })
 		this.variables.push({ variableId: 'main_alt_status', name: 'Main/Alt Input Source' })
 
-		this.variables.push(...getChannelVariables(this.model))
-		this.variables.push(...getAuxVariables(this.model))
-		this.variables.push(...getBusVariables(this.model))
-		this.variables.push(...getMatrixVariables(this.model))
-		this.variables.push(...getMainVariables(this.model))
-		this.variables.push(...getDcaVariables(this.model))
-		this.variables.push(...getMuteGroupVariables(this.model))
-		this.variables.push(...getUsbVariables())
-		this.variables.push(...getWliveVariables())
-		this.variables.push(...getShowControlVariables())
-		this.variables.push(...getGpioVariables(this.model))
-		this.variables.push(...getTalkbackVariables(this.model))
+		this.variables.push(...vars.map((v) => ({ variableId: v.variableId, name: v.name })))
 
 		this.logger?.info(`Defined ${this.variables.length} variables`)
 		this.emit('create-variables', this.variables)
 	}
 
 	updateVariables(): void {
-		for (const message of Object.values(this.messages)) {
+		const messages = [...this.messages]
+		if (messages.length === 0) {
+			return
+		}
+
+		const updates: VariableUpdate[] = []
+		for (const message of messages) {
 			const path = message.address
 			const args = message.args as osc.MetaArgument[]
-			this.updateNameVariables(path, args[0]?.value as string)
-			this.updateGainVariables(path, args[0]?.value as number)
-			this.updateMuteVariables(path, args[0]?.value as number)
-			this.updateFaderVariables(path, args[0]?.value as number)
-			this.updatePanoramaVariables(path, args[0]?.value as number)
-			this.updateUsbVariables(path, args[0])
-			this.updateSdVariables(path, args[0])
-			this.updateTalkbackVariables(path, args[0])
-			this.updateGpioVariables(path, args[0]?.value as number)
-			this.updateControlVariables(path, args[0])
-			this.updateIoVariables(path, args[0])
-			this.updateColorVariables(path, args[0]?.value as string)
+
+			const result =
+				this.updateNameVariables(path, args[0]?.value as string) ??
+				this.updateGainVariables(path, args[0]?.value as number) ??
+				this.updateMuteVariables(path, args[0]?.value as number) ??
+				this.updateFaderVariables(path, args[0]?.value as number) ??
+				this.updatePanoramaVariables(path, args[0]?.value as number) ??
+				this.updateUsbVariables(path, args[0]) ??
+				this.updateSdVariables(path, args[0]) ??
+				this.updateTalkbackVariables(path, args[0]) ??
+				this.updateGpioVariables(path, args[0]?.value as number) ??
+				this.updateControlVariables(path, args[0]) ??
+				this.updateIoVariables(path, args[0]) ??
+				this.updateColorVariables(path, args[0]?.value as string)
+
+			if (result) {
+				updates.push(...result)
+			}
 		}
+		const variables: CompanionVariableValues = {}
+		for (const { name, value } of updates) {
+			if (name === undefined || value === undefined) continue
+			variables[name] = value
+		}
+		this.emit('update-variables', variables)
 	}
 
-	private updateNameVariables(path: string, value: string): void {
+	private updateNameVariables(path: string, value: string): VariableUpdate[] | undefined {
 		const match = path.match(RE_NAME)
 		if (!match) {
 			return
@@ -101,10 +106,10 @@ export class VariableHandler extends EventEmitter {
 
 		const base = match[1]
 		const num = match[2]
-		this.emit('update-variable', `${base}${num}_name`, value)
+		return [{ name: `${base}${num}_name`, value }]
 	}
 
-	private updateGainVariables(path: string, value: number): void {
+	private updateGainVariables(path: string, value: number): VariableUpdate[] | undefined {
 		const match = path.match(RE_GAIN)
 		if (!match) {
 			return
@@ -113,10 +118,10 @@ export class VariableHandler extends EventEmitter {
 		const base = match[1]
 		const num = match[2]
 		value = this.round(value, 1)
-		this.emit('update-variable', `${base}${num}_gain`, value)
+		return [{ name: `${base}${num}_gain`, value }]
 	}
 
-	private updateMuteVariables(path: string, value: number): void {
+	private updateMuteVariables(path: string, value: number): VariableUpdate[] | undefined {
 		const match = path.match(RE_MUTE)
 
 		if (!match) return
@@ -140,7 +145,7 @@ export class VariableHandler extends EventEmitter {
 
 		if (dest == null) {
 			const varName = `${source}${srcnum}_mute`
-			this.emit('update-variable', varName, value)
+			return [{ name: varName, value }]
 		} else {
 			if (dest === 'send') {
 				dest = 'bus'
@@ -148,11 +153,11 @@ export class VariableHandler extends EventEmitter {
 				dest = 'mtx'
 			}
 			const varName = `${source}${srcnum}_${dest}${destnum}_mute`
-			this.emit('update-variable', varName, value)
+			return [{ name: varName, value }]
 		}
 	}
 
-	private updateFaderVariables(path: string, value: number): void {
+	private updateFaderVariables(path: string, value: number): VariableUpdate[] | undefined {
 		const match = path.match(RE_FADER)
 
 		if (!match) {
@@ -180,13 +185,13 @@ export class VariableHandler extends EventEmitter {
 
 		value = this.round(value, 1)
 		if (value > -140) {
-			this.emit('update-variable', varName, value)
+			return [{ name: varName, value }]
 		} else {
-			this.emit('update-variable', varName, '-oo')
+			return [{ name: varName, value: '-oo' }]
 		}
 	}
 
-	private updatePanoramaVariables(path: string, value: number): void {
+	private updatePanoramaVariables(path: string, value: number): VariableUpdate[] | undefined {
 		const match = path.match(RE_PAN)
 
 		if (!match) {
@@ -213,10 +218,10 @@ export class VariableHandler extends EventEmitter {
 			varName = `${source}_pan`
 		}
 		value = this.round(value, 0)
-		this.emit('update-variable', varName, Math.round(value))
+		return [{ name: varName, value: Math.round(value) }]
 	}
 
-	private updateUsbVariables(path: string, args: OSCMetaArgument): void {
+	private updateUsbVariables(path: string, args: OSCMetaArgument): VariableUpdate[] | undefined {
 		const match = path.match(RE_USB)
 		if (!match) {
 			return
@@ -238,15 +243,17 @@ export class VariableHandler extends EventEmitter {
 					.toString()
 					.padStart(2, '0')
 				const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
-				this.emit('update-variable', 'usb_record_time_ss', totalSeconds)
-				this.emit('update-variable', 'usb_record_time_mm_ss', `${totalMinutes}:${remainderSeconds}`)
-				this.emit('update-variable', 'usb_record_time_hh_mm_ss', `${hours}:${minutesWithinHour}:${secondsWithinMinute}`)
+				return [
+					{ name: 'usb_record_time_ss', value: totalSeconds },
+					{ name: 'usb_record_time_mm_ss', value: `${totalMinutes}:${remainderSeconds}` },
+					{ name: 'usb_record_time_hh_mm_ss', value: `${hours}:${minutesWithinHour}:${secondsWithinMinute}` },
+				]
 			} else if (command == '$actfile') {
 				const filename = args.value as string
-				this.emit('update-variable', 'usb_record_path', filename)
+				return [{ name: 'usb_record_path', value: filename }]
 			} else if (command == '$actstate') {
 				const state = args.value as string
-				this.emit('update-variable', 'usb_record_state', state)
+				return [{ name: 'usb_record_state', value: state }]
 			}
 		} else if (direction == 'play') {
 			if (command == '$pos') {
@@ -263,9 +270,11 @@ export class VariableHandler extends EventEmitter {
 					.toString()
 					.padStart(2, '0')
 				const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
-				this.emit('update-variable', 'usb_play_pos_ss', totalSeconds)
-				this.emit('update-variable', 'usb_play_pos_mm_ss', `${totalMinutes}:${remainderSeconds}`)
-				this.emit('update-variable', 'usb_play_pos_hh_mm_ss', `${hours}:${minutesWithinHour}:${secondsWithinMinute}`)
+				return [
+					{ name: 'usb_play_pos_ss', value: totalSeconds },
+					{ name: 'usb_play_pos_mm_ss', value: `${totalMinutes}:${remainderSeconds}` },
+					{ name: 'usb_play_pos_hh_mm_ss', value: `${hours}:${minutesWithinHour}:${secondsWithinMinute}` },
+				]
 			} else if (command == '$total') {
 				const seconds = args.value as number
 				const totalSeconds = seconds.toString()
@@ -280,40 +289,42 @@ export class VariableHandler extends EventEmitter {
 					.toString()
 					.padStart(2, '0')
 				const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
-				this.emit('update-variable', 'usb_play_total_ss', totalSeconds)
-				this.emit('update-variable', 'usb_play_total_mm_ss', `${totalMinutes}:${remainderSeconds}`)
-				this.emit('update-variable', 'usb_play_total_hh_mm_ss', `${hours}:${minutesWithinHour}:${secondsWithinMinute}`)
+				return [
+					{ name: 'usb_play_total_ss', value: totalSeconds },
+					{ name: 'usb_play_total_mm_ss', value: `${totalMinutes}:${remainderSeconds}` },
+					{ name: 'usb_play_total_hh_mm_ss', value: `${hours}:${minutesWithinHour}:${secondsWithinMinute}` },
+				]
 			} else if (command == '$actfile') {
 				const filename = args.value as string
-				this.emit('update-variable', 'usb_play_path', filename)
+				return [{ name: 'usb_play_path', value: filename }]
 			} else if (command == '$actstate') {
 				const state = args.value as string
-				this.emit('update-variable', 'usb_play_state', state)
+				return [{ name: 'usb_play_state', value: state }]
 			} else if (command == '$song') {
 				const song = args.value as string
-				this.emit('update-variable', 'usb_play_name', song)
+				return [{ name: 'usb_play_name', value: song }]
 			} else if (command == '$album') {
 				const album = args.value as string
-				this.emit('update-variable', 'usb_play_directory', album)
+				return [{ name: 'usb_play_directory', value: album }]
 			} else if (command == '$actlist') {
 				const playlist = args.value as string
-				this.emit('update-variable', 'usb_play_playlist', playlist)
+				return [{ name: 'usb_play_playlist', value: playlist }]
 			} else if (command == '$actidx') {
 				const index = args.value as number
-				this.emit('update-variable', 'usb_play_playlist_index', index)
+				return [{ name: 'usb_play_playlist_index', value: index }]
 			} else if (command == 'repeat') {
 				const repeat = args.value as number
-				this.emit('update-variable', 'usb_play_repeat', repeat)
+				return [{ name: 'usb_play_repeat', value: repeat }]
 			}
 		}
+		return
 	}
 
-	private updateSdVariables(path: string, args: OSCMetaArgument): void {
+	private updateSdVariables(path: string, args: OSCMetaArgument): VariableUpdate[] | undefined {
 		// Check for SD link status first
 		if (path === '/cards/wlive/$actlink' || path === '/cards/wlive/sdlink') {
 			const linkStatus = args.value as string
-			this.emit('update-variable', 'wlive_link_status', linkStatus)
-			return
+			return [{ name: 'wlive_link_status', value: linkStatus }]
 		}
 
 		const match = path.match(RE_SD)
@@ -331,28 +342,28 @@ export class VariableHandler extends EventEmitter {
 				if (state == 'PPAUSE') {
 					state = 'PAUSE'
 				}
-				this.emit('update-variable', `wlive_${card}_state`, state)
+				return [{ name: `wlive_${card}_state`, value: state }]
 			} else if (subcommand == 'sdstate') {
 				const state = args.value as string
-				this.emit('update-variable', `wlive_${card}_sdstate`, state)
+				return [{ name: `wlive_${card}_sdstate`, value: state }]
 			} else if (subcommand == 'sdsize') {
 				const state = args.value as number
-				this.emit('update-variable', `wlive_${card}_sdsize`, state)
+				return [{ name: `wlive_${card}_sdsize`, value: state }]
 			} else if (subcommand == 'markers') {
 				const state = args.value as number
-				this.emit('update-variable', `wlive_${card}_marker_total`, state)
+				return [{ name: `wlive_${card}_marker_total`, value: state }]
 			} else if (subcommand == 'markerpos') {
 				const state = args.value as number
-				this.emit('update-variable', `wlive_${card}_marker_current`, state)
+				return [{ name: `wlive_${card}_marker_current`, value: state }]
 			} else if (subcommand == 'sessions') {
 				const state = args.value as number
-				this.emit('update-variable', `wlive_${card}_session_total`, state)
+				return [{ name: `wlive_${card}_session_total`, value: state }]
 			} else if (subcommand == 'sessionpos') {
 				const state = args.value as number
-				this.emit('update-variable', `wlive_${card}_session_current`, state)
+				return [{ name: `wlive_${card}_session_current`, value: state }]
 			} else if (subcommand == 'markerlist') {
 				const state = args.value as string
-				this.emit('update-variable', `wlive_${card}_marker_time`, state)
+				return [{ name: `wlive_${card}_marker_time`, value: state }]
 			} else if (subcommand == 'etime') {
 				const seconds = Math.floor((args.value as number) / 1000)
 				const totalSeconds = seconds.toString()
@@ -367,13 +378,14 @@ export class VariableHandler extends EventEmitter {
 					.toString()
 					.padStart(2, '0')
 				const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
-				this.emit('update-variable', `wlive_${card}_session_len_ss`, totalSeconds)
-				this.emit('update-variable', `wlive_${card}_session_len_mm_ss`, `${totalMinutes}:${remainderSeconds}`)
-				this.emit(
-					'update-variable',
-					`wlive_${card}_session_len_hh_mm_ss`,
-					`${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
-				)
+				return [
+					{ name: `wlive_${card}_elapsed_time_ss`, value: totalSeconds },
+					{ name: `wlive_${card}_elapsed_time_mm_ss`, value: `${totalMinutes}:${remainderSeconds}` },
+					{
+						name: `wlive_${card}_elapsed_time_hh_mm_ss`,
+						value: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
+					},
+				]
 			} else if (subcommand == 'sessionlen') {
 				const seconds = Math.floor((args.value as number) / 1000)
 				const totalSeconds = seconds.toString()
@@ -388,13 +400,14 @@ export class VariableHandler extends EventEmitter {
 					.toString()
 					.padStart(2, '0')
 				const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
-				this.emit('update-variable', `wlive_${card}_session_len_ss`, totalSeconds)
-				this.emit('update-variable', `wlive_${card}_session_len_mm_ss`, `${totalMinutes}:${remainderSeconds}`)
-				this.emit(
-					'update-variable',
-					`wlive_${card}_session_len_hh_mm_ss`,
-					`${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
-				)
+				return [
+					{ name: `wlive_${card}_session_len_ss`, value: totalSeconds },
+					{ name: `wlive_${card}_session_len_mm_ss`, value: `${totalMinutes}:${remainderSeconds}` },
+					{
+						name: `wlive_${card}_session_len_hh_mm_ss`,
+						value: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
+					},
+				]
 			} else if (subcommand == 'sdfree') {
 				const seconds = Math.floor((args.value as number) / 1000)
 				const totalSeconds = seconds.toString()
@@ -409,18 +422,21 @@ export class VariableHandler extends EventEmitter {
 					.toString()
 					.padStart(2, '0')
 				const secondsWithinMinute = (seconds % 60).toString().padStart(2, '0')
-				this.emit('update-variable', `wlive_${card}_sdfree_ss`, totalSeconds)
-				this.emit('update-variable', `wlive_${card}_sdfree_mm_ss`, `${totalMinutes}:${remainderSeconds}`)
-				this.emit(
-					'update-variable',
-					`wlive_${card}_sdfree_hh_mm_ss`,
-					`${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
-				)
+				return [
+					{ name: `wlive_${card}_sdfree_ss`, value: totalSeconds },
+					{ name: `wlive_${card}_sdfree_mm_ss`, value: `${totalMinutes}:${remainderSeconds}` },
+					{
+						name: `wlive_${card}_sdfree_hh_mm_ss`,
+						value: `${hours}:${minutesWithinHour}:${secondsWithinMinute}`,
+					},
+				]
 			}
+			return
 		}
+		return
 	}
 
-	private updateTalkbackVariables(path: string, args: OSCMetaArgument): void {
+	private updateTalkbackVariables(path: string, args: OSCMetaArgument): VariableUpdate[] | undefined {
 		const match = path.match(RE_TALKBACK)
 		if (!match) {
 			return
@@ -439,20 +455,20 @@ export class VariableHandler extends EventEmitter {
 		}
 		const num = match[3]
 
-		this.emit('update-variable', `talkback_${talkback}_${destination}${num}_assign`, args.value as number)
+		return [{ name: `talkback_${talkback}_${destination}${num}_assign`, value: args.value as number }]
 	}
 
-	private updateGpioVariables(path: string, value: number): void {
+	private updateGpioVariables(path: string, value: number): VariableUpdate[] | undefined {
 		const match = path.match(RE_GPIO)
 		if (!match) {
 			return
 		}
 
 		const gpio = match[1]
-		this.emit('update-variable', `gpio${gpio}`, !value)
+		return [{ name: `gpio${gpio}`, value }]
 	}
 
-	private updateControlVariables(path: string, args: OSCMetaArgument): void {
+	private updateControlVariables(path: string, args: OSCMetaArgument): VariableUpdate[] | undefined {
 		const pathMatch = path.match(RE_CONTROL)
 		if (!pathMatch) return
 
@@ -463,30 +479,35 @@ export class VariableHandler extends EventEmitter {
 				const fullShowPath = String(args.value)
 				const showMatch = fullShowPath.match(/([^/\\]+)(?=\.show$)/)
 				const showname = showMatch?.[1] ?? 'N/A'
-				this.emit('update-variable', 'active_show_name', showname)
+				return [
+					{ name: 'active_show_path', value: fullShowPath },
+					{ name: 'active_show_name', value: showname },
+				]
 			} else if (subcommand === '$actidx') {
 				const index = Number(args.value)
-				this.emit('update-variable', 'active_scene_number', index)
-				this.updateShowControlVariables(index)
+				return [{ name: 'active_show_index', value: index }, ...this.updateShowControlVariables(index)]
 			} else if (subcommand === '$active') {
 				const fullScenePath = String(args.value)
 				const sceneMatch = fullScenePath.match(/([^/\\]+)[/\\]([^/\\]+)\..*$/)
 				const scene = sceneMatch?.[2] ?? 'N/A'
 				const parent = sceneMatch?.[1] ?? 'N/A'
-
-				this.emit('update-variable', 'active_scene_name', scene)
-				this.emit('update-variable', 'active_scene_folder', parent)
+				return [
+					{ name: 'active_scene_name', value: scene },
+					{ name: 'active_scene_folder', value: parent },
+				]
 			}
+			return
 		} else if (command === '$stat') {
 			if (subcommand === 'sof') {
 				let index = Number(args.value)
-				// is arg a string or number?
 				if (args.type === 'i') {
 					// recieved an int, which start at 0 instead of -1
 					index = index - 1
 				}
-				this.emit('update-variable', 'sof_mode_index', index)
-				this.emit('update-variable', 'sof_mode_string', ActionUtil.getStringFromStripIndex(index))
+				return [
+					{ name: 'sof_mode_index', value: index },
+					{ name: 'sof_mode_string', value: ActionUtil.getStringFromStripIndex(index) },
+				]
 			} else if (subcommand === 'selidx') {
 				let index = Number(args.value)
 				// is arg a string or number?
@@ -494,21 +515,27 @@ export class VariableHandler extends EventEmitter {
 					// recieved an int, which start at 0 instead of 1
 					index = index + 1
 				}
-				this.emit('update-variable', 'sel_index', index)
-				this.emit('update-variable', 'sel_string', ActionUtil.getStringFromStripIndex(index))
+				return [
+					{ name: 'sel_index', value: index },
+					{ name: 'sel_string', value: ActionUtil.getStringFromStripIndex(index) },
+				]
 			}
+			return
 		}
+		return
 	}
 
-	private updateShowControlVariables(index: number): void {
+	private updateShowControlVariables(index: number): VariableUpdate[] {
 		// const nameMap = self.state.sceneNameToIdMap
 
 		const previous_number = index > 0 ? index - 1 : index
 		const next_number = index + 1
+		return [
+			{ name: 'previous_scene_number', value: previous_number },
+			{ name: 'active_scene_number', value: index },
+			{ name: 'next_scene_number', value: next_number },
+		]
 		// const next_number = index < nameMap.size - 1 ? index + 1 : index
-		this.emit('update-variable', 'previous_scene_number', previous_number)
-		this.emit('update-variable', 'active_scene_number', index)
-		this.emit('update-variable', 'next_scene_number', next_number)
 
 		// TODO: find a way to re-implement this nicely
 		// function getKeyByValue(map: Map<string, number>, value: number): string | undefined {
@@ -526,7 +553,7 @@ export class VariableHandler extends EventEmitter {
 		// this.emit('update-variable', 'next_scene_name', nextName as string)
 	}
 
-	private updateIoVariables(path: string, arg: OSCMetaArgument): void {
+	private updateIoVariables(path: string, arg: OSCMetaArgument): VariableUpdate[] | undefined {
 		const altsw = IoCommands.MainAltSwitch()
 		if (path !== altsw) return
 
@@ -547,10 +574,10 @@ export class VariableHandler extends EventEmitter {
 			}
 		}
 
-		this.emit('update-variable', 'main_alt_status', isMain ? 'Main' : 'Alt')
+		return [{ name: 'main_alt_status', value: isMain ? 'Main' : 'Alt' }]
 	}
 
-	private updateColorVariables(path: string, value: string): void {
+	private updateColorVariables(path: string, value: string): VariableUpdate[] | undefined {
 		const match = path.match(RE_COLOR)
 		if (!match) {
 			return
@@ -558,19 +585,15 @@ export class VariableHandler extends EventEmitter {
 
 		const base = match[1]
 		const num = match[2]
-		this.emit('update-variable', `${base}${num}_color`, value)
+		return [{ name: `${base}${num}_color`, value }]
 	}
 
-	processMessage(msg: OscMessage): void {
-		this.messages[msg.address] = msg
+	processMessage(msgs: Set<OscMessage>): void {
+		msgs.forEach((msg) => this.messages.add(msg))
+		this.debounceUpdateVariables()
 	}
 
-	destroy(): void {
-		if (this.variableUpdateInterval) {
-			clearInterval(this.variableUpdateInterval)
-			this.variableUpdateInterval = undefined
-		}
-	}
+	destroy(): void {}
 
 	round(num: number, precision: number): number {
 		return Math.round(num * Math.pow(10, precision)) / Math.pow(10, precision)

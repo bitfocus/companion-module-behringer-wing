@@ -1,7 +1,7 @@
 import osc from 'osc'
 import { WingModel } from '../models/types.js'
-import { ModuleLogger } from './logger.js'
 import { EventEmitter } from 'events'
+import { ModuleLogger } from './logger.js'
 
 export interface DeviceInfo {
 	deviceName: string
@@ -25,8 +25,8 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	private osc?: osc.UDPPort
 	private knownDevices = new Map<string, DeviceInfo>()
 	private queryTimer: NodeJS.Timeout | undefined
-	private logger?: ModuleLogger
 	private noDeviceTimeout: NodeJS.Timeout | undefined
+	private logger?: ModuleLogger
 
 	constructor(logger?: ModuleLogger) {
 		super()

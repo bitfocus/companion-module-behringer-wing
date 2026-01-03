@@ -1,9 +1,9 @@
 import EventEmitter from 'events'
-import { ModuleLogger } from './logger.js'
 import debounceFn from 'debounce-fn'
 import { FeedbackId } from '../feedbacks.js'
 import { OscMessage } from 'osc'
 import { WingSubscriptions } from '../state/index.js'
+import { ModuleLogger } from './logger.js'
 
 /**
  * Handles feedback updates based on incoming OSC messages and manages feedback subscriptions.
@@ -12,9 +12,9 @@ import { WingSubscriptions } from '../state/index.js'
 export class FeedbackHandler extends EventEmitter {
 	private readonly messageFeedbacks = new Set<FeedbackId>()
 	private readonly debounceMessageFeedbacks: () => void
-	private logger?: ModuleLogger
 	private pollTimeout?: NodeJS.Timeout
 	private pollInterval: number = 3000
+	private logger: ModuleLogger | undefined
 
 	subscriptions?: WingSubscriptions
 
@@ -24,8 +24,8 @@ export class FeedbackHandler extends EventEmitter {
 	 */
 	constructor(logger?: ModuleLogger) {
 		super()
-		this.logger = logger
 
+		this.logger = logger
 		this.subscriptions = new WingSubscriptions()
 
 		this.debounceMessageFeedbacks = debounceFn(
@@ -47,16 +47,17 @@ export class FeedbackHandler extends EventEmitter {
 	 * Process an OSC message and trigger feedback checks if needed.
 	 * @param msg OSC message to process.
 	 */
-	processMessage(msg: OscMessage): void {
-		this.logger?.debug(`Processing message for feedbacks: ${msg.address}`)
-
-		const toUpdate = this.subscriptions?.getFeedbacks(msg.address)
-		if (toUpdate === undefined) {
-			return
-		}
-		if (toUpdate.length > 0) {
-			toUpdate.forEach((f) => this.messageFeedbacks.add(f))
-			this.debounceMessageFeedbacks()
+	processMessage(msgs: Set<OscMessage>): void {
+		this.logger?.debug(`Processing messages for feedbacks`)
+		for (const msg of msgs) {
+			const toUpdate = this.subscriptions?.getFeedbacks(msg.address)
+			if (toUpdate === undefined) {
+				return
+			}
+			if (toUpdate.length > 0) {
+				toUpdate.forEach((f) => this.messageFeedbacks.add(f))
+				this.debounceMessageFeedbacks()
+			}
 		}
 	}
 

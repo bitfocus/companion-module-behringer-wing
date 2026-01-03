@@ -1,7 +1,8 @@
 import osc, { OscMessage } from 'osc'
-import { ModuleLogger } from './logger.js'
+
 import { EventEmitter } from 'events'
 import { OSCSomeArguments } from '@companion-module/base'
+import { ModuleLogger } from './logger.js'
 
 /**
  * Handles OSC UDP connection management, message sending, and event emission for the Behringer Wing module.
@@ -9,9 +10,9 @@ import { OSCSomeArguments } from '@companion-module/base'
  */
 export class ConnectionHandler extends EventEmitter {
 	private osc: osc.UDPPort
-	private logger?: ModuleLogger
 	private subscriptionTimer?: NodeJS.Timeout
 	private subscriptionInterval: number = 9000
+	private logger?: ModuleLogger
 
 	/**
 	 * Create a new ConnectionHandler.
@@ -60,7 +61,8 @@ export class ConnectionHandler extends EventEmitter {
 		})
 
 		this.osc.on('message', (msg: OscMessage) => {
-			this.logger?.debug(`Received ${JSON.stringify(msg)}`)
+			const stringValue = (msg.args as osc.MetaArgument[])[0].value
+			this.logger?.debug(`State updated for ${msg.address}: ${stringValue}`)
 			this.emit('message', msg)
 		})
 
@@ -157,8 +159,7 @@ export class ConnectionHandler extends EventEmitter {
 			args: args,
 		}
 		this.osc.send(command)
-		// this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
 		if (preventLog) return
-		this.logger?.debug(`Sending OSC command: ${JSON.stringify(command)}`)
+		this.logger?.debug(`Sending OSC command: ${command.address} ${argument ?? ''}`)
 	}
 }

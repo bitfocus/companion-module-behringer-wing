@@ -1,4 +1,11 @@
-import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField, Regex } from '@companion-module/base'
+import {
+	InstanceBase,
+	runEntrypoint,
+	InstanceStatus,
+	SomeCompanionConfigField,
+	Regex,
+	CompanionVariableValues,
+} from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
 import { UpgradeScripts } from './upgrades.js'
@@ -11,31 +18,47 @@ import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets.js'
 import { ConnectionHandler } from './handlers/connection-handler.js'
-import { ModuleLogger } from './handlers/logger.js'
 import { StateHandler } from './handlers/state-handler.js'
 import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './variables/variable-handler.js'
 import { OscForwarder } from './handlers/osc-forwarder.js'
+import debounceFn from 'debounce-fn'
+import { ModuleLogger } from './handlers/logger.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
+	private readonly debounceHandleMessages: () => void
+	private readonly messages = new Set<OscMessage>()
+
 	config!: WingConfig
 	model: ModelSpec
 
 	connected: boolean = false
 
 	deviceDetector: WingDeviceDetector | undefined
-	logger: ModuleLogger | undefined
 	connection: ConnectionHandler | undefined
 	stateHandler: StateHandler | undefined
 	feedbackHandler: FeedbackHandler | undefined
 	variableHandler: VariableHandler | undefined
 	transitions: WingTransitions
 	oscForwarder: OscForwarder | undefined
+	logger: ModuleLogger | undefined
 
 	constructor(internal: unknown) {
 		super(internal)
 		this.model = getDeskModel(WingModel.Full) // later populated correctly
 		this.transitions = new WingTransitions(this)
+		this.debounceHandleMessages = debounceFn(
+			() => {
+				this.handleMessages()
+				this.messages.clear()
+			},
+			{
+				wait: 20,
+				maxWait: 100,
+				before: false,
+				after: true,
+			},
+		)
 	}
 
 	async init(config: WingConfig): Promise<void> {
@@ -43,9 +66,9 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.logger.setLoggerFn((level, message) => {
 			this.log(level, message)
 		})
+		this.logger.disable()
 		this.logger.debugMode = config.debugMode ?? false
 		this.logger.timestamps = config.debugMode ?? false
-
 		await this.configUpdated(config)
 	}
 
@@ -64,11 +87,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	async configUpdated(config: WingConfig): Promise<void> {
 		this.config = config
 		this.model = getDeskModel(this.config.model)
-
-		if (config.debugMode === true) {
-			this.logger!.debugMode = true
-			this.logger!.timestamps = true
-		}
 
 		this.setupDeviceDetector()
 		this.transitions.stopAll()
@@ -129,12 +147,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
 
 		this.connection?.on('ready', () => {
-			this.updateStatus(InstanceStatus.Ok)
-			this.stateHandler?.state?.requestNames(this)
-			if (this.config.prefetchVariablesOnStartup) {
-				this.stateHandler?.state?.requestAllVariables(this)
-			}
-			this.stateHandler?.requestUpdate()
+			this.updateStatus(InstanceStatus.Connecting, 'Waiting for answer from console...')
+			void this.connection?.sendCommand('/*').catch(() => {})
 		})
 
 		this.connection?.on('error', (err: Error) => {
@@ -149,20 +163,31 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.connection?.on('message', (msg: OscMessage) => {
-			if (this.connected == false) {
-				this.updateStatus(InstanceStatus.Ok)
-				this.connected = true
-
-				this.logger?.info('OSC connection established')
-
-				this.feedbackHandler?.startPolling()
-			}
-			this.feedbackHandler?.clearPollTimeout()
-			this.stateHandler?.processMessage(msg)
-			this.feedbackHandler?.processMessage(msg)
-			this.variableHandler?.processMessage(msg)
+			this.messages.add(msg)
 			this.oscForwarder?.send(msg)
+			this.debounceHandleMessages()
 		})
+	}
+
+	private handleMessages(): void {
+		if (this.connected == false) {
+			this.updateStatus(InstanceStatus.Ok)
+			this.connected = true
+
+			this.logger?.info('OSC connection established')
+			this.logger?.enable()
+
+			this.feedbackHandler?.startPolling()
+			this.stateHandler?.state?.requestNames(this)
+			if (this.config.prefetchVariablesOnStartup) {
+				void this.stateHandler?.state?.requestAllVariables(this)
+			}
+			this.stateHandler?.requestUpdate()
+		}
+		this.feedbackHandler?.clearPollTimeout()
+		this.stateHandler?.processMessage(this.messages)
+		this.feedbackHandler?.processMessage(this.messages)
+		this.variableHandler?.processMessage(this.messages)
 	}
 
 	private setupStateHandler(): void {
@@ -209,18 +234,14 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private setupVariableHandler(): void {
-		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate, this.logger)
+		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate)
 
 		this.variableHandler.on('create-variables', (variables) => {
 			this.setVariableDefinitions(variables)
 		})
 
-		this.variableHandler.on('update-variable', (variable, value) => {
-			let rounded = Math.round((value + Number.EPSILON) * 10) / 10
-			if (Number.isInteger(value)) {
-				rounded = Math.round(value)
-			}
-			this.setVariableValues({ [variable]: rounded })
+		this.variableHandler.on('update-variables', (updates: CompanionVariableValues) => {
+			this.setVariableValues(updates)
 		})
 
 		this.variableHandler.on('send', (cmd: string, arg?: number | string) => {
@@ -231,7 +252,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private setupOscForwarder(): void {
-		if (!this.oscForwarder && this.logger) {
+		if (!this.oscForwarder) {
 			this.oscForwarder = new OscForwarder(this.logger)
 		}
 		this.oscForwarder?.setup(

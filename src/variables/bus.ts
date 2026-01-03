@@ -1,8 +1,8 @@
-import { CompanionVariableDefinition } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'
+import { VariableDefinition } from './index.js'
 
-export function getBusVariables(model: ModelSpec): CompanionVariableDefinition[] {
-	const variables: CompanionVariableDefinition[] = []
+export function getBusVariables(model: ModelSpec): VariableDefinition[] {
+	const variables: VariableDefinition[] = []
 
 	for (let bus = 1; bus <= model.busses; bus++) {
 		variables.push({
