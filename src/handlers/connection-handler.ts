@@ -45,9 +45,9 @@ export class ConnectionHandler extends EventEmitter {
 			this.emit('ready')
 		})
 
-		this.osc.on('error', (err) => {
+		this.osc.on('error', (err: Error) => {
 			this.logger?.error(`OSC error: ${err.message}`)
-			this.emit('error')
+			this.emit('error', err)
 		})
 
 		this.osc.on('close' as any, () => {
