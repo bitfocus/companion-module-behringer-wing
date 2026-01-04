@@ -1,22 +1,11 @@
 import EventEmitter from 'events'
 import { ModuleLogger } from '../handlers/logger.js'
 import { ModelSpec } from '../models/types.js'
-import { getChannelVariables } from './channel.js'
-import { getAuxVariables } from './auxiliary.js'
-import { getMatrixVariables } from './matrix.js'
-import { getBusVariables } from './bus.js'
-import { getMainVariables } from './main.js'
-import { getDcaVariables } from './dca.js'
-import { getMuteGroupVariables } from './mutegroup.js'
-import { getUsbVariables } from './usb.js'
-import { getWliveVariables } from './wlive.js'
-import { getShowControlVariables } from './showcontrol.js'
-import { getGpioVariables } from './gpio.js'
-import { getTalkbackVariables } from './talkback.js'
 import osc, { OscMessage } from 'osc'
 import { CompanionVariableDefinition, OSCMetaArgument } from '@companion-module/base'
 import * as ActionUtil from '../actions/utils.js'
 import { IoCommands } from '../commands/io.js'
+import { getAllVariables } from './index.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
 const RE_GAIN = /\/(\w+)\/(\d+)\/in\/set\/\$g/
@@ -52,23 +41,13 @@ export class VariableHandler extends EventEmitter {
 
 	setupVariables(): void {
 		this.logger?.info('Setting up variables')
+		const vars = getAllVariables(this.model)
 
 		this.variables.push({ variableId: 'desk_ip', name: 'Desk IP Address' })
 		this.variables.push({ variableId: 'desk_name', name: 'Desk Name' })
 		this.variables.push({ variableId: 'main_alt_status', name: 'Main/Alt Input Source' })
 
-		this.variables.push(...getChannelVariables(this.model))
-		this.variables.push(...getAuxVariables(this.model))
-		this.variables.push(...getBusVariables(this.model))
-		this.variables.push(...getMatrixVariables(this.model))
-		this.variables.push(...getMainVariables(this.model))
-		this.variables.push(...getDcaVariables(this.model))
-		this.variables.push(...getMuteGroupVariables(this.model))
-		this.variables.push(...getUsbVariables())
-		this.variables.push(...getWliveVariables())
-		this.variables.push(...getShowControlVariables())
-		this.variables.push(...getGpioVariables(this.model))
-		this.variables.push(...getTalkbackVariables(this.model))
+		this.variables.push(...vars.map((v) => ({ variableId: v.variableId, name: v.name })))
 
 		this.logger?.info(`Defined ${this.variables.length} variables`)
 		this.emit('create-variables', this.variables)

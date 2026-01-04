@@ -156,6 +156,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 				this.logger?.info('OSC connection established')
 
 				this.feedbackHandler?.startPolling()
+				this.stateHandler?.state?.requestNames(this)
+				if (this.config.prefetchVariablesOnStartup) {
+					this.stateHandler?.state?.requestAllVariables(this)
+				}
+				this.stateHandler?.requestUpdate()
 			}
 			this.feedbackHandler?.clearPollTimeout()
 			this.stateHandler?.processMessage(msg)

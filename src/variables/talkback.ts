@@ -1,21 +1,37 @@
-import { CompanionVariableDefinition } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'
+import { VariableDefinition } from './index.js'
+import * as Commands from '../commands/index.js'
 
-export function getTalkbackVariables(model: ModelSpec): CompanionVariableDefinition[] {
-	const variables: CompanionVariableDefinition[] = []
+export function getTalkbackVariables(model: ModelSpec): VariableDefinition[] {
+	const variables: VariableDefinition[] = []
 
-	for (let bus = 1; bus <= model.busses; bus++) {
-		variables.push({ variableId: `talkback_a_bus${bus}_assign`, name: `Talkback A to Bus ${bus} assign` })
-		variables.push({ variableId: `talkback_b_bus${bus}_assign`, name: `Talkback B to Bus ${bus} assign` })
-	}
-	for (let mtx = 1; mtx <= model.matrices; mtx++) {
-		variables.push({ variableId: `talkback_a_mtx${mtx}_assign`, name: `Talkback A to Matrix ${mtx} assign` })
-		variables.push({ variableId: `talkback_b_mtx${mtx}_assign`, name: `Talkback B to Matrix ${mtx} assign` })
-	}
-	for (let main = 1; main <= model.mains; main++) {
-		variables.push({ variableId: `talkback_a_main${main}_assign`, name: `Talkback A to Main ${main} assign` })
-		variables.push({ variableId: `talkback_b_main${main}_assign`, name: `Talkback B to Main ${main} assign` })
-	}
+	const tbs = ['A', 'B']
+
+	tbs.map((tb) => {
+		const upper = tb.toUpperCase()
+		const lower = tb.toLowerCase()
+		for (let bus = 1; bus <= model.busses; bus++) {
+			variables.push({
+				variableId: `talkback_${lower}_bus${bus}_assign`,
+				name: `Talkback ${upper} to Bus ${bus} assign`,
+				path: Commands.Configuration.TalkbackBusAssign(upper, bus),
+			})
+		}
+		for (let mtx = 1; mtx <= model.matrices; mtx++) {
+			variables.push({
+				variableId: `talkback_${lower}_mtx${mtx}_assign`,
+				name: `Talkback ${upper} to Matrix ${mtx} assign`,
+				path: Commands.Configuration.TalkbackMatrixAssign(upper, mtx),
+			})
+		}
+		for (let main = 1; main <= model.mains; main++) {
+			variables.push({
+				variableId: `talkback_${lower}_main${main}_assign`,
+				name: `Talkback ${upper} to Matrix ${main} assign`,
+				path: Commands.Configuration.TalkbackMainAssign(upper, main),
+			})
+		}
+	})
 
 	return variables
 }

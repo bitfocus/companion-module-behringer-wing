@@ -1,7 +1,7 @@
-import { CompanionVariableDefinition } from '@companion-module/base'
+import { VariableDefinition } from './index.js'
 
-export function getUsbVariables(): CompanionVariableDefinition[] {
-	const variables: CompanionVariableDefinition[] = []
+export function getUsbVariables(): VariableDefinition[] {
+	const variables: VariableDefinition[] = []
 
 	variables.push({ variableId: 'usb_record_time_ss', name: 'USB Record Time (ss)' })
 	variables.push({ variableId: 'usb_record_time_mm_ss', name: 'USB Record Time (mm:ss)' })
