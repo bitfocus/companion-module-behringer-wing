@@ -1,6 +1,10 @@
 import { DropdownChoice } from '@companion-module/base'
 import { getIdLabelPair } from './utils.js'
 
+export function getMonitorOptions(): DropdownChoice[] {
+	return [getIdLabelPair('1', 'Monitor 1'), getIdLabelPair('2', 'Monitor 2')]
+}
+
 export function getTalkbackOptions(): DropdownChoice[] {
 	return [getIdLabelPair('A', 'Talkback A'), getIdLabelPair('B', 'Talkback B')]
 }
