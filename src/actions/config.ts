@@ -16,7 +16,12 @@ import { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
 import { ConfigurationCommands } from '../commands/config.js'
 import { getIdLabelPair } from '../choices/utils.js'
-import { getTalkbackOptions, getTalkbackModeOptions, getTalkbackIndividualOptions } from '../choices/config.js'
+import {
+	getTalkbackOptions,
+	getTalkbackModeOptions,
+	getTalkbackIndividualOptions,
+	getMonitorOptions,
+} from '../choices/config.js'
 import { WingRack } from '../models/rack.js'
 
 export enum ConfigActions {
@@ -28,6 +33,8 @@ export enum ConfigActions {
 
 	// Monitor
 	SetMonitorLevel = 'set-monitor-level',
+	SetMonitorSourceLevel = 'set-monitor-source-level',
+	SetMonitorPflDim = 'set-monitor-pfl-dim',
 
 	// Talkback
 	TalkbackOn = 'talkback-on',
@@ -103,12 +110,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 						description:
 							'Set the level of a monitor channel. ATTENTION: This command only works on the Rack and Compact Model, due to the full-size Wing having potentiometers as control knobs.',
 						options: [
-							...GetDropdownWithVariables(
-								'Monitor',
-								'mon',
-								[getIdLabelPair('1', 'Monitor 1'), getIdLabelPair('2', 'Monitor 2')],
-								'1',
-							),
+							...GetDropdownWithVariables('Monitor', 'mon', getMonitorOptions(), '1'),
 							...GetFaderInputFieldWithVariables('level'),
 						],
 						callback: async (event) => {
@@ -119,6 +121,34 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 						},
 					}
 				: undefined,
+		[ConfigActions.SetMonitorSourceLevel]: {
+			name: 'Set Monitor Source Level',
+			description: 'Set the source level of a monitor channel (-144 to 10 dB).',
+			options: [
+				...GetDropdownWithVariables('Monitor', 'mon', getMonitorOptions(), '1'),
+				...GetFaderInputFieldWithVariables('level'),
+			],
+			callback: async (event) => {
+				const monitor = ActionUtil.getNumberWithVariables(event, 'mon')
+				const level = ActionUtil.getNumberWithVariables(event, 'level')
+				const cmd = ConfigurationCommands.MonitorSourceLevel(monitor)
+				ActionUtil.runTransition(cmd, 'level', event, state, transitions, level)
+			},
+		},
+		[ConfigActions.SetMonitorPflDim]: {
+			name: 'Set Monitor PFL Dim',
+			description: 'Set the PFL dim amount of a monitor channel (0 to 40 dB).',
+			options: [
+				...GetDropdownWithVariables('Monitor', 'mon', getMonitorOptions(), '1'),
+				...GetNumberFieldWithVariables('Dim [dB]', 'dim', 0, 40, 1, 10),
+			],
+			callback: async (event) => {
+				const monitor = ActionUtil.getNumberWithVariables(event, 'mon')
+				const dim = ActionUtil.getNumberWithVariables(event, 'dim')
+				const cmd = ConfigurationCommands.MonitorPflDim(monitor)
+				await send(cmd, dim, true)
+			},
+		},
 
 		////////////////////////////////////////////////////////////////
 		// Talkback

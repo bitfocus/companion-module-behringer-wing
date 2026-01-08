@@ -115,6 +115,8 @@ If you continue to experience issues, you can open an issue on the [GitHub repos
 | Common | Undo Panorama Adjust | Undo the previous adjustment on the panorama of a channel, aux, bus, matrix or main. |
 | Common | Undo Send Level Adjust | Undo the previous send level adjustment from a destination channel strip to a source |
 | Common | Undo Send Panorama Adjust | Undo the panorama adjustment of a send from a channel or aux to a bus or matrix. |
+| Configuration | Set Monitor PFL Dim | Set the PFL dim amount of a monitor channel (0 to 40 dB). |
+| Configuration | Set Monitor Source Level | Set the source level of a monitor channel (-144 to 10 dB). |
 | Configuration | Set Solo Dim | Set or toggle the dim state of the solo output. |
 | Configuration | Set Solo LR Swap | Set the left-right channel swap of the solo channel. |
 | Configuration | Set Solo Mono | Set or toggle the mono state of the solo output. |
