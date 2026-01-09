@@ -16,6 +16,7 @@ import { StateHandler } from './handlers/state-handler.js'
 import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './variables/variable-handler.js'
 import { OscForwarder } from './handlers/osc-forwarder.js'
+import { CustomControlsHandler } from './handlers/cc-handler.js'
 
 export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
 	config!: WingConfig
@@ -31,6 +32,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	variableHandler: VariableHandler | undefined
 	transitions: WingTransitions
 	oscForwarder: OscForwarder | undefined
+	ccHandler: CustomControlsHandler | undefined
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -84,6 +86,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.updateFeedbacks()
 
 		this.setupOscForwarder()
+
+		this.setupCcSurfaces().catch((err) => {
+			this.logger?.error(`Error setting up CC Surfaces: ${err.message}`)
+		})
 
 		this.deviceDetector?.subscribe(this.id)
 	}
@@ -161,6 +167,9 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.stateHandler?.processMessage(msg)
 			this.feedbackHandler?.processMessage(msg)
 			this.variableHandler?.processMessage(msg)
+			if (this.config.useCcSurfaces) {
+				void this.ccHandler?.processMessage(msg)
+			}
 			this.oscForwarder?.send(msg)
 		})
 	}
@@ -239,6 +248,19 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.config.oscForwardingHost,
 			this.config.oscForwardingPort,
 		)
+	}
+
+	private async setupCcSurfaces(): Promise<void> {
+		if (this.config.useCcSurfaces) {
+			this.ccHandler = new CustomControlsHandler(this.model)
+			await this.ccHandler.setupSurfaces({
+				useCcUserPages: this.config.useCcUserPages,
+				ccUserPagesToCreate: this.config.ccUserPagesToCreate,
+				useCcGpio: this.config.useCcGpio,
+				useCcUser: this.config.useCcUser,
+				useCcDaw: this.config.useCcDaw,
+			})
+		}
 	}
 }
 

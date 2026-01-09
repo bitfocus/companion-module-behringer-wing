@@ -20,4 +20,8 @@ export const WingRack: ModelSpec = {
 	aesOut: 2,
 	stageConnect: 1,
 	gpio: 4,
+
+	userPages: 16,
+	userPageRows: 3,
+	userPageColumns: 4,
 }

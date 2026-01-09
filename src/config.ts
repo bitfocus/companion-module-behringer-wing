@@ -22,6 +22,14 @@ export interface WingConfig {
 	/** When enabled, the module will request values for all variables on startup */
 	prefetchVariablesOnStartup?: boolean
 
+	useCcSurfaces?: boolean
+	showCcTutorial?: boolean
+	useCcUserPages?: boolean
+	ccUserPagesToCreate?: number[]
+	useCcGpio?: boolean
+	useCcUser?: boolean
+	useCcDaw?: boolean
+
 	// Advanced Option
 	requestTimeout?: number
 	panicOnLostRequest?: boolean
@@ -127,6 +135,131 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			tooltip: 'Request values for all variables when establishing a connection to a desk.',
 			width: 6,
 			default: true,
+		},
+		spacer,
+		{
+			type: 'checkbox',
+			id: 'useCcSurfaces',
+			label: 'Enable Virtual Control Surfaces',
+			tooltip:
+				'Master toggle for Virtual Control surface support. This is an advanced feature - see tutorial below for setup details.',
+			width: 12,
+			default: false,
+		},
+		{
+			type: 'static-text',
+			id: 'cc-surfaces-info',
+			width: 12,
+			label: 'Advanced Feature',
+			value:
+				'Creates virtual Satellite surfaces that respond to Custom Control button presses on your Wing console. ' +
+				"This allows you to trigger Companion actions directly from the console's CC buttons. ",
+			isVisibleExpression: `$(options:useCcSurfaces) == true`,
+		},
+		{
+			type: 'checkbox',
+			id: 'showCcTutorial',
+			label: 'Show Tutorial',
+			tooltip: 'Display detailed setup instructions for Custom Control Surfaces.',
+			width: 12,
+			default: false,
+			isVisibleExpression: `$(options:useCcSurfaces) == true`,
+		},
+		{
+			type: 'static-text',
+			id: 'cc-tutorial',
+			width: 12,
+			label: 'Setup Tutorial',
+			value:
+				'<h3>How It Works</h3>' +
+				'<p>When you press a Custom Control button on your Wing console, the corresponding button press is sent to Companion, where you can program any action you want.</p>' +
+				'<h3>Configuration Steps</h3>' +
+				'<ol>' +
+				'<li><strong>Enable Custom Control Surfaces</strong> - Check the master toggle above</li>' +
+				'<li><strong>Select Surface Types</strong> - Choose which surface types you want to create:' +
+				'<ul>' +
+				'<li><strong>User Pages (CC)</strong> - Creates surfaces for User Pages (U1-U16) with encoders and buttons. You can select specific pages to create (1-16).</li>' +
+				'<li><strong>GPIO Buttons</strong> - Creates a surface for GPIO buttons</li>' +
+				'<li><strong>User Buttons</strong> - Creates a surface for User buttons (8 buttons)</li>' +
+				'<li><strong>DAW Buttons</strong> - Creates surfaces for DAW buttons (4 sets of 8 buttons)</li>' +
+				'</ul>' +
+				'</li>' +
+				"<li><strong>Configure in Companion</strong> - After enabling, the surfaces will appear in Companion's <strong>Surfaces</strong> tab where you can assign them to pages</li>" +
+				'</ol>' +
+				'<h3>Recommended Page Mapping</h3>' +
+				'<p>It is advisable to dedicate one Companion page per Wing User Page surface. This provides a clear one-to-one relationship between your console and Companion.</p>' +
+				'<p><strong>In the Surfaces section:</strong></p>' +
+				'<ul>' +
+				'<li>Assign each surface to a page number with a matching last digit. Deactivate "Use last page at startup" and select the desired page number for "Startup Page" and "Current Page"</li>' +
+				'<li>For example:' +
+				'<ul>' +
+				'<li><code>WING_CC_01</code> → Page 71</li>' +
+				'<li><code>WING_CC_02</code> → Page 72</li>' +
+				'<li><code>WING_CC_03</code> → Page 73</li>' +
+				'<li>And so on...</li>' +
+				'</ul>' +
+				'</li>' +
+				'</ul>' +
+				'<p>This numbering scheme makes it easy to identify which Companion page corresponds to which User Page on your Wing console.</p>' +
+				'<p><strong>In the Buttons section:</strong></p>' +
+				'<ul>' +
+				'<li>Configure the actual button actions for each page (e.g. 71) in the "Buttons" section of Companion</li>' +
+				'</ul>' +
+				'<h3>Requirements</h3>' +
+				'<ul>' +
+				'<li><strong>Important:</strong> On the Wing console, each Custom Control button must have a MIDI command assigned for it to send OSC event updates to Companion. The same MIDI command can be used for all buttons.</li>' +
+				'</ul>',
+			isVisibleExpression: `$(options:useCcSurfaces) == true && $(options:showCcTutorial) == true`,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcUserPages',
+			label: 'Enable User Pages (CC)',
+			tooltip: 'Create surfaces for User Pages (U1-U16) with encoders and buttons.',
+			width: 6,
+			default: false,
+			isVisibleExpression: `$(options:useCcSurfaces) == true`,
+		},
+		{
+			type: 'multidropdown',
+			id: 'ccUserPagesToCreate',
+			label: 'User Pages to Create',
+			tooltip: 'Select which User Pages (1-16) to create as virtual surfaces.',
+			width: 12,
+			choices: Array.from({ length: 16 }, (_, i) => ({
+				id: i + 1,
+				label: `CC Page ${i + 1}`,
+			})),
+			default: [16],
+			minSelection: 0,
+			isVisibleExpression: `$(options:useCcSurfaces) == true && $(options:useCcUserPages) == true`,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcGpio',
+			label: 'Enable GPIO Buttons',
+			tooltip: 'Create a virtual surface for GPIO buttons.',
+			width: 6,
+			default: false,
+			isVisibleExpression: `$(options:useCcSurfaces) == true`,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcUser',
+			label: 'Enable User Buttons',
+			tooltip: 'Create a virtual surface for User buttons (8 buttons).',
+			width: 6,
+			default: false,
+			isVisibleExpression: `$(options:useCcSurfaces) == true`,
+		},
+		{
+			type: 'checkbox',
+			id: 'useCcDaw',
+			label: 'Enable DAW Buttons',
+			tooltip: 'Create virtual surfaces for DAW buttons (4 sets of 8 buttons).',
+			width: 6,
+			default: false,
+			isVisibleExpression: `$(options:useCcSurfaces) == true`,
 		},
 		spacer,
 		{
