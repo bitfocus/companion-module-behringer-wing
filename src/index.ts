@@ -62,7 +62,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	async init(config: WingConfig): Promise<void> {
-		this.logger = new ModuleLogger('Wing')
+		this.logger = new ModuleLogger(this.label)
 		this.logger.setLoggerFn((level, message) => {
 			this.log(level, message)
 		})
@@ -74,10 +74,23 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	async destroy(): Promise<void> {
 		this.deviceDetector?.unsubscribe(this.id)
 		this.transitions.stopAll()
+	}
 
+	private start(config: WingConfig): void {
+		this.setupDeviceDetector()
+		this.setupConnectionHandler()
+		this.setupStateHandler()
+		this.setupFeedbackHandler()
+		this.setupVariableHandler()
+		this.transitions.setUpdateRate(config.fadeUpdateRate ?? 50)
+		this.setupOscForwarder()
+		this.updateActions()
+		this.updateFeedbacks()
+	}
+
+	private stop(): void {
 		this.connection?.close()
 		this.stateHandler?.clearState()
-
 		this.oscForwarder?.close()
 		this.oscForwarder = undefined
 		this.variableHandler?.destroy()
@@ -87,20 +100,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.config = config
 		this.model = getDeskModel(this.config.model)
 
-		this.setupDeviceDetector()
-		this.transitions.stopAll()
-
-		this.setupConnectionHandler()
-		this.setupStateHandler()
-		this.setupFeedbackHandler()
-
-		this.setupVariableHandler()
-
-		this.transitions.setUpdateRate(this.config.fadeUpdateRate ?? 50)
-		this.updateActions()
-		this.updateFeedbacks()
-
-		this.setupOscForwarder()
+		this.stop()
+		this.start(config)
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
@@ -137,17 +138,20 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 		if (!ipRegex.test(this.config.host ?? '')) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
-			return
 		}
 
 		this.connection.open('0.0.0.0', 0, this.config.host!, 2223)
 		this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
 		this.connection.startSubscription()
-		this.updateStatus(InstanceStatus.Connecting, 'waiting for response from console...')
 
 		this.connection?.on('ready', () => {
 			this.updateStatus(InstanceStatus.Connecting, 'Waiting for answer from console...')
-			void this.connection?.sendCommand('/*').catch(() => {})
+			this.feedbackHandler?.startPolling()
+			this.stateHandler?.state?.requestNames(this)
+			if (this.config.prefetchVariablesOnStartup) {
+				void this.stateHandler?.state?.requestAllVariables(this)
+			}
+			this.stateHandler?.requestUpdate()
 		})
 
 		this.connection?.on('error', (err: Error) => {
@@ -174,13 +178,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.connected = true
 
 			this.logger?.info('OSC connection established')
-
-			this.feedbackHandler?.startPolling()
-			this.stateHandler?.state?.requestNames(this)
-			if (this.config.prefetchVariablesOnStartup) {
-				void this.stateHandler?.state?.requestAllVariables(this)
-			}
-			this.stateHandler?.requestUpdate()
 		}
 		this.feedbackHandler?.clearPollTimeout()
 		this.stateHandler?.processMessage(this.messages)
@@ -203,6 +200,8 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.stateHandler.on('update', () => {
+			this.updateActions()
+			this.updateFeedbacks()
 			this.setPresetDefinitions(GetPresets(this))
 			this.setActionDefinitions(createActions(this))
 			this.setFeedbackDefinitions(GetFeedbacksList(this))
