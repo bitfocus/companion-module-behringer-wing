@@ -35,7 +35,7 @@ export function getMainVariables(model: ModelSpec): VariableDefinition[] {
 			variables.push({
 				variableId: `main${main}_mtx${send}_level`,
 				name: `Main ${main} to Matrix ${send} Level`,
-				path: Commands.Main.MatrixSendOn(main, send),
+				path: Commands.Main.MatrixSendLevel(main, send),
 			})
 		}
 
