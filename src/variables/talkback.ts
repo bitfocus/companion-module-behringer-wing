@@ -27,7 +27,7 @@ export function getTalkbackVariables(model: ModelSpec): VariableDefinition[] {
 		for (let main = 1; main <= model.mains; main++) {
 			variables.push({
 				variableId: `talkback_${lower}_main${main}_assign`,
-				name: `Talkback ${upper} to Matrix ${main} assign`,
+				name: `Talkback ${upper} to Main ${main} assign`,
 				path: Commands.Configuration.TalkbackMainAssign(upper, main),
 			})
 		}
