@@ -231,7 +231,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private setupVariableHandler(): void {
-		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate)
+		this.variableHandler = new VariableHandler(this.model, this.config.variableUpdateRate, this.logger)
 
 		this.variableHandler.on('create-variables', (variables) => {
 			this.setVariableDefinitions(variables)
