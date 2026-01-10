@@ -13,7 +13,7 @@ import { createActions } from './actions/index.js'
 import { GetFeedbacksList } from './feedbacks.js'
 import { OscMessage } from 'osc'
 import { WingTransitions } from './handlers/transitions.js'
-import { WingDeviceDetector } from './handlers/device-detector.js'
+import { WingDeviceDetectorInstance, WingDeviceDetectorInterface } from './handlers/device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets.js'
@@ -34,7 +34,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 
 	connected: boolean = false
 
-	deviceDetector: WingDeviceDetector | undefined
+	deviceDetector: WingDeviceDetectorInterface | undefined
 	connection: ConnectionHandler | undefined
 	stateHandler: StateHandler | undefined
 	feedbackHandler: FeedbackHandler | undefined
@@ -66,7 +66,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.logger.setLoggerFn((level, message) => {
 			this.log(level, message)
 		})
-		this.logger.disable()
 		this.logger.debugMode = config.debugMode ?? false
 		this.logger.timestamps = config.debugMode ?? false
 		await this.configUpdated(config)
@@ -102,8 +101,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.updateFeedbacks()
 
 		this.setupOscForwarder()
-
-		this.deviceDetector?.subscribe(this.id)
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
@@ -119,9 +116,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	private setupDeviceDetector(): void {
-		this.deviceDetector = new WingDeviceDetector(this.logger)
-		this.deviceDetector?.unsubscribe(this.id)
-
+		this.deviceDetector = WingDeviceDetectorInstance
+		if (this.logger !== undefined) {
+			this.deviceDetector.addLogger(this.logger)
+		}
+		this.deviceDetector.subscribe(this.id)
 		if (this.deviceDetector) {
 			;(this.deviceDetector as any).on?.('no-device-detected', () => {
 				this.logger?.warn('No console detected on the network')
@@ -175,7 +174,6 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 			this.connected = true
 
 			this.logger?.info('OSC connection established')
-			this.logger?.enable()
 
 			this.feedbackHandler?.startPolling()
 			this.stateHandler?.state?.requestNames(this)

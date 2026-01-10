@@ -14,6 +14,7 @@ export interface WingDeviceDetectorInterface {
 	subscribe(instanceId: string): void
 	unsubscribe(instanceId: string): void
 	listKnown(): DeviceInfo[]
+	addLogger(logger: ModuleLogger): void
 }
 
 /**
@@ -34,14 +35,20 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	}
 
 	/**
+	 * Add a logger
+	 * @param logger An instance of a ModuleLogger
+	 */
+	public addLogger(logger: ModuleLogger): void {
+		this.logger = logger
+	}
+
+	/**
 	 * Register a subscriber to start device detection.
 	 * @param instanceId Unique identifier for the subscriber.
 	 */
 	public subscribe(instanceId: string): void {
 		const startListening = this.subscribers.size === 0
-
 		this.subscribers.add(instanceId)
-
 		if (startListening) {
 			this.startListening()
 		}
@@ -71,7 +78,6 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	 */
 	private startListening(): void {
 		this.knownDevices.clear()
-
 		if (this.subscribers.size === 0) {
 			return
 		}
@@ -112,6 +118,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 		})
 
 		this.osc.on('message', (message): void => {
+			this.logger?.debug(`received device detector message ${JSON.stringify(message)}`)
 			const args = message.args as osc.MetaArgument[]
 			if (!args || args.length === 0 || args[0].type !== 's') {
 				return
@@ -152,7 +159,6 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 				this.noDeviceTimeout = undefined
 			}
 		})
-
 		this.osc.open()
 	}
 
