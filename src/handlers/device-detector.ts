@@ -148,7 +148,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 			// If a device has not been seen for over a minute, remove it
 			this.knownDevices.set(info.address, info)
 			for (const [id, data] of Array.from(this.knownDevices.entries())) {
-				if (data.lastSeen < Date.now() - 60000) {
+				if (data.lastSeen < Date.now() - 20000) {
 					this.logger?.info(`Removing console ${data.deviceName} at ${data.address} from known devices due to timeout`)
 					this.knownDevices.delete(id)
 				}
