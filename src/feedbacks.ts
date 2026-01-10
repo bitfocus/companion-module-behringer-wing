@@ -646,7 +646,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				const cmd = ControlCommands.SetSof()
-				const currentSelectedIndex = parseInt(StateUtil.getStringFromState(cmd, state) ?? '-1')
+				const currentSelectedIndex = StateUtil.getNumberFromState(cmd, state)
 				return currentSelectedIndex === channelIndex
 			},
 			subscribe: async (event): Promise<void> => {

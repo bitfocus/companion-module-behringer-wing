@@ -170,6 +170,9 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			callback: async (event) => {
 				const cmd = ControlCommands.SetSof()
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
+				const channelIndex = ActionUtil.getStripIndexFromString(channel)
+				const currentSelectedIndex = StateUtil.getNumberFromState(cmd, state) ?? 0
+
 				/* explicitely use a string as argument. OSC Documentation:
 				 * -1: sof active
 				 *  0: sof not active
@@ -180,13 +183,10 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				 * When pressing on the console, the state is updated from the string the console sends,
 				 * which is always lower by 1 compared to the integer
 				 */
-				const channelIndex = `${ActionUtil.getStripIndexFromString(channel)}`
-				const currentSelectedIndex = StateUtil.getStringFromState(cmd, state) ?? '0'
-
 				if (channelIndex === currentSelectedIndex) {
-					await send(cmd, '0')
+					await send(cmd, 1)
 				} else {
-					await send(cmd, channelIndex)
+					await send(cmd, channelIndex + 1)
 				}
 			},
 		},
