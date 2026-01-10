@@ -4,20 +4,22 @@ import { ModuleLogger } from './logger.js'
 
 export class OscForwarder {
 	private port: osc.UDPPort | undefined
-	private logger: ModuleLogger
+	private logger: ModuleLogger | undefined
 
-	constructor(logger: ModuleLogger) {
+	constructor(logger?: ModuleLogger) {
 		this.logger = logger
 	}
 
-	setup(enabled: boolean | undefined, host?: string, port?: number): void {
+	setup(enabled: boolean | undefined, host?: string, port?: number, logger?: ModuleLogger): void {
 		this.close()
+
+		this.logger = logger
 
 		if (!enabled || !host || !port) {
 			return
 		}
 
-		this.logger.info(`Setting up OSC forwarder to ${host}:${port}`)
+		this.logger?.info(`Setting up OSC forwarder to ${host}:${port}`)
 		try {
 			this.port = new osc.UDPPort({
 				localAddress: '0.0.0.0',
@@ -28,13 +30,13 @@ export class OscForwarder {
 			})
 
 			this.port.on('error', (err: Error): void => {
-				this.logger.warn(`OSC Forwarder Error: ${err.message}`)
+				this.logger?.warn(`OSC Forwarder Error: ${err.message}`)
 			})
 
 			this.port.open()
-			this.logger.info(`OSC forwarding enabled to ${host}:${port}`)
+			this.logger?.info(`OSC forwarding enabled to ${host}:${port}`)
 		} catch (err: any) {
-			this.logger.error(`Failed to setup OSC forwarder: ${err?.message ?? err}`)
+			this.logger?.error(`Failed to setup OSC forwarder: ${err?.message ?? err}`)
 		}
 	}
 
@@ -42,7 +44,7 @@ export class OscForwarder {
 		try {
 			this.port?.send(message)
 		} catch (err: any) {
-			this.logger.warn(`OSC forward send failed: ${err?.message ?? err}`)
+			this.logger?.warn(`OSC forward send failed: ${err?.message ?? err}`)
 		}
 	}
 

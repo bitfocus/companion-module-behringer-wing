@@ -1,7 +1,7 @@
-import { CompanionVariableDefinition } from '@companion-module/base'
+import { VariableDefinition } from './index.js'
 
-export function getShowControlVariables(): CompanionVariableDefinition[] {
-	const variables: CompanionVariableDefinition[] = []
+export function getShowControlVariables(): VariableDefinition[] {
+	const variables: VariableDefinition[] = []
 
 	variables.push({ variableId: 'active_show_name', name: 'Active Show Name' })
 	variables.push({ variableId: 'previous_scene_number', name: 'Previous Scene Number' })

@@ -5,6 +5,7 @@ import { DropdownChoice } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import * as Commands from '../commands/index.js'
+import { getAllVariables } from '../variables/index.js'
 
 type NameChoices = {
 	channels: DropdownChoice[]
@@ -205,7 +206,7 @@ export class WingState implements IStoredChannelSubject {
 
 	public requestNames(self: WingInstance): void {
 		const model = self.model
-		console.info('Requesting all names')
+		self.logger?.info('Requesting all names...')
 		const sendCommand = self.connection!.sendCommand.bind(self.connection)
 
 		for (let ch = 1; ch <= model.channels; ch++) {
@@ -231,10 +232,28 @@ export class WingState implements IStoredChannelSubject {
 		}
 	}
 
-	public requestAllVariables(self: WingInstance): void {
+	public async requestAllVariables(self: WingInstance): Promise<void> {
 		const model = self.model
 		const sendCommand = self.connection!.sendCommand.bind(self.connection)
 
+		const vars = getAllVariables(model)
+
+		const chunkSize = self.config.startupVariableRequestChunkSize ?? 500
+		const chunkWait = self.config.startupVariableRequestChunkWait ?? 100
+		const chunks = Math.ceil(vars.length / chunkSize)
+		for (let c = 0; c < chunks; c++) {
+			const wait = c * chunkWait
+			const varChunk = vars.slice(c * chunkSize, (c + 1) * chunkSize)
+			setTimeout(() => {
+				for (const v of varChunk) {
+					const p = v.path
+					if (p === undefined) continue
+					void sendCommand(p, undefined, undefined, true)
+				}
+			}, wait)
+		}
+		// Separate Stuff
+		// TODO: eventually this should be unified in the main variable definitions
 		// Desk/system status
 		void sendCommand(Commands.Io.MainAltSwitch())
 
@@ -276,134 +295,6 @@ export class WingState implements IStoredChannelSubject {
 			void sendCommand(Commands.Cards.WLiveCardETime(card))
 			void sendCommand(Commands.Cards.WLiveCardSessionLength(card))
 			void sendCommand(Commands.Cards.WLiveCardSDFree(card))
-		}
-
-		// GPIO states
-		for (let gpio = 1; gpio <= model.gpio; gpio++) {
-			void sendCommand(Commands.Control.GpioReadState(gpio))
-		}
-
-		// Talkback assigns (A and B)
-		for (let bus = 1; bus <= model.busses; bus++) {
-			void sendCommand(Commands.Configuration.TalkbackBusAssign('A', bus))
-			void sendCommand(Commands.Configuration.TalkbackBusAssign('B', bus))
-		}
-		for (let mtx = 1; mtx <= model.matrices; mtx++) {
-			void sendCommand(Commands.Configuration.TalkbackMatrixAssign('A', mtx))
-			void sendCommand(Commands.Configuration.TalkbackMatrixAssign('B', mtx))
-		}
-		for (let main = 1; main <= model.mains; main++) {
-			void sendCommand(Commands.Configuration.TalkbackMainAssign('A', main))
-			void sendCommand(Commands.Configuration.TalkbackMainAssign('B', main))
-		}
-
-		// Names are requested elsewhere via state.requestNames
-
-		// Channel strips
-		for (let ch = 1; ch <= model.channels; ch++) {
-			void sendCommand(Commands.Channel.InputGain(ch))
-			void sendCommand(Commands.Channel.Color(ch))
-			void sendCommand(Commands.Channel.Mute(ch))
-			void sendCommand(Commands.Channel.Fader(ch))
-			void sendCommand(Commands.Channel.Pan(ch))
-
-			for (let bus = 1; bus <= model.busses; bus++) {
-				void sendCommand(Commands.Channel.SendOn(ch, bus))
-				void sendCommand(Commands.Channel.SendLevel(ch, bus))
-				void sendCommand(Commands.Channel.SendPan(ch, bus))
-			}
-			for (let main = 1; main <= model.mains; main++) {
-				void sendCommand(Commands.Channel.MainSendOn(ch, main))
-				void sendCommand(Commands.Channel.MainSendLevel(ch, main))
-			}
-			for (let mtx = 1; mtx <= model.matrices; mtx++) {
-				void sendCommand(Commands.Channel.MatrixSendOn(ch, mtx))
-				void sendCommand(Commands.Channel.MatrixSendLevel(ch, mtx))
-				void sendCommand(Commands.Channel.MatrixSendPan(ch, mtx))
-			}
-		}
-
-		// Auxes
-		for (let aux = 1; aux <= model.auxes; aux++) {
-			void sendCommand(Commands.Aux.InputGain(aux))
-			void sendCommand(Commands.Aux.Color(aux))
-			void sendCommand(Commands.Aux.Mute(aux))
-			void sendCommand(Commands.Aux.Fader(aux))
-			void sendCommand(Commands.Aux.Pan(aux))
-
-			for (let main = 1; main <= model.mains; main++) {
-				void sendCommand(Commands.Aux.MainSendOn(aux, main))
-				void sendCommand(Commands.Aux.MainSendLevel(aux, main))
-			}
-			for (let bus = 1; bus <= model.busses; bus++) {
-				void sendCommand(Commands.Aux.SendOn(aux, bus))
-				void sendCommand(Commands.Aux.SendLevel(aux, bus))
-				void sendCommand(Commands.Aux.SendPan(aux, bus))
-			}
-			for (let mtx = 1; mtx <= model.matrices; mtx++) {
-				void sendCommand(Commands.Aux.MatrixSendOn(aux, mtx))
-				void sendCommand(Commands.Aux.MatrixSendLevel(aux, mtx))
-				void sendCommand(Commands.Aux.MatrixSendPan(aux, mtx))
-			}
-		}
-
-		// Busses
-		for (let bus = 1; bus <= model.busses; bus++) {
-			void sendCommand(Commands.Bus.Mute(bus))
-			void sendCommand(Commands.Bus.Fader(bus))
-			void sendCommand(Commands.Bus.Pan(bus))
-			void sendCommand(Commands.Bus.Color(bus))
-
-			for (let main = 1; main <= model.mains; main++) {
-				void sendCommand(Commands.Bus.MainSendOn(bus, main))
-				void sendCommand(Commands.Bus.MainSendLevel(bus, main))
-			}
-			for (let other = 1; other <= model.busses; other++) {
-				if (other === bus) continue
-				void sendCommand(Commands.Bus.SendOn(bus, other))
-				void sendCommand(Commands.Bus.SendLevel(bus, other))
-				void sendCommand(Commands.Bus.SendPan(bus, other))
-			}
-			for (let mtx = 1; mtx <= model.matrices; mtx++) {
-				void sendCommand(Commands.Bus.MatrixSendOn(bus, mtx))
-				void sendCommand(Commands.Bus.MatrixSendLevel(bus, mtx))
-				void sendCommand(Commands.Bus.MatrixSendPan(bus, mtx))
-			}
-		}
-
-		// Matrices
-		for (let mtx = 1; mtx <= model.matrices; mtx++) {
-			void sendCommand(Commands.Matrix.Mute(mtx))
-			void sendCommand(Commands.Matrix.Fader(mtx))
-			void sendCommand(Commands.Matrix.Pan(mtx))
-			void sendCommand(Commands.Matrix.Color(mtx))
-		}
-
-		// Mains
-		for (let main = 1; main <= model.mains; main++) {
-			void sendCommand(Commands.Main.Mute(main))
-			void sendCommand(Commands.Main.Fader(main))
-			void sendCommand(Commands.Main.Pan(main))
-			void sendCommand(Commands.Main.Color(main))
-
-			for (let mtx = 1; mtx <= model.matrices; mtx++) {
-				void sendCommand(Commands.Main.MatrixSendOn(main, mtx))
-				void sendCommand(Commands.Main.MatrixSendLevel(main, mtx))
-				void sendCommand(Commands.Main.MatrixSendPan(main, mtx))
-			}
-		}
-
-		// DCAs
-		for (let dca = 1; dca <= model.dcas; dca++) {
-			void sendCommand(Commands.Dca.Mute(dca))
-			void sendCommand(Commands.Dca.Fader(dca))
-			void sendCommand(Commands.Dca.Color(dca))
-		}
-
-		// Mute Groups
-		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
-			// Mute group variables are handled via RE_MUTE
-			void sendCommand(Commands.MuteGroup.Mute(mgrp))
 		}
 	}
 

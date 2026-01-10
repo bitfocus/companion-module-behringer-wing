@@ -1,10 +1,10 @@
 import EventEmitter from 'events'
-import { ModuleLogger } from './logger.js'
 import { ModelSpec } from '../models/types.js'
 import { WingState } from '../state/index.js'
 import PQueue from 'p-queue'
 import osc, { OscMessage } from 'osc'
 import debounceFn from 'debounce-fn'
+import { ModuleLogger } from './logger.js'
 
 /**
  * Manages the internal state of the Behringer Wing, processes OSC messages, and emits state updates.
@@ -12,8 +12,8 @@ import debounceFn from 'debounce-fn'
  */
 export class StateHandler extends EventEmitter {
 	private model: ModelSpec
+	private logger: ModuleLogger | undefined
 	state?: WingState
-	private logger?: ModuleLogger
 
 	private inFlightRequests: { [path: string]: () => void } = {}
 	private readonly requestQueue: PQueue = new PQueue({
@@ -35,8 +35,8 @@ export class StateHandler extends EventEmitter {
 	constructor(model: ModelSpec, logger?: ModuleLogger) {
 		super()
 		this.model = model
-		this.state = new WingState(model)
 		this.logger = logger
+		this.state = new WingState(model)
 
 		this.debounceUpdateCompanion = debounceFn(this.updateCompanionWithState.bind(this), {
 			wait: 200,
@@ -99,22 +99,27 @@ export class StateHandler extends EventEmitter {
 	 * Process an OSC message, update state, and emit events as needed.
 	 * @param msg OSC message to process.
 	 */
-	processMessage(msg: OscMessage): void {
-		const { address, args } = msg
+	processMessage(msgs: Set<OscMessage>): void {
+		for (const msg of msgs) {
+			const { address, args } = msg
 
-		const wasExpected = !!this.inFlightRequests[msg.address]
-		if (this.inFlightRequests[msg.address]) {
-			this.logger?.debug(`Received answer for request ${msg.address}`)
-			this.inFlightRequests[msg.address]()
-			delete this.inFlightRequests[msg.address]
-		}
+			const wasExpected = !!this.inFlightRequests[msg.address]
+			if (this.inFlightRequests[msg.address]) {
+				this.logger?.debug(`Received answer for request ${msg.address}`)
+				this.inFlightRequests[msg.address]()
+				delete this.inFlightRequests[msg.address]
+			}
 
-		this.state?.set(address, args as osc.MetaArgument[])
-		this.logger?.debug(`State updated for ${address} with args: ${JSON.stringify(args)}`)
+			const value = args as osc.MetaArgument[]
+			this.state?.set(address, value)
 
-		const hadStructuralChange = this.updateLists(msg)
-		if (!wasExpected && hadStructuralChange) {
-			this.requestUpdate()
+			const stringValue = value[0].value
+			this.logger?.debug(`State updated for ${address}: ${stringValue}`)
+
+			const hadStructuralChange = this.updateLists(msg)
+			if (!wasExpected && hadStructuralChange) {
+				this.requestUpdate()
+			}
 		}
 	}
 

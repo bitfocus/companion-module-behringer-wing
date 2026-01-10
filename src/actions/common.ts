@@ -95,8 +95,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 	const send = self.connection!.sendCommand.bind(self.connection)
 	const ensureLoaded = self.stateHandler!.ensureLoaded.bind(self.stateHandler)
 	const state = self.stateHandler?.state
+	const logger = self.logger
 	if (!state) {
-		self.logger!.error('State handler or state is not available for creating common actions')
+		logger?.error('State handler or state is not available for creating common actions')
 		throw new Error('State handler or state is not available')
 	}
 	const transitions = self.transitions

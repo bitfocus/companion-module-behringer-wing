@@ -1,7 +1,7 @@
 import osc from 'osc'
 import { WingModel } from '../models/types.js'
-import { ModuleLogger } from './logger.js'
 import { EventEmitter } from 'events'
+import { ModuleLogger } from './logger.js'
 
 export interface DeviceInfo {
 	deviceName: string
@@ -14,6 +14,7 @@ export interface WingDeviceDetectorInterface {
 	subscribe(instanceId: string): void
 	unsubscribe(instanceId: string): void
 	listKnown(): DeviceInfo[]
+	addLogger(logger: ModuleLogger): void
 }
 
 /**
@@ -25,11 +26,19 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	private osc?: osc.UDPPort
 	private knownDevices = new Map<string, DeviceInfo>()
 	private queryTimer: NodeJS.Timeout | undefined
-	private logger?: ModuleLogger
 	private noDeviceTimeout: NodeJS.Timeout | undefined
+	private logger?: ModuleLogger
 
 	constructor(logger?: ModuleLogger) {
 		super()
+		this.logger = logger
+	}
+
+	/**
+	 * Add a logger
+	 * @param logger An instance of a ModuleLogger
+	 */
+	public addLogger(logger: ModuleLogger): void {
 		this.logger = logger
 	}
 
@@ -39,9 +48,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	 */
 	public subscribe(instanceId: string): void {
 		const startListening = this.subscribers.size === 0
-
 		this.subscribers.add(instanceId)
-
 		if (startListening) {
 			this.startListening()
 		}
@@ -71,7 +78,6 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	 */
 	private startListening(): void {
 		this.knownDevices.clear()
-
 		if (this.subscribers.size === 0) {
 			return
 		}
@@ -112,6 +118,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 		})
 
 		this.osc.on('message', (message): void => {
+			this.logger?.debug(`received device detector message ${JSON.stringify(message)}`)
 			const args = message.args as osc.MetaArgument[]
 			if (!args || args.length === 0 || args[0].type !== 's') {
 				return
@@ -141,7 +148,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 			// If a device has not been seen for over a minute, remove it
 			this.knownDevices.set(info.address, info)
 			for (const [id, data] of Array.from(this.knownDevices.entries())) {
-				if (data.lastSeen < Date.now() - 60000) {
+				if (data.lastSeen < Date.now() - 20000) {
 					this.logger?.info(`Removing console ${data.deviceName} at ${data.address} from known devices due to timeout`)
 					this.knownDevices.delete(id)
 				}
@@ -152,7 +159,6 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 				this.noDeviceTimeout = undefined
 			}
 		})
-
 		this.osc.open()
 	}
 
