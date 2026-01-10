@@ -9,7 +9,7 @@ export function getGpioVariables(model: ModelSpec): VariableDefinition[] {
 		variables.push({
 			variableId: `gpio${gpio}`,
 			name: `GPIO ${gpio} state (true = pressed/connected)`,
-			path: Commands.Control.GpioState(gpio),
+			path: Commands.Control.GpioReadState(gpio),
 		})
 	}
 
