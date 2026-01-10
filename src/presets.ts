@@ -17,27 +17,32 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 		presets[`ch${i}-mute-button`] = getMutePreset('ch', i)
 		presets[`ch${i}-solo-button`] = getSoloPreset('ch', i)
 		presets[`ch${i}-boost-and-center-button`] = getBoostAndCenterPreset('ch', i)
+		presets[`ch${i}-sof-button`] = getSofPresets('ch', i)
 	}
 
 	for (let i = 1; i <= model.auxes; i++) {
 		presets[`aux${i}-mute-button`] = getMutePreset('aux', i)
 		presets[`aux${i}-solo-button`] = getSoloPreset('aux', i)
 		presets[`aux${i}-boost-and-center-button`] = getBoostAndCenterPreset('aux', i)
+		presets[`aux${i}-sof-button`] = getSofPresets('aux', i)
 	}
 
 	for (let i = 1; i <= model.busses; i++) {
 		presets[`bus${i}-mute-button`] = getMutePreset('bus', i)
 		presets[`bus${i}-solo-button`] = getSoloPreset('bus', i)
+		presets[`bus${i}-sof-button`] = getSofPresets('bus', i)
 	}
 
 	for (let i = 1; i <= model.matrices; i++) {
 		presets[`mtx${i}-mute-button`] = getMutePreset('mtx', i)
 		presets[`mtx${i}-solo-button`] = getSoloPreset('mtx', i)
+		presets[`mtx${i}-sof-button`] = getSofPresets('mtx', i)
 	}
 
 	for (let i = 1; i <= model.mains; i++) {
 		presets[`main${i}-mute-button`] = getMutePreset('main', i)
 		presets[`main${i}-solo-button`] = getSoloPreset('main', i)
+		presets[`main${i}-sof-button`] = getSofPresets('main', i)
 	}
 
 	for (let i = 1; i <= model.dcas; i++) {
@@ -322,5 +327,47 @@ function getLightPresetDark(): CompanionButtonPresetDefinition {
 			},
 		],
 		feedbacks: [],
+	}
+}
+
+function getSofPresets(base: string, val: number): CompanionButtonPresetDefinition {
+	const path = `/${base}/${val}`
+	const name = `${base.toUpperCase()}${val}`
+	return {
+		name: 'Sends on Fader',
+		category: 'Sends on Fader',
+		type: 'button',
+		style: {
+			text: `let name = 'SOF'const realName = $(wing:${base}${val}_name)let hasNoName = realName === '' || isreturn hasNoName ? 'SOF ${name}' : \`SOF \${realName}\``,
+			textExpression: true,
+			size: 'auto',
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0),
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: OtherActionId.SetSOF,
+						options: {
+							toggle: true,
+							channel: path,
+						},
+					},
+				],
+				up: [],
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: FeedbackId.SofActive,
+				options: {
+					channel: path,
+				},
+				style: {
+					bgcolor: combineRgb(255, 165, 0),
+				},
+			},
+		],
 	}
 }
