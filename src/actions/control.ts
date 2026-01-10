@@ -162,10 +162,10 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			],
 			callback: async (event) => {
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
-				// convert channel to index
-				const channelIndex = ActionUtil.getStripIndexFromString(channel)
+				// convert channel to index. Explicitely use string to have 0 a
+				const channelIndex = `${ActionUtil.getStripIndexFromString(channel)}`
 				// send the SOF command with the channel index
-				await send(ControlCommands.SetSof(), channelIndex + 1) // +1 because of int offset in Wing
+				await send(ControlCommands.SetSof(), channelIndex)
 			},
 		},
 		[OtherActionId.SetSelected]: {
