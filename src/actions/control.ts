@@ -145,6 +145,13 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set SOF',
 			description: 'Set Sends on Fader',
 			options: [
+				{
+					type: 'checkbox',
+					label: 'Toggle',
+					id: 'toggle',
+					default: false,
+					tooltip: 'Toggle the Sends-on-fade state of a selected channel, aux, bus, main or matrix',
+				},
 				...GetDropdownWithVariables(
 					'Channel',
 					'channel',
@@ -161,11 +168,26 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				),
 			],
 			callback: async (event) => {
+				const cmd = ControlCommands.SetSof()
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
-				// convert channel to index. Explicitely use string to have 0 a
+				/* explicitely use a string as argument. OSC Documentation:
+				 * -1: sof active
+				 *  0: sof not active
+				 *  x: sof active on strip x
+				 *
+				 * +1 if an int is used
+				 *
+				 * When pressing on the console, the state is updated from the string the console sends,
+				 * which is always lower by 1 compared to the integer
+				 */
 				const channelIndex = `${ActionUtil.getStripIndexFromString(channel)}`
-				// send the SOF command with the channel index
-				await send(ControlCommands.SetSof(), channelIndex)
+				const currentSelectedIndex = StateUtil.getStringFromState(cmd, state) ?? '0'
+
+				if (channelIndex === currentSelectedIndex) {
+					await send(cmd, '0')
+				} else {
+					await send(cmd, channelIndex)
+				}
 			},
 		},
 		[OtherActionId.SetSelected]: {
