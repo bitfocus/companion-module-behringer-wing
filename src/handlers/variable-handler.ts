@@ -4,9 +4,9 @@ import osc, { OscMessage } from 'osc'
 import { CompanionVariableDefinition, CompanionVariableValues, OSCMetaArgument } from '@companion-module/base'
 import * as ActionUtil from '../actions/utils.js'
 import { IoCommands } from '../commands/io.js'
-import { getAllVariables } from './index.js'
 import debounceFn from 'debounce-fn'
 import { ModuleLogger } from '../handlers/logger.js'
+import { getAllVariables } from '../variables/index.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
 const RE_GAIN = /\/(\w+)\/(\d+)\/in\/set\/\$g/
