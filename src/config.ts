@@ -21,6 +21,8 @@ export interface WingConfig {
 	variableUpdateRate?: number
 	/** When enabled, the module will request values for all variables on startup */
 	prefetchVariablesOnStartup?: boolean
+	startupVariableRequestChunkSize?: number
+	startupVariableRequestChunkWait?: number
 
 	// Advanced Option
 	requestTimeout?: number
@@ -128,7 +130,6 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			width: 6,
 			default: true,
 		},
-		spacer,
 		{
 			type: 'checkbox',
 			id: 'show-advanced-options',
@@ -138,6 +139,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			width: 12,
 			default: false,
 		},
+		spacer,
 		{
 			type: 'number',
 			id: 'requestTimeout',
@@ -161,6 +163,28 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 		},
 		{
 			type: 'number',
+			id: 'startupVariableRequestChunkSize',
+			label: `Variable Request Chunk`,
+			tooltip: 'When are requested in chunks on startup, waiting between each chunk',
+			width: 6,
+			min: 200,
+			max: 2000,
+			default: 500,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
+		},
+		{
+			type: 'number',
+			id: 'startupVariableRequestChunkWait',
+			label: `Variable Request Wait Time (ms)`,
+			tooltip: 'When are requested in chunks on startup, waiting between each chunk',
+			width: 6,
+			min: 20,
+			max: 1000,
+			default: 100,
+			isVisibleExpression: `$(options:show-advanced-options) == true`,
+		},
+		{
+			type: 'number',
 			id: 'subscriptionInterval',
 			label: 'Subscription Interval (ms)',
 			tooltip: 'Time in milliseconds to wait between subscription requests.',
@@ -170,7 +194,6 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			default: 9000,
 			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
-		spacer,
 		{
 			type: 'static-text',
 			id: 'osc-forwarding-info',

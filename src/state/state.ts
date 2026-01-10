@@ -238,8 +238,8 @@ export class WingState implements IStoredChannelSubject {
 
 		const vars = getAllVariables(model)
 
-		const chunkSize = 500
-		const chunkWait = 50
+		const chunkSize = self.config.startupVariableRequestChunkSize ?? 500
+		const chunkWait = self.config.startupVariableRequestChunkWait ?? 100
 		const chunks = Math.ceil(vars.length / chunkSize)
 		for (let c = 0; c < chunks; c++) {
 			const wait = c * chunkWait
