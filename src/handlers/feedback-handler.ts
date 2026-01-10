@@ -52,7 +52,7 @@ export class FeedbackHandler extends EventEmitter {
 		for (const msg of msgs) {
 			const toUpdate = this.subscriptions?.getFeedbacks(msg.address)
 			if (toUpdate === undefined) {
-				return
+				continue
 			}
 			if (toUpdate.length > 0) {
 				toUpdate.forEach((f) => this.messageFeedbacks.add(f))
