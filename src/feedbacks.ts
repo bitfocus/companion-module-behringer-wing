@@ -52,6 +52,7 @@ export enum FeedbackId {
 	InsertOn = 'insert-on',
 	MainAltSwitch = 'main-alt-switch',
 	ActiveScene = 'active-scene',
+	SofActive = 'sof-active',
 }
 
 function subscribeFeedback(
@@ -618,6 +619,42 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
+				unsubscribeFeedback(subs, cmd, event)
+			},
+		},
+		[FeedbackId.SofActive]: {
+			type: 'boolean',
+			name: 'SOF Active',
+			description: 'React to the Sends on Fade mode',
+			options: [
+				...GetDropdownWithVariables(
+					'Channel',
+					'channel',
+					[
+						{ id: 'off', label: 'Off' },
+						...state.namedChoices.channels,
+						...state.namedChoices.auxes,
+						...state.namedChoices.busses,
+						...state.namedChoices.mains,
+						...state.namedChoices.matrices,
+					],
+					'off',
+				),
+			],
+			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
+			callback: (event: CompanionFeedbackInfo): boolean => {
+				const channel = ActionUtil.getStringWithVariables(event, 'channel')
+				const channelIndex = ActionUtil.getStripIndexFromString(channel)
+				const cmd = ControlCommands.SetSof()
+				const currentSelectedIndex = parseInt(StateUtil.getStringFromState(cmd, state) ?? '-1')
+				return currentSelectedIndex === channelIndex
+			},
+			subscribe: async (event): Promise<void> => {
+				const cmd = ControlCommands.SetSof()
+				subscribeFeedback(ensureLoaded, subs, cmd, event)
+			},
+			unsubscribe: (event: CompanionFeedbackInfo): void => {
+				const cmd = ControlCommands.SetSof()
 				unsubscribeFeedback(subs, cmd, event)
 			},
 		},
