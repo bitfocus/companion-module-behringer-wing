@@ -61,8 +61,9 @@ export class ConnectionHandler extends EventEmitter {
 		})
 
 		this.osc.on('message', (msg: OscMessage) => {
-			const stringValue = (msg.args as osc.MetaArgument[])[0].value
-			this.logger?.debug(`State updated for ${msg.address}: ${stringValue}`)
+			const args = msg.args as osc.MetaArgument[]
+			const stringValue = args[0].value
+			this.logger?.debug(`Received ${msg.address}: ${stringValue} (string)`)
 			this.emit('message', msg)
 		})
 
@@ -131,17 +132,20 @@ export class ConnectionHandler extends EventEmitter {
 					type: 'f',
 					value: argument,
 				}
+				if (!preventLog) this.logger?.debug(`Sending OSC command: ${cmd} ${argument} (preferred float)`)
 			} else {
 				if (Number.isInteger(argument)) {
 					args = {
 						type: 'i',
 						value: argument,
 					}
+					if (!preventLog) this.logger?.debug(`Sending OSC command: ${cmd} ${argument} (integer)`)
 				} else {
 					args = {
 						type: 'f',
 						value: argument,
 					}
+					if (!preventLog) this.logger?.debug(`Sending OSC command: ${cmd} ${argument} (float)`)
 				}
 			}
 		} else if (typeof argument === 'string') {
@@ -149,8 +153,10 @@ export class ConnectionHandler extends EventEmitter {
 				type: 's',
 				value: argument,
 			}
+			if (!preventLog) this.logger?.debug(`Sending OSC command: ${cmd} ${argument} (string)`)
 		} else if (argument == undefined) {
 			args = []
+			if (!preventLog) this.logger?.debug(`Sending OSC command: ${cmd} (no argument)`)
 		} else {
 			this.logger?.error('Unsupported argument type. Command aborted.')
 		}
@@ -160,7 +166,5 @@ export class ConnectionHandler extends EventEmitter {
 		}
 		this.osc.send(command)
 		this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
-		if (preventLog) return
-		this.logger?.debug(`Sending OSC command: ${command.address} ${argument ?? ''}`)
 	}
 }
