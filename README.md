@@ -4,11 +4,39 @@ See also HELP.md and LICENSE
 
 # Changelog
 
-## 2.2.4
+## 2.3.0
+
+### Added
+
+- Action to control monitor souce level (Set Monitor Source Level)
+- Action to control monitor PFL dim (Set Monitor PFL Dim)
+- Feedback for a channel strip's Sends-on-Fader status (SoF Active)
+- Presets for Sends-on-Fader
+- Added configuration options to select both the variable chunk size and variable chunk delay when prefetching variables
 
 ### Fixed
 
+- Fixed a performance issue with variables that would prevent variables from updating correctly under certain circumstances
+- Fixed feedbacks not updating correctly due to inconsistency in internal and external state
 - Changed name of `variables/aux.ts` to `variables/auxiliary.ts` to avoid build issues on Windows
+- The module status badge now correctly reflects the connection status to the Behringer Wing device
+- Detected consoles are listed correctly in the configuration IP dropdown
+- Module now updates correctly when a detected console is selected in the configuration IP dropdown
+- 'Mute' presets now correctly use the 'toggle' option from the Set Mute action
+- 'Solo' presets now correctly use the 'toggle' option from the Set Solo action
+
+### Changed
+
+- Variables are prefetched in configurable chunks with configurable delay between chunks
+- The 'Set SOF' command now has a 'toggle' option
+- Variables are now defined in separate files and aggregated in `variables/index.ts` for easier maintainability and expansion
+- A variable definition now has the option to provide a `command` to specify the command to send during variable prefetching
+- Reduced timeout until a console is no longer listed in the configuration IP dropdown from 60s to 20s
+- Console messages are handled more efficiently using a debounce function
+- Presets now use an expression for their name instead of a static string
+- Increased logging details in connection-handler to show the type of all messaages in the log output
+
+## 2.2.4
 
 ### Added
 
