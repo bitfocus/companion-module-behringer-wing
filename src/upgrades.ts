@@ -24,7 +24,22 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 		}
 
 		return {
-			updatedConfig: null,
+			updatedConfig: {
+				...props.config,
+				fadeUpdateRate: props.config?.fadeUpdateRate ?? 50,
+				statusPollUpdateRate: props.config?.statusPollUpdateRate ?? 3000,
+				variableUpdateRate: props.config?.variableUpdateRate ?? 100,
+				prefetchVariablesOnStartup: props.config?.prefetchVariablesOnStartup ?? true,
+				startupVariableRequestChunkSize: props.config?.startupVariableRequestChunkSize ?? 10,
+				startupVariableRequestChunkWait: props.config?.startupVariableRequestChunkWait ?? 100,
+				requestTimeout: props.config?.requestTimeout ?? 20,
+				panicOnLostRequest: props.config?.panicOnLostRequest ?? false,
+				subscriptionInterval: props.config?.subscriptionInterval ?? 9000,
+				enableOscForwarding: props.config?.enableOscForwarding ?? false,
+				oscForwardingHost: props.config?.oscForwardingHost ?? '',
+				oscForwardingPort: props.config?.oscForwardingPort ?? 0,
+				debugMode: props.config?.debugMode ?? false,
+			},
 			updatedActions: [],
 			updatedFeedbacks,
 		}
