@@ -155,7 +155,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		})
 
 		this.connection?.on('error', (err: Error) => {
-			this.updateStatus(InstanceStatus.ConnectionFailure, err.message)
+			this.logger?.error(JSON.stringify(err))
 		})
 
 		this.connection?.on('close', () => {
