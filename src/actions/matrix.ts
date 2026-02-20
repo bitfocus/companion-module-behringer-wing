@@ -102,6 +102,9 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				}
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
+					if (!usePercentage && targetValue < -90) {
+						targetValue = -90
+					}
 					targetValue += delta
 					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
 				}
