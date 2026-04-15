@@ -4,6 +4,13 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.3.1
+
+### Changed
+
+- An invalid OSC message results in the module entering an error state
+- Bump from node18 to node22
+
 ## 2.3.0
 
 ### Added
