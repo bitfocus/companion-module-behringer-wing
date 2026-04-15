@@ -1,5 +1,5 @@
 {
-	"name": "wing-companion",
+	"name": "behringer-wing",
 	"version": "2.3.0",
 	"main": "dist/index.js",
 	"type": "module",
@@ -13,10 +13,14 @@
 		"lint:raw": "eslint",
 		"lint": "run lint:raw ."
 	},
+	"engines": {
+		"node": "^22.20",
+		"yarn": "^4"
+	},
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/bitfocus/companion-module-wing-companion.git"
+		"url": "git+https://github.com/bitfocus/companion-module-behringer-wing.git"
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.13",

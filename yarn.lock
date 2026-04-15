@@ -962,6 +962,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"behringer-wing@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "behringer-wing@workspace:."
+  dependencies:
+    "@companion-module/base": "npm:~1.13"
+    "@companion-module/tools": "npm:^2.6.1"
+    "@types/node": "npm:^22.10.2"
+    debounce-fn: "npm:^6.0.0"
+    eslint: "npm:^9.17.0"
+    husky: "npm:^9.1.7"
+    lint-staged: "npm:^15.2.11"
+    osc: "npm:^2.4.5"
+    p-queue: "npm:^8.0.1"
+    prettier: "npm:^3.4.2"
+    rimraf: "npm:^6.0.1"
+    type-fest: "npm:^4.31.0"
+    typescript: "npm:~5.5.4"
+    typescript-eslint: "npm:^8.18.1"
+  languageName: unknown
+  linkType: soft
+
 "brace-expansion@npm:^1.1.7":
   version: 1.1.12
   resolution: "brace-expansion@npm:1.1.12"
@@ -3511,27 +3532,6 @@ __metadata:
   checksum: 10c0/08f70cd97dd9a20aea280847a1fe8148e17cae7d231640e41eb26d2388697cbe65b67fd9e68715251c39b080c5ae4f76d71a9a69fa101d897273efdfb1b58bf7
   languageName: node
   linkType: hard
-
-"wing-companion@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "wing-companion@workspace:."
-  dependencies:
-    "@companion-module/base": "npm:~1.13"
-    "@companion-module/tools": "npm:^2.6.1"
-    "@types/node": "npm:^22.10.2"
-    debounce-fn: "npm:^6.0.0"
-    eslint: "npm:^9.17.0"
-    husky: "npm:^9.1.7"
-    lint-staged: "npm:^15.2.11"
-    osc: "npm:^2.4.5"
-    p-queue: "npm:^8.0.1"
-    prettier: "npm:^3.4.2"
-    rimraf: "npm:^6.0.1"
-    type-fest: "npm:^4.31.0"
-    typescript: "npm:~5.5.4"
-    typescript-eslint: "npm:^8.18.1"
-  languageName: unknown
-  linkType: soft
 
 "wolfy87-eventemitter@npm:5.2.9":
   version: 5.2.9
