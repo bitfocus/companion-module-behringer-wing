@@ -13,7 +13,8 @@ import { MuteGroupCommands } from '../commands/mutegroup.js'
 import { ConfigurationCommands } from '../commands/config.js'
 
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
-	return action.options[id]?.toString().split('/')[2] as unknown as number
+	const val = action.options[id]
+	return (typeof val === 'string' ? val : '').split('/')[2] as unknown as number
 }
 
 export function getNodeNumberFromID(id: string): number {
@@ -35,7 +36,7 @@ export function getNumber(action: CompanionActionInfo, key: string, defaultValue
 const getAlgorithm = (action: CompanionActionInfo, key: string): Easing.algorithm | undefined => {
 	const rawVal = action.options[key]
 	if (rawVal === undefined) {
-		return rawVal
+		return undefined
 	}
 	return rawVal as Easing.algorithm
 }
@@ -43,7 +44,7 @@ const getAlgorithm = (action: CompanionActionInfo, key: string): Easing.algorith
 const getCurve = (action: CompanionActionInfo, key: string): Easing.curve | undefined => {
 	const rawVal = action.options[key]
 	if (rawVal === undefined) {
-		return rawVal
+		return undefined
 	}
 	return rawVal as Easing.curve
 }

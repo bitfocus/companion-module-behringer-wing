@@ -1,5 +1,5 @@
 import osc from 'osc'
-import type { WingInstance } from '../index.js'
+import WingInstance from '../index.js'
 import { FeedbackId } from '../feedbacks.js'
 import { DropdownChoice } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'

@@ -1,5 +1,4 @@
 {
-	"extends": "@companion-module/tools/tsconfig/node22/recommended",
 	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules/**", "src/**/*spec.ts", "src/**/__tests__/*", "src/**/__mocks__/*"],
 	"compilerOptions": {
@@ -9,6 +8,21 @@
 			"*": ["./node_modules/*"]
 		},
 		"module": "Node16",
-		"moduleResolution": "Node16"
-	}
+		"moduleResolution": "nodenext",
+		"target": "es2022",
+		"lib": ["es2022"],
+		"noImplicitAny": true,
+		"sourceMap": true,
+		"declaration": false,
+		"strict": true,
+		"forceConsistentCasingInFileNames": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"skipLibCheck": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true
+	},
+	"compileOnSave": false
 }

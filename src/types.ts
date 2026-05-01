@@ -3,7 +3,7 @@ import { WingTransitions } from './handlers/transitions.js'
 import { ModelSpec } from './models/types.js'
 import { ModuleLogger } from './handlers/logger.js'
 
-export interface InstanceBaseExt<TConfig> extends InstanceBase<TConfig> {
+export interface InstanceBaseExt<TConfig> extends InstanceBase<any> {
 	config: TConfig
 	transitions: WingTransitions
 	// subscriptions: WingSubscriptions
