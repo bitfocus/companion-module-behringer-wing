@@ -29,10 +29,7 @@ import { IoCommands } from './commands/io.js'
 
 import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from './choices/cards.js'
 
-type CompanionFeedbackWithCallback = SetRequired<
-	CompanionBooleanFeedbackDefinition,
-	'callback' | 'subscribe' | 'unsubscribe'
->
+type CompanionFeedbackWithCallback = SetRequired<CompanionBooleanFeedbackDefinition, 'callback' | 'unsubscribe'>
 
 export enum FeedbackId {
 	Mute = 'mute',
@@ -55,15 +52,6 @@ export enum FeedbackId {
 	SofActive = 'sof-active',
 }
 
-function subscribeFeedback(
-	ensureLoaded: (path: string) => void,
-	subs: WingSubscriptions,
-	path: string,
-	event: CompanionFeedbackInfo,
-): void {
-	subs.subscribe(path, event.id, event.feedbackId as FeedbackId)
-	ensureLoaded(path)
-}
 function unsubscribeFeedback(subs: WingSubscriptions, path: string, event: CompanionFeedbackInfo): void {
 	subs.unsubscribe(path, event.id)
 }
@@ -115,10 +103,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				// Wing reports 0 for Main, 1 for Alt; invert to match UI labels
 				return typeof currentValue === 'number' && `${Number(!currentValue)}` === sel
 			},
-			subscribe: async (event): Promise<void> => {
-				const cmd = IoCommands.MainAltSwitch()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = IoCommands.MainAltSwitch()
 				unsubscribeFeedback(subs, cmd, event)
@@ -139,11 +123,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == mute
-			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -174,11 +153,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				}
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue != val
-			},
-			subscribe: async (event): Promise<void> => {
-				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
-				const cmd = ActionUtil.getSendMuteCommand(src, dest)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
@@ -211,11 +185,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const val = StateUtil.getStringFromState(cmd, state) as string
 				return val === status
 			},
-			subscribe: async (event): Promise<void> => {
-				const aes = ActionUtil.getStringWithVariables(event, 'aes')
-				const cmd = StatusCommands.AesStatus(aes)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const aes = ActionUtil.getStringWithVariables(event, 'aes')
 				const cmd = StatusCommands.AesStatus(aes)
@@ -240,10 +209,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const recState = StateUtil.getStringFromState(cmd, state)
 				return recState === val
 			},
-			subscribe: async (event): Promise<void> => {
-				const cmd = UsbPlayerCommands.RecorderActiveState()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = UsbPlayerCommands.RecorderActiveState()
 				unsubscribeFeedback(subs, cmd, event)
@@ -267,10 +232,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const playerState = StateUtil.getStringFromState(cmd, state)
 				return playerState === val
 			},
-			subscribe: async (event): Promise<void> => {
-				const cmd = UsbPlayerCommands.PlayerActiveState()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = UsbPlayerCommands.PlayerActiveState()
 				unsubscribeFeedback(subs, cmd, event)
@@ -291,11 +252,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = CardsCommands.WLiveCardSDState(card)
 				const currentValue = StateUtil.getStringFromState(cmd, state)
 				return currentValue == val
-			},
-			subscribe: async (event): Promise<void> => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const cmd = CardsCommands.WLiveCardSDState(card)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const card = ActionUtil.getNumberWithVariables(event, 'card')
@@ -319,11 +275,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const currentValue = StateUtil.getStringFromState(cmd, state)
 				return currentValue == val
 			},
-			subscribe: async (event): Promise<void> => {
-				const card = ActionUtil.getNumberWithVariables(event, 'card')
-				const cmd = CardsCommands.WLiveCardState(card)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const card = ActionUtil.getNumberWithVariables(event, 'card')
 				const cmd = CardsCommands.WLiveCardState(card)
@@ -345,11 +296,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = ControlCommands.GpioReadState(sel)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == val
-			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
-				const cmd = ControlCommands.GpioReadState(sel)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
@@ -393,19 +339,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 					return typeof currentValue === 'number' && currentValue == solo
 				}
 			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				if (sel == 'any' || sel == 'all') {
-					allChannelsAndDcas.forEach((s) => {
-						const num = s.id.toString().split('/')[2] as unknown as number
-						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
-						subscribeFeedback(ensureLoaded, subs, cmd, event)
-					})
-				} else {
-					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-					subscribeFeedback(ensureLoaded, subs, cmd, event)
-				}
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				if (sel == 'any' || sel == 'all') {
@@ -432,10 +365,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == val
 			},
-			subscribe: (event): void => {
-				const cmd = ConfigurationCommands.SoloDim()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = ConfigurationCommands.SoloDim()
 				unsubscribeFeedback(subs, cmd, event)
@@ -453,10 +382,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == val
 			},
-			subscribe: (event): void => {
-				const cmd = ConfigurationCommands.SoloMono()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = ConfigurationCommands.SoloMono()
 				unsubscribeFeedback(subs, cmd, event)
@@ -473,10 +398,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = ConfigurationCommands.SoloLRSwap()
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == val
-			},
-			subscribe: (event): void => {
-				const cmd = ConfigurationCommands.SoloLRSwap()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = ConfigurationCommands.SoloLRSwap()
@@ -498,11 +419,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = ConfigurationCommands.TalkbackOn(tb)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == val
-			},
-			subscribe: async (event): Promise<void> => {
-				const tb = ActionUtil.getStringWithVariables(event, 'tb')
-				const cmd = ConfigurationCommands.TalkbackOn(tb)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const tb = ActionUtil.getStringWithVariables(event, 'tb')
@@ -534,12 +450,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentValue === 'number' && currentValue == assign
-			},
-			subscribe: async (event): Promise<void> => {
-				const talkback = ActionUtil.getStringWithVariables(event, 'tb')
-				const destination = ActionUtil.getStringWithVariables(event, 'dest')
-				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const talkback = ActionUtil.getStringWithVariables(event, 'tb')
@@ -585,13 +495,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				if (insert === 'either') return preOn || postOn
 				return false
 			},
-			subscribe: async (event): Promise<void> => {
-				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
-			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
@@ -612,10 +515,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				const currentSceneNumber = StateUtil.getNumberFromState(cmd, state)
 				return typeof currentSceneNumber === 'number' && currentSceneNumber === sceneNumber
-			},
-			subscribe: (event): void => {
-				const cmd = ControlCommands.LibraryActiveSceneIndex()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
@@ -648,10 +547,6 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const cmd = ControlCommands.SetSof()
 				const currentSelectedIndex = StateUtil.getNumberFromState(cmd, state)
 				return currentSelectedIndex === channelIndex
-			},
-			subscribe: async (event): Promise<void> => {
-				const cmd = ControlCommands.SetSof()
-				subscribeFeedback(ensureLoaded, subs, cmd, event)
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const cmd = ControlCommands.SetSof()

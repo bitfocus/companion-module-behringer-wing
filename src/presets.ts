@@ -1,4 +1,4 @@
-import { combineRgb, CompanionPresetDefinitions, CompanionButtonPresetDefinition } from '@companion-module/base'
+import { combineRgb, CompanionPresetDefinitions, CompanionPresetDefinition } from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { WingConfig } from './config.js'
 import { CommonActions } from './actions/common.js'
@@ -10,7 +10,7 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 	const model = _instance.model
 
 	const presets: {
-		[id: string]: CompanionButtonPresetDefinition | undefined
+		[id: string]: CompanionPresetDefinition | undefined
 	} = {}
 
 	for (let i = 1; i <= model.channels; i++) {
@@ -59,13 +59,12 @@ export function GetPresets(_instance: InstanceBaseExt<WingConfig>): CompanionPre
 	return presets
 }
 
-function getMutePreset(base: string, val: number): CompanionButtonPresetDefinition {
+function getMutePreset(base: string, val: number): CompanionPresetDefinition {
 	const path = `/${base}/${val}`
 	const name = `${base.toUpperCase()}${val}`
 	return {
 		name: 'Mute Button',
-		category: 'Mute',
-		type: 'button',
+		type: 'simple',
 		style: {
 			text: `let name = 'Mute'const realName = $(wing:${base}${val}_name)let hasNoName = realName === '' || return hasNoName ? 'Mute ${name}' : \`Mute \${realName}\``,
 			textExpression: true,
@@ -100,13 +99,12 @@ function getMutePreset(base: string, val: number): CompanionButtonPresetDefiniti
 	}
 }
 
-function getSoloPreset(base: string, val: number): CompanionButtonPresetDefinition {
+function getSoloPreset(base: string, val: number): CompanionPresetDefinition {
 	const path = `/${base}/${val}`
 	const name = `${base.toUpperCase()}${val}`
 	return {
 		name: `SoloButton`,
-		category: 'Solo',
-		type: 'button',
+		type: 'simple',
 		style: {
 			text: `let name = 'Solo'const realName = $(wing:${base}${val}_name)let hasNoName = realName === '' || return hasNoName ? 'Solo ${name}' : \`Solo \${realName}\``,
 			textExpression: true,
@@ -144,13 +142,12 @@ function getSoloPreset(base: string, val: number): CompanionButtonPresetDefiniti
 	}
 }
 
-function getBoostAndCenterPreset(base: string, val: number): CompanionButtonPresetDefinition {
+function getBoostAndCenterPreset(base: string, val: number): CompanionPresetDefinition {
 	const path = `/${base}/${val}`
 	const name = `${base.toUpperCase()}${val}`
 	return {
 		name: 'Boost and Center Button',
-		category: 'Boost',
-		type: 'button',
+		type: 'simple',
 		style: {
 			text: `let name = 'Boost & Center'const realName = $(wing:${base}${val}_name)let hasNoName = realName === '' || return hasNoName ? 'Boost & Center ${name}' : \`Boost & Center \${realName}\``,
 			textExpression: true,
@@ -207,11 +204,10 @@ function getBoostAndCenterPreset(base: string, val: number): CompanionButtonPres
 	}
 }
 
-function getTalkbackPreset(talkback: 'A' | 'B'): CompanionButtonPresetDefinition {
+function getTalkbackPreset(talkback: 'A' | 'B'): CompanionPresetDefinition {
 	return {
 		name: `Talkback ${talkback}`,
-		category: 'Talkback',
-		type: 'button',
+		type: 'simple',
 		style: {
 			text: `TB ${talkback}`,
 			size: 'auto',
@@ -248,11 +244,10 @@ function getTalkbackPreset(talkback: 'A' | 'B'): CompanionButtonPresetDefinition
 	}
 }
 
-function getLightPresetBright(): CompanionButtonPresetDefinition {
+function getLightPresetBright(): CompanionPresetDefinition {
 	return {
 		name: 'Lights: Bright',
-		category: 'Lighting',
-		type: 'button',
+		type: 'simple',
 		style: {
 			text: 'Lights\\nBright',
 			size: 'auto',
@@ -289,11 +284,10 @@ function getLightPresetBright(): CompanionButtonPresetDefinition {
 	}
 }
 
-function getLightPresetDark(): CompanionButtonPresetDefinition {
+function getLightPresetDark(): CompanionPresetDefinition {
 	return {
 		name: 'Lights: Dark',
-		category: 'Lighting',
-		type: 'button',
+		type: 'simple',
 		style: {
 			text: 'Lights\\nDark',
 			size: 'auto',
@@ -330,13 +324,12 @@ function getLightPresetDark(): CompanionButtonPresetDefinition {
 	}
 }
 
-function getSofPresets(base: string, val: number): CompanionButtonPresetDefinition {
+function getSofPresets(base: string, val: number): CompanionPresetDefinition {
 	const path = `/${base}/${val}`
 	const name = `${base.toUpperCase()}${val}`
 	return {
 		name: 'Sends on Fader',
-		category: 'Sends on Fader',
-		type: 'button',
+		type: 'simple',
 		style: {
 			text: `let name = 'SOF'const realName = $(wing:${base}${val}_name)let hasNoName = realName === '' || isreturn hasNoName ? 'SOF ${name}' : \`SOF \${realName}\``,
 			textExpression: true,

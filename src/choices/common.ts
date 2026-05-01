@@ -4,7 +4,6 @@ import {
 	CompanionInputFieldNumber,
 	CompanionInputFieldTextInput,
 	DropdownChoice,
-	InputValue,
 	Regex,
 } from '@companion-module/base'
 import { FadeDurationChoice } from './fades.js'
@@ -848,8 +847,8 @@ export function GetNumberComparator(id: string, label?: string): CompanionInputF
 }
 
 export function compareNumber(
-	target: InputValue | undefined,
-	comparitor: InputValue | undefined,
+	target: string | number | boolean | undefined,
+	comparitor: string | number | boolean | undefined,
 	currentValue: number,
 ): boolean {
 	const targetValue = Number(target)
