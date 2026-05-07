@@ -23,14 +23,14 @@
 		"url": "git+https://github.com/bitfocus/companion-module-behringer-wing.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.13",
+		"@companion-module/base": "^2.0.0",
 		"debounce-fn": "^6.0.0",
 		"osc": "^2.4.5",
 		"p-queue": "^8.0.1",
 		"type-fest": "^4.31.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^2.6.1",
+		"@companion-module/tools": "^3.0.0",
 		"@types/node": "^22.10.2",
 		"eslint": "^9.17.0",
 		"husky": "^9.1.7",

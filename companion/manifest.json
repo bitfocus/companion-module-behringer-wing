@@ -1,4 +1,6 @@
 {
+	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
+	"type": "connection",
 	"id": "behringer-wing",
 	"name": "behringer-wing",
 	"shortname": "wing",

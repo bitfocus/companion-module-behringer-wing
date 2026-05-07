@@ -1,6 +1,5 @@
 import {
 	InstanceBase,
-	runEntrypoint,
 	InstanceStatus,
 	SomeCompanionConfigField,
 	Regex,
@@ -8,7 +7,6 @@ import {
 } from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
-import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
 import { GetFeedbacksList } from './feedbacks.js'
 import { OscMessage } from 'osc'
@@ -25,7 +23,7 @@ import { OscForwarder } from './handlers/osc-forwarder.js'
 import debounceFn from 'debounce-fn'
 import { ModuleLogger } from './handlers/logger.js'
 
-export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
+export default class WingInstance extends InstanceBase<any> implements InstanceBaseExt<WingConfig> {
 	private readonly debounceHandleMessages: () => void
 	private readonly messages = new Set<OscMessage>()
 
@@ -203,10 +201,10 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.stateHandler.on('update', () => {
 			this.updateActions()
 			this.updateFeedbacks()
-			this.setPresetDefinitions(GetPresets(this))
+			this.setPresetDefinitions([], GetPresets(this))
 			this.setActionDefinitions(createActions(this))
 			this.setFeedbackDefinitions(GetFeedbacksList(this))
-			this.checkFeedbacks()
+			this.checkAllFeedbacks()
 		})
 	}
 
@@ -215,7 +213,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.feedbackHandler.setPollInterval(this.config.statusPollUpdateRate ?? 3000)
 
 		this.feedbackHandler.on('check-feedbacks', (feedbacks: string[]) => {
-			this.checkFeedbacks(...feedbacks)
+			if (feedbacks.length > 0) this.checkFeedbacks(...(feedbacks as [string, ...string[]]))
 		})
 
 		this.feedbackHandler.on('poll-request', (paths: string[]) => {
@@ -260,5 +258,3 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		)
 	}
 }
-
-runEntrypoint(WingInstance, UpgradeScripts)
