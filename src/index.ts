@@ -124,8 +124,9 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.deviceDetector.subscribe(this.id)
 		if (this.deviceDetector) {
 			;(this.deviceDetector as any).on?.('no-device-detected', () => {
-				this.logger?.warn('No console detected on the network')
-				this.updateStatus(InstanceStatus.Disconnected, 'Unable to detect a console on the network')
+				this.logger?.warn(
+					'The device detector was not able to detect a console on the network. This behavior is normal when multiple network interfaces are active. The module is still functional.',
+				)
 			})
 		}
 	}
