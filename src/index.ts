@@ -16,7 +16,7 @@ import { WingTransitions } from './handlers/transitions.js'
 import { WingDeviceDetectorInstance, WingDeviceDetectorInterface } from './handlers/device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
-import { GetPresets } from './presets.js'
+import { GetPresets } from './presets/index.js'
 import { ConnectionHandler } from './handlers/connection-handler.js'
 import { StateHandler } from './handlers/state-handler.js'
 import { FeedbackHandler } from './handlers/feedback-handler.js'
@@ -198,7 +198,8 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 		this.stateHandler.on('update', () => {
 			this.updateActions()
 			this.updateFeedbacks()
-			this.setPresetDefinitions([], GetPresets(this))
+			const [presetSections, presetDefinitions] = GetPresets(this)
+			this.setPresetDefinitions(presetSections, presetDefinitions)
 			this.setActionDefinitions(createActions(this))
 			this.setFeedbackDefinitions(GetFeedbacksList(this))
 			this.checkAllFeedbacks()
