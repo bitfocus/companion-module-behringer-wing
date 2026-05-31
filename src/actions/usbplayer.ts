@@ -4,8 +4,8 @@ import { UsbPlayerCommands as Commands } from '../commands/usbplayer.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { getUsbPlayerActionChoices, getUsbRecorderActionChoices } from '../choices/usbplayer.js'
-import { GetCheckboxWithVariables, GetDropdownWithVariables } from '../choices/common.js'
 import { getStringWithVariables, getNumberWithVariables } from './utils.js'
+import { GetCheckbox, GetDropdown } from '../choices/common.js'
 
 export enum UsbPlayerActionId {
 	PlaybackAction = 'playback-action',
@@ -20,7 +20,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 		[UsbPlayerActionId.PlaybackAction]: {
 			name: 'USB: Playback Action',
 			description: 'Start, stop, pause, jump to previous or next in the USB player.',
-			options: [...GetDropdownWithVariables('Action', 'action', getUsbPlayerActionChoices())],
+			options: [GetDropdown('Action', 'action', getUsbPlayerActionChoices())],
 			callback: async (event) => {
 				const action = getStringWithVariables(event, 'action')
 				const cmd = Commands.PlayerAction()
@@ -30,7 +30,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 		[UsbPlayerActionId.SetRepeat]: {
 			name: 'USB: Set Repeat',
 			description: 'Enable the repeat functionality of the USB player',
-			options: [...GetCheckboxWithVariables('Repeat', 'repeat', false, 'Enable or disable repeat functionality')],
+			options: [GetCheckbox('Repeat', 'repeat', false, 'Enable or disable repeat functionality')],
 			callback: async (event) => {
 				const repeat = getNumberWithVariables(event, 'repeat')
 				const cmd = Commands.PlayerRepeat()
@@ -40,7 +40,7 @@ export function createUsbPlayerActions(self: InstanceBaseExt<WingConfig>): Compa
 		[UsbPlayerActionId.RecordAction]: {
 			name: 'USB: Record Action',
 			description: 'Start, stop, pause or create a new file in the USB recorder.',
-			options: [...GetDropdownWithVariables('Action', 'action', getUsbRecorderActionChoices())],
+			options: [GetDropdown('Action', 'action', getUsbRecorderActionChoices())],
 			callback: async (event) => {
 				const action = getStringWithVariables(event, 'action')
 				const cmd = Commands.RecorderAction()

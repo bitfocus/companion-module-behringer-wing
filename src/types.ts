@@ -1,9 +1,9 @@
 import { InstanceBase } from '@companion-module/base'
 import { WingTransitions } from './handlers/transitions.js'
 import { ModelSpec } from './models/types.js'
-import { ModuleLogger } from './handlers/logger.js'
+import { ModuleLogger } from '@companion-module/base'
 
-export interface InstanceBaseExt<TConfig> extends InstanceBase<TConfig> {
+export interface InstanceBaseExt<TConfig> extends InstanceBase<any> {
 	config: TConfig
 	transitions: WingTransitions
 	// subscriptions: WingSubscriptions

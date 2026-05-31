@@ -1,11 +1,11 @@
 import EventEmitter from 'events'
 import { ModelSpec } from '../models/types.js'
 import osc, { OscMessage } from 'osc'
-import { CompanionVariableDefinition, CompanionVariableValues, OSCMetaArgument } from '@companion-module/base'
+import { CompanionVariableDefinitions, CompanionVariableValues, OSCMetaArgument } from '@companion-module/base'
 import * as ActionUtil from '../actions/utils.js'
 import { IoCommands } from '../commands/io.js'
 import debounceFn from 'debounce-fn'
-import { ModuleLogger } from '../handlers/logger.js'
+import { ModuleLogger } from '@companion-module/base'
 import { getAllVariables } from '../variables/index.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
@@ -27,7 +27,7 @@ export class VariableHandler extends EventEmitter {
 	private readonly debounceUpdateVariables: () => void
 	private logger: ModuleLogger | undefined
 
-	private variables: CompanionVariableDefinition[] = []
+	private variables: CompanionVariableDefinitions = {}
 
 	constructor(model: ModelSpec, updateRate?: number, logger?: ModuleLogger) {
 		super()
@@ -51,13 +51,11 @@ export class VariableHandler extends EventEmitter {
 		this.logger?.info('Setting up variables')
 		const vars = getAllVariables(this.model)
 
-		this.variables.push({ variableId: 'desk_ip', name: 'Desk IP Address' })
-		this.variables.push({ variableId: 'desk_name', name: 'Desk Name' })
-		this.variables.push({ variableId: 'main_alt_status', name: 'Main/Alt Input Source' })
+		for (const v of vars) {
+			this.variables[v.variableId] = { name: v.name }
+		}
 
-		this.variables.push(...vars.map((v) => ({ variableId: v.variableId, name: v.name })))
-
-		this.logger?.info(`Defined ${this.variables.length} variables`)
+		this.logger?.info(`Defined ${Object.keys(this.variables).length} variables`)
 		this.emit('create-variables', this.variables)
 	}
 

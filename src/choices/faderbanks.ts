@@ -1,6 +1,4 @@
 import {
-	// CompanionInputFieldNumber,
-	CompanionOptionValues,
 	DropdownChoice,
 	SomeCompanionActionInputField,
 	// CompanionInputFieldNumber,
@@ -207,9 +205,7 @@ export const FaderBankChoice: SomeCompanionActionInputField[] = [
 		id: 'left',
 		default: 1,
 		choices: GetLayerSelectionChoices('left'),
-		isVisible: (options: CompanionOptionValues): boolean => {
-			return options.bank != null && (options.bank as string) == 'left'
-		},
+		isVisibleExpression: '$(options:bank) == "left"',
 	},
 	{
 		type: 'dropdown',
@@ -217,9 +213,7 @@ export const FaderBankChoice: SomeCompanionActionInputField[] = [
 		id: 'center',
 		default: 1,
 		choices: GetLayerSelectionChoices('center'),
-		isVisible: (options: CompanionOptionValues): boolean => {
-			return options.bank != null && (options.bank as string) == 'center'
-		},
+		isVisibleExpression: '$(options:bank) == "center"',
 	},
 	{
 		type: 'dropdown',
@@ -227,9 +221,7 @@ export const FaderBankChoice: SomeCompanionActionInputField[] = [
 		id: 'right',
 		default: 1,
 		choices: GetLayerSelectionChoices('right'),
-		isVisible: (options: CompanionOptionValues): boolean => {
-			return options.bank != null && (options.bank as string) == 'right'
-		},
+		isVisibleExpression: '$(options:bank) == "right"',
 	},
 	{
 		type: 'dropdown',
@@ -237,9 +229,8 @@ export const FaderBankChoice: SomeCompanionActionInputField[] = [
 		id: 'spillgroup',
 		default: 0,
 		choices: FaderSpillGroups,
-		isVisible: (options: CompanionOptionValues): boolean => {
-			return options.bank != null && options[options.bank as string] == 22
-		},
+		isVisibleExpression:
+			'$(options:bank) == "left" && $(options:left) == 22 || $(options:bank) == "center" && $(options:center) == 22 || $(options:bank) == "right" && $(options:right) == 22',
 	},
 	{
 		type: 'number',
@@ -249,8 +240,6 @@ export const FaderBankChoice: SomeCompanionActionInputField[] = [
 		min: 0,
 		step: 1,
 		max: GetMaxLayerOffsetForBank('left'),
-		isVisible: (options: CompanionOptionValues): boolean => {
-			return options.bank != null && (options.bank as string) == 'left' && (options.layer as number) <= 7
-		},
+		isVisibleExpression: '$(options:bank) == "left" && $(options:left) <= 7',
 	},
 ]

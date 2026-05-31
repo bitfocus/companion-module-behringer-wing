@@ -13,7 +13,8 @@ import { MuteGroupCommands } from '../commands/mutegroup.js'
 import { ConfigurationCommands } from '../commands/config.js'
 
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
-	return action.options[id]?.toString().split('/')[2] as unknown as number
+	const val = action.options[id]
+	return (typeof val === 'string' ? val : '').split('/')[2] as unknown as number
 }
 
 export function getNodeNumberFromID(id: string): number {
@@ -35,7 +36,7 @@ export function getNumber(action: CompanionActionInfo, key: string, defaultValue
 const getAlgorithm = (action: CompanionActionInfo, key: string): Easing.algorithm | undefined => {
 	const rawVal = action.options[key]
 	if (rawVal === undefined) {
-		return rawVal
+		return undefined
 	}
 	return rawVal as Easing.algorithm
 }
@@ -43,7 +44,7 @@ const getAlgorithm = (action: CompanionActionInfo, key: string): Easing.algorith
 const getCurve = (action: CompanionActionInfo, key: string): Easing.curve | undefined => {
 	const rawVal = action.options[key]
 	if (rawVal === undefined) {
-		return rawVal
+		return undefined
 	}
 	return rawVal as Easing.curve
 }
@@ -53,8 +54,7 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
 	if (defaultValue !== undefined && rawVal === undefined) {
 		return defaultValue
 	}
-	const val = rawVal as string
-	return val
+	return rawVal as string
 }
 
 /**
@@ -71,14 +71,7 @@ export function getStringWithVariables(
 	id: string,
 	defaultValue?: string,
 ): string {
-	const useVariables = event.options[`${id}_use_variables`] as boolean
-	let res = ''
-	if (useVariables === false || useVariables === undefined) {
-		res = event.options[id] as string
-	} else if (useVariables === true) {
-		res = event.options[`${id}_variables`] as string
-	}
-
+	const res = event.options[id] as string | undefined
 	return res ?? defaultValue ?? ''
 }
 
@@ -97,25 +90,17 @@ export function getNumberWithVariables(
 	id: string,
 	defaultValue?: number,
 ): number {
-	const useVariables = event.options[`${id}_use_variables`] as boolean
-	let res = 0
-	if (useVariables === false || useVariables === undefined) {
-		res = Number(event.options[id])
-	} else if (useVariables === true) {
-		const val = event.options[`${id}_variables`] as string
-		// check for infinity
-		if (val == '-oo') {
-			res = -144
-		} else {
-			res = Number(val)
-		}
+	const rawVal = event.options[id]
+	if (rawVal === undefined) {
+		if (defaultValue !== undefined) return defaultValue
+		throw new Error(`Invalid option '${id}'`)
 	}
+	// Handle legacy -oo infinity representation
+	if (rawVal === '-oo') return -144
+	const res = Number(rawVal)
 	if (isNaN(res)) {
-		if (defaultValue !== undefined) {
-			return defaultValue
-		} else {
-			throw new Error(`Invalid option '${id}'`)
-		}
+		if (defaultValue !== undefined) return defaultValue
+		throw new Error(`Invalid option '${id}'`)
 	}
 	return res
 }
@@ -124,19 +109,12 @@ export function GetSendSourceDestinationFieldsWithVariables(event: CompanionActi
 	src: string
 	dest: string
 } {
-	const useVariables = event.options.send_src_dest_use_variables as boolean
-	let src = ''
+	const src = getStringWithVariables(event, 'src')
 	let dest = ''
-	if (useVariables === true) {
-		src = event.options.send_src_variables as string
-		dest = event.options.send_dest_variables as string
+	if (src.startsWith('/main')) {
+		dest = getStringWithVariables(event, 'mainDest')
 	} else {
-		src = event.options.src as string
-		if (src.startsWith('/main')) {
-			dest = event.options.mainDest as string
-		} else {
-			dest = event.options.dest as string
-		}
+		dest = getStringWithVariables(event, 'dest')
 	}
 	return { src, dest }
 }
@@ -154,7 +132,7 @@ export function runTransition(
 	const target = targetValue ?? getNumber(action, valueId)
 	transitions.run(
 		cmd,
-		current as number,
+		current,
 		target,
 		getNumber(action, 'fadeDuration'),
 		getAlgorithm(action, 'fadeAlgorithm'),

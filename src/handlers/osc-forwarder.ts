@@ -1,6 +1,6 @@
 import { OscMessage } from 'osc'
 import osc from 'osc'
-import { ModuleLogger } from './logger.js'
+import { ModuleLogger } from '@companion-module/base'
 
 export class OscForwarder {
 	private port: osc.UDPPort | undefined
