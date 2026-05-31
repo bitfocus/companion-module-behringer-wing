@@ -3,7 +3,7 @@ import debounceFn from 'debounce-fn'
 import { FeedbackId } from '../feedbacks.js'
 import { OscMessage } from 'osc'
 import { WingSubscriptions } from '../state/index.js'
-import { ModuleLogger } from './logger.js'
+import { ModuleLogger } from '@companion-module/base'
 
 /**
  * Handles feedback updates based on incoming OSC messages and manages feedback subscriptions.
