@@ -33,7 +33,7 @@ export function GetOtherActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			],
 			callback: async (event) => {
 				const cmd = getStringWithVariables(event, 'cmd')
-				const num = event.options['num'] as string
+				const num = getStringWithVariables(event, 'num')
 				await send(cmd, parseInt(num))
 			},
 		},

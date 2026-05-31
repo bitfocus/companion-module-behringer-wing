@@ -490,7 +490,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			options: [GetDropdown('Scene', 'scene', state.namedChoices.scenes)],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const sceneName = event.options.scene as string
+				const sceneName = ActionUtil.getStringWithVariables(event, 'scene')
 				const sceneNumber = state.sceneNameToIdMap.get(sceneName) ?? 0
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				const currentSceneNumber = StateUtil.getNumberFromState(cmd, state)
