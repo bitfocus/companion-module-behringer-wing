@@ -67,6 +67,7 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			subscribe: (event) => {
 				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
 			},
+			optionsToMonitorForSubscribe: ['channel'],
 			learn: (event) => {
 				return {
 					...event.options,

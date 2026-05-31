@@ -110,6 +110,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[MatrixActions.MatrixDirectInUndoDeltaFader]: {
 			name: 'Undo Direct Input Level Adjustment',
@@ -129,6 +130,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[MatrixActions.MatrixDirectInRecallFader]: {
 			name: 'Recall Direct Input Level',
@@ -144,6 +146,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[MatrixActions.MatrixDirectInSetFader]: {
 			name: 'Set Direct Input Level',
@@ -159,6 +162,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[MatrixActions.MatrixDirectInStoreFader]: {
 			name: 'Store Direct Input Level',
@@ -173,6 +177,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				ensureLoaded(Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel)))
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 	}
 	return actions
