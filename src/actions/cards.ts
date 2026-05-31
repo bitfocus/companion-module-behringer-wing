@@ -10,8 +10,8 @@ import {
 	getCardsActionChoices,
 	getCardsChoices,
 } from '../choices/cards.js'
-import { GetDropdownWithVariables, GetNumberFieldWithVariables, GetTextFieldWithVariables } from '../choices/common.js'
 import { getStringWithVariables, getNumberWithVariables } from './utils.js'
+import { GetDropdown, GetNumberField, getTextField } from '../choices/common.js'
 
 export enum CardsActionId {
 	SetLink = 'set-link',
@@ -38,7 +38,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.SetLink]: {
 			name: 'WLive: Set Link',
 			description: 'Set whether the USB cards should be linked or unlinked.',
-			options: [...GetDropdownWithVariables('Link', 'link', getCardsLinkChoices())],
+			options: [GetDropdown('Link', 'link', getCardsLinkChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveSDLink()
 				const link = getStringWithVariables(event, 'link')
@@ -48,7 +48,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.SetAutoInput]: {
 			name: 'WLive: Set Auto Input',
 			description: 'Set which cards should be used for auto input selection.',
-			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoInChoices())],
+			options: [GetDropdown('Selection', 'selection', getCardsAutoInChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoIn()
 				const selection = getStringWithVariables(event, 'selection')
@@ -58,7 +58,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.SetAutoStop]: {
 			name: 'WLive: Set Auto Stop',
 			description: 'Set input actions on stop',
-			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
+			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoStop()
 				const selection = getStringWithVariables(event, 'selection')
@@ -68,7 +68,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.SetAutoPlay]: {
 			name: 'WLive: Set Auto Play',
 			description: 'Set input actions on play',
-			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
+			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoPlay()
 				const selection = getStringWithVariables(event, 'selection')
@@ -78,7 +78,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.SetAutoRecord]: {
 			name: 'WLive: Set Auto Record',
 			description: 'Set input actions on record',
-			options: [...GetDropdownWithVariables('Selection', 'selection', getCardsAutoRoutingChoices())],
+			options: [GetDropdown('Selection', 'selection', getCardsAutoRoutingChoices())],
 			callback: async (event) => {
 				const cmd = Commands.WLiveAutoRecord()
 				const selection = getStringWithVariables(event, 'selection')
@@ -89,8 +89,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Card Action',
 			description: 'Start, stop, pause or record on a card.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetDropdownWithVariables('Action', 'action', getCardsActionChoices()),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetDropdown('Action', 'action', getCardsActionChoices()),
 			],
 			callback: async (event) => {
 				const card = getNumberWithVariables(event, 'card')
@@ -103,8 +103,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Open Session',
 			description: 'Open a session on a card.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetNumberFieldWithVariables('Session Number', 'session', 1, 100, 1, 1),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Session Number', 'session', 1, 100, 1, 1),
 			],
 			callback: async (event) => {
 				const card = getNumberWithVariables(event, 'card')
@@ -117,8 +117,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Delete Session',
 			description: 'Delete a session on a card.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetNumberFieldWithVariables('Session Number', 'session', 1, 100, 1, 1),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Session Number', 'session', 1, 100, 1, 1),
 			],
 			callback: async (event) => {
 				const card = getNumberWithVariables(event, 'card')
@@ -131,13 +131,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Name Session',
 			description: 'Name the current session on a card.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetTextFieldWithVariables(
-					'Session Name',
-					'name',
-					'',
-					'The name to set for the current session on the card.',
-				),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				getTextField('Session Name', 'name', '', 'The name to set for the current session on the card.'),
 			],
 			callback: async (event) => {
 				const card = getNumberWithVariables(event, 'card')
@@ -150,8 +145,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Set Position',
 			description: 'Set the position of a recording on a card.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetNumberFieldWithVariables('Position (ms)', 'position', 0, 36000000, 1, 0),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Position (ms)', 'position', 0, 36000000, 1, 0),
 			],
 			callback: async (event) => {
 				const card = getNumberWithVariables(event, 'card')
@@ -165,7 +160,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.AddMarker]: {
 			name: 'WLive: Add Marker',
 			description: 'Add a marker to a recording on a card.',
-			options: [...GetDropdownWithVariables('Card', 'card', getCardsChoices())],
+			options: [GetDropdown('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
 				const card = getNumberWithVariables(event, 'card')
 				const cmd = Commands.WLiveCardSetMarker(card)
@@ -176,8 +171,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Edit Marker',
 			description: 'Edit a marker in a recording on a card. Sets the marker number to the current position.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetNumberFieldWithVariables('Marker Number', 'marker', 1, 100, 1, 1),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
 			],
 
 			callback: async (event) => {
@@ -191,8 +186,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Goto Marker',
 			description: 'Go to a marker in a recording on a card.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetNumberFieldWithVariables('Marker Number', 'marker', 1, 100, 1, 1),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
 			],
 
 			callback: async (event) => {
@@ -206,8 +201,8 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 			name: 'WLive: Delete Marker',
 			description: 'Delete a marker from a recording on a card.',
 			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetNumberFieldWithVariables('Marker Number', 'marker', 1, 100, 1, 1),
+				GetDropdown('Card', 'card', getCardsChoices()),
+				GetNumberField('Marker Number', 'marker', 1, 100, 1, 1),
 			],
 
 			callback: async (event) => {
@@ -220,7 +215,7 @@ export function createCardsActions(self: InstanceBaseExt<WingConfig>): Companion
 		[CardsActionId.FormatCard]: {
 			name: 'WLive: Format Card',
 			description: 'Format (delete all contents) of a card.',
-			options: [...GetDropdownWithVariables('Card', 'card', getCardsChoices())],
+			options: [GetDropdown('Card', 'card', getCardsChoices())],
 			callback: async (event) => {
 				const card = getNumberWithVariables(event, 'card')
 				const cmd = Commands.WLiveCardFormat(card)

@@ -8,12 +8,7 @@ import {
 	CompanionFeedbackDefinitions,
 	CompanionFeedbackInfo,
 } from '@companion-module/base'
-import {
-	GetDropdown,
-	GetDropdownWithVariables,
-	GetMuteDropdownWithVariables,
-	GetSendSourceDestinationFieldsWithVariables,
-} from './choices/common.js'
+import { GetDropdown, GetMuteDropdown, GetSendSourceDestinationFields } from './choices/common.js'
 import { getTalkbackOptions } from './choices/config.js'
 import { ConfigurationCommands } from './commands/config.js'
 import { getNodeNumber } from './actions/utils.js'
@@ -92,9 +87,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Main/Alt Input Source',
 			description: 'React to the selected input source group (Main or Alt).',
-			options: [
-				...GetDropdownWithVariables('Selected', 'sel', [getIdLabelPair('1', 'Main'), getIdLabelPair('0', 'Alt')]),
-			],
+			options: [GetDropdown('Selected', 'sel', [getIdLabelPair('1', 'Main'), getIdLabelPair('0', 'Alt')])],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = IoCommands.MainAltSwitch()
@@ -113,8 +106,8 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Mute',
 			description: "React to a change in a channel's mute state",
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannelsAndDcas, ...state.namedChoices.mutegroups]),
-				...GetMuteDropdownWithVariables('mute', 'State', false),
+				GetDropdown('Selection', 'sel', [...allChannelsAndDcas, ...state.namedChoices.mutegroups]),
+				GetMuteDropdown('mute', 'State', false),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
@@ -135,12 +128,8 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Send Mute',
 			description: "React to a change in a channel's send mute state",
 			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
-				...GetMuteDropdownWithVariables('mute', 'Mute', false),
+				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
+				GetMuteDropdown('mute', 'Mute', false),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
@@ -165,12 +154,12 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'AES Status',
 			description: 'Status of an AES Connection',
 			options: [
-				...GetDropdownWithVariables('Interface', 'aes', [
+				GetDropdown('Interface', 'aes', [
 					getIdLabelPair('A', 'AES A'),
 					getIdLabelPair('B', 'AES B'),
 					getIdLabelPair('C', 'AES C'),
 				]),
-				...GetDropdownWithVariables('Status', 'status', [
+				GetDropdown('Status', 'status', [
 					getIdLabelPair('OK', 'OK'),
 					getIdLabelPair('ERR', 'Error'),
 					getIdLabelPair('UPD', 'Updating'),
@@ -196,7 +185,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'USB Recorder State',
 			description: 'React to the current state of the USB Recorder',
 			options: [
-				...GetDropdownWithVariables('State', 'state', [
+				GetDropdown('State', 'state', [
 					getIdLabelPair('REC', 'Recording'),
 					getIdLabelPair('PAUSE', 'Paused'),
 					getIdLabelPair('STOP', 'Stopped'),
@@ -219,7 +208,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'USB Player State',
 			description: 'React to the current state of the USB Player',
 			options: [
-				...GetDropdownWithVariables('State', 'state', [
+				GetDropdown('State', 'state', [
 					getIdLabelPair('PLAY', 'Playing'),
 					getIdLabelPair('PAUSE', 'Paused'),
 					getIdLabelPair('STOP', 'Stopped'),
@@ -241,10 +230,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'WLive SD State',
 			description: 'React to the state of the WLive SD Cards.',
-			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetDropdownWithVariables('State', 'state', getCardsStatusChoices()),
-			],
+			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsStatusChoices())],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const card = ActionUtil.getNumberWithVariables(event, 'card')
@@ -263,10 +249,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'WLive Playback State',
 			description: 'React to the playback state of a WLive Card.',
-			options: [
-				...GetDropdownWithVariables('Card', 'card', getCardsChoices()),
-				...GetDropdownWithVariables('State', 'state', getCardsActionChoices()),
-			],
+			options: [GetDropdown('Card', 'card', getCardsChoices()), GetDropdown('State', 'state', getCardsActionChoices())],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const card = ActionUtil.getNumberWithVariables(event, 'card')
@@ -286,8 +269,8 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'GPIO State',
 			description: "React to a change in a gpio's state",
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', getGpios(4)),
-				...GetDropdownWithVariables('State', 'state', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Selection', 'sel', getGpios(4)),
+				GetDropdown('State', 'state', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
@@ -308,12 +291,12 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Solo',
 			description: "React to a change in a channel's solo state",
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [
+				GetDropdown('Selection', 'sel', [
 					getIdLabelPair('any', 'Any'),
 					getIdLabelPair('all', 'All'),
 					...allChannelsAndDcas,
 				]),
-				...GetDropdownWithVariables('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Solo', 'solo', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
@@ -357,7 +340,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Solo Dim',
 			description: 'React to the dim state of the solo output.',
-			options: [...GetDropdownWithVariables('Dim', 'dim', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			options: [GetDropdown('Dim', 'dim', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getNumberWithVariables(event, 'dim')
@@ -374,7 +357,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Solo Mono',
 			description: 'React to the mono state of the solo output.',
-			options: [...GetDropdownWithVariables('Mono', 'mono', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			options: [GetDropdown('Mono', 'mono', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getNumberWithVariables(event, 'mono')
@@ -391,7 +374,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			type: 'boolean',
 			name: 'Solo LR Swap',
 			description: 'React to the left-right channel swap state of the solo output.',
-			options: [...GetDropdownWithVariables('Swap', 'swap', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
+			options: [GetDropdown('Swap', 'swap', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')])],
 			defaultStyle: { bgcolor: combineRgb(255, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getNumberWithVariables(event, 'swap')
@@ -409,8 +392,8 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Talkback',
 			description: 'React to the status of a talkback channel.',
 			options: [
-				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
-				...GetDropdownWithVariables('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
@@ -431,16 +414,13 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Talkback Assign',
 			description: 'React to the assignment of a talkback channel to a bus matrix or main',
 			options: [
-				...GetDropdownWithVariables('Talkback', 'tb', getTalkbackOptions()),
-				...GetDropdownWithVariables('Destination', 'dest', [
+				GetDropdown('Talkback', 'tb', getTalkbackOptions()),
+				GetDropdown('Destination', 'dest', [
 					...state.namedChoices.busses,
 					...state.namedChoices.matrices,
 					...state.namedChoices.mains,
 				]),
-				...GetDropdownWithVariables('Assign', 'assign', [
-					getIdLabelPair('1', 'Assigned'),
-					getIdLabelPair('0', 'Not Assigned'),
-				]),
+				GetDropdown('Assign', 'assign', [getIdLabelPair('1', 'Assigned'), getIdLabelPair('0', 'Not Assigned')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
@@ -463,14 +443,14 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'Insert On',
 			description: 'React to a change for an insert on a channel, aux, bus, matrix or main.',
 			options: [
-				...GetDropdownWithVariables('Insert', 'insert', [
+				GetDropdown('Insert', 'insert', [
 					getIdLabelPair('pre', 'Pre-Insert'),
 					getIdLabelPair('post', 'Post-Insert'),
 					getIdLabelPair('both', 'Both'),
 					getIdLabelPair('either', 'Either'),
 				]),
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels]),
-				...GetDropdownWithVariables('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
+				GetDropdown('Selection', 'sel', [...allChannels]),
+				GetDropdown('On/Off', 'on', [getIdLabelPair('1', 'On'), getIdLabelPair('0', 'Off')]),
 			],
 			defaultStyle: { bgcolor: combineRgb(255, 0, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
@@ -526,7 +506,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			name: 'SOF Active',
 			description: 'React to the Sends on Fade mode',
 			options: [
-				...GetDropdownWithVariables(
+				GetDropdown(
 					'Channel',
 					'channel',
 					[
