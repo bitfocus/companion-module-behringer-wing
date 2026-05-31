@@ -276,6 +276,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 			learn: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -296,6 +297,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[CommonActions.RestoreGain]: {
 			name: 'Restore Gain',
@@ -332,6 +334,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[CommonActions.UndoDeltaGain]: {
 			name: 'Undo Gain Adjust',
@@ -352,6 +355,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		////////////////////////////////////////////////////////////////
 		// NORMAL
@@ -391,6 +395,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 			learn: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -411,6 +416,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[CommonActions.RestoreFader]: {
 			name: 'Restore Level',
@@ -460,6 +466,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[CommonActions.UndoDeltaFader]: {
 			name: 'Undo Level Adjust',
@@ -480,6 +487,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 
 		////////////////////////////////////////////////////////////////
@@ -500,6 +508,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 			learn: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -520,6 +529,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[CommonActions.RestorePanorama]: {
 			name: 'Restore Panorama',
@@ -552,6 +562,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		[CommonActions.UndoDeltaPanorama]: {
 			name: 'Undo Panorama Adjust',
@@ -572,6 +583,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['sel'],
 		},
 		////////////////////////////////////////////////////////////////
 		// Solo
@@ -751,6 +763,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
 		},
 		[CommonActions.StoreSendFader]: {
 			name: 'Store Send Level',
@@ -766,6 +779,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
 		},
 		[CommonActions.RestoreSendFader]: {
 			name: 'Restore Send Level',
@@ -818,6 +832,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
 		},
 		[CommonActions.UndoDeltaSendFader]: {
 			name: 'Undo Send Level Adjust',
@@ -841,6 +856,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
 		},
 		[CommonActions.SetSendMute]: {
 			name: 'Set Send Mute',
@@ -884,6 +900,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 			learn: async (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
 				const dest = ActionUtil.getStringWithVariables(event, 'dest')
@@ -910,6 +927,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 		},
 		[CommonActions.RestoreSendPanorama]: {
 			name: 'Restore Send Panorama',
@@ -953,6 +971,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 		},
 		[CommonActions.UndoDeltaSendPanorama]: {
 			name: 'Undo Send Panorama Adjust',
@@ -979,6 +998,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
 				ensureLoaded(cmd)
 			},
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 		},
 		[CommonActions.SetInsertOn]: {
 			name: 'Set Insert On',
@@ -1030,6 +1050,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					ensureLoaded(cmd)
 				}
 			},
+			optionsToMonitorForSubscribe: ['insert', 'sel'],
 		},
 	}
 

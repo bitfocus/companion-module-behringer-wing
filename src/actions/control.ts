@@ -49,6 +49,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
+			optionsToMonitorForSubscribe: [],
 			unsubscribe: () => {
 				subscriptions.unsubscribePoll(ControlCommands.LibraryScenes())
 			},
@@ -66,6 +67,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				ensureLoaded(ControlCommands.LibraryActiveSceneIndex())
 				ensureLoaded(ControlCommands.LibraryNode(), '?')
 			},
+			optionsToMonitorForSubscribe: [],
 			learn: () => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				const sceneId = StateUtil.getNumberFromState(cmd, state)
@@ -354,6 +356,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				ensureLoaded(ControlCommands.PatchPanelLightIntensity())
 				ensureLoaded(ControlCommands.LampLightIntensity())
 			},
+			optionsToMonitorForSubscribe: [],
 		},
 	}
 
