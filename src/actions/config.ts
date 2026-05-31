@@ -152,7 +152,7 @@ export function createConfigurationActions(self: InstanceBaseExt<WingConfig>): C
 			description: 'Enable or disable the on state of a talkback.',
 			options: [GetDropdown('Talkback', 'tb', getTalkbackOptions()), GetOnOffToggleDropdown('solo', 'Solo', true)],
 			callback: async (event) => {
-				const cmd = ConfigurationCommands.TalkbackOn(event.options.tb as string)
+				const cmd = ConfigurationCommands.TalkbackOn(ActionUtil.getStringWithVariables(event, 'tb'))
 				const val = ActionUtil.getNumberWithVariables(event, 'solo')
 				await send(cmd, val)
 			},
