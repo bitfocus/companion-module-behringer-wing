@@ -174,7 +174,7 @@ export class VariableHandler extends EventEmitter {
 				destination = destination.replace(/^sendMX(\d+)$/, 'mtx$1')
 			}
 		}
-		let varName: string | null = null
+		let varName: string | null
 		if (destination) {
 			varName = `${source}_${destination}_level`
 		} else {
@@ -209,7 +209,7 @@ export class VariableHandler extends EventEmitter {
 			}
 		}
 
-		let varName = null
+		let varName
 		if (destination) {
 			varName = `${source}_${destination}_pan`
 		} else {
@@ -441,7 +441,7 @@ export class VariableHandler extends EventEmitter {
 		}
 
 		const talkback = match[1].toLowerCase()
-		let destination = ''
+		let destination
 		if (match[2] == 'B') {
 			destination = 'bus'
 		} else if (match[2] == 'MX') {

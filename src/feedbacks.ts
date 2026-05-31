@@ -458,16 +458,13 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const on = ActionUtil.getNumberWithVariables(event, 'on')
 
-				let preOn = false
-				let postOn = false
-
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
 				let currentValue = StateUtil.getNumberFromState(cmd, state)
-				preOn = (currentValue ?? 0) == on
+				const preOn = (currentValue ?? 0) == on
 
 				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
 				currentValue = StateUtil.getNumberFromState(cmd, state)
-				postOn = (currentValue ?? 0) == on
+				const postOn = (currentValue ?? 0) == on
 
 				if (insert === 'pre') return preOn
 				if (insert === 'post') return postOn
@@ -490,7 +487,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			options: [GetDropdown('Scene', 'scene', state.namedChoices.scenes)],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			callback: (event: CompanionFeedbackInfo): boolean => {
-				const sceneName = event.options.scene as string
+				const sceneName = ActionUtil.getStringWithVariables(event, 'scene')
 				const sceneNumber = state.sceneNameToIdMap.get(sceneName) ?? 0
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				const currentSceneNumber = StateUtil.getNumberFromState(cmd, state)

@@ -71,7 +71,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			learn: () => {
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
 				const sceneId = StateUtil.getNumberFromState(cmd, state)
-				return { sceneId: sceneId, sceneId_use_variables: false }
+				return { sceneId: sceneId }
 			},
 		},
 		[OtherActionId.SendLibraryAction]: {

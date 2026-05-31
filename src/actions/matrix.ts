@@ -85,25 +85,14 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const usePercentage = event.options.delta_use_percentage as boolean
-				let delta: number
-				if (usePercentage) {
-					const useVariables = event.options.delta_use_variables as boolean
-					if (useVariables) {
-						delta = Number(event.options.delta_percent_variables) / 100
-					} else {
-						delta = Number(event.options.delta_percent) / 100
-					}
-				} else {
-					delta = ActionUtil.getNumberWithVariables(event, 'delta')
-				}
+				const delta = ActionUtil.getNumberWithVariables(event, 'delta')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
-					if (!usePercentage && targetValue < -90) {
+					if (targetValue < -90) {
 						targetValue = -90
 					}
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, true)
 				}
 			},
 			subscribe: (event) => {

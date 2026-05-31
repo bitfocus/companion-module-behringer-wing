@@ -70,7 +70,6 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			optionsToMonitorForSubscribe: ['channel'],
 			learn: (event) => {
 				return {
-					...event.options,
 					model: getStringFromState(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')), state),
 				}
 			},

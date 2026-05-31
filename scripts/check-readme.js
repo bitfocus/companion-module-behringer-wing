@@ -15,7 +15,7 @@ if (pkgVersion.includes('alpha') || pkgVersion.includes('beta') || pkgVersion.in
 	exit(0)
 }
 
-let readme = ''
+let readme
 try {
 	readme = fs.readFileSync('README.md', 'utf8')
 } catch {

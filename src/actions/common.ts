@@ -280,7 +280,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			learn: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				return { gain: StateUtil.getNumberFromState(cmd, state), gain_use_variables: false }
+				return { gain: StateUtil.getNumberFromState(cmd, state) }
 			},
 		},
 		[CommonActions.StoreGain]: {
@@ -399,7 +399,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			learn: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				return { level: StateUtil.getNumberFromState(cmd, state), level_use_variables: false }
+				return { level: StateUtil.getNumberFromState(cmd, state) }
 			},
 		},
 		[CommonActions.StoreFader]: {
@@ -440,25 +440,14 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const usePercentage = event.options.delta_use_percentage as boolean
-				let delta: number
-				if (usePercentage) {
-					const useVariables = event.options.delta_use_variables as boolean
-					if (useVariables) {
-						delta = Number(event.options.delta_percent_variables) / 100
-					} else {
-						delta = Number(event.options.delta_percent) / 100
-					}
-				} else {
-					delta = ActionUtil.getNumberWithVariables(event, 'delta')
-				}
+				const delta = ActionUtil.getNumberWithVariables(event, 'delta')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
-					if (!usePercentage && targetValue < -90) {
+					if (targetValue < -90) {
 						targetValue = -90
 					}
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, true)
 				}
 			},
 			subscribe: (event) => {
@@ -512,7 +501,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			learn: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				return { pan: StateUtil.getNumberFromState(cmd, state), pan_use_variables: false }
+				return { pan: StateUtil.getNumberFromState(cmd, state) }
 			},
 		},
 		[CommonActions.StorePanorama]: {
@@ -669,28 +658,28 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					case 'M':
 						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
-							event.options.amount_m as number,
+							ActionUtil.getNumber(event, 'amount_m'),
 							true,
 						)
 						break
 					case 'FT':
 						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
-							event.options.amount_ft as number,
+							ActionUtil.getNumber(event, 'amount_ft'),
 							true,
 						)
 						break
 					case 'MS':
 						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
-							event.options.amount_ms as number,
+							ActionUtil.getNumber(event, 'amount_ms'),
 							true,
 						)
 						break
 					case 'SMP':
 						await send(
 							ActionUtil.getDelayAmountCommand(sel, ActionUtil.getNodeNumberFromID(sel)),
-							event.options.amount_samples as number,
+							ActionUtil.getNumber(event, 'amount_samples'),
 							true,
 						)
 						break
@@ -806,25 +795,14 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
-				const usePercentage = event.options.delta_use_percentage as boolean
-				let delta: number
-				if (usePercentage) {
-					const useVariables = event.options.delta_use_variables as boolean
-					if (useVariables) {
-						delta = Number(event.options.delta_percent_variables) / 100
-					} else {
-						delta = Number(event.options.delta_percent) / 100
-					}
-				} else {
-					delta = ActionUtil.getNumberWithVariables(event, 'delta')
-				}
+				const delta = ActionUtil.getNumberWithVariables(event, 'delta')
 				state.storeDelta(cmd, delta)
 				if (targetValue != undefined) {
-					if (!usePercentage && targetValue < -90) {
+					if (targetValue < -90) {
 						targetValue = -90
 					}
 					targetValue += delta
-					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, !usePercentage)
+					ActionUtil.runTransition(cmd, 'level', event, state, transitions, targetValue, true)
 				}
 			},
 			subscribe: (event) => {
@@ -905,7 +883,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 				const src = ActionUtil.getStringWithVariables(event, 'src')
 				const dest = ActionUtil.getStringWithVariables(event, 'dest')
 				const cmd = ActionUtil.getSendPanoramaCommand(src, dest)
-				return { pan: StateUtil.getNumberFromState(cmd, state), pan_use_variables: false }
+				return { pan: StateUtil.getNumberFromState(cmd, state) }
 			},
 		},
 		[CommonActions.StoreSendPanorama]: {
