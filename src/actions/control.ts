@@ -4,16 +4,12 @@ import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { ControlCommands } from '../commands/control.js'
 import { StateUtil } from '../state/index.js'
-import {
-	GetDropdownWithVariables,
-	GetNumberFieldWithVariables,
-	GetOnOffToggleDropdownWithVariables,
-} from '../choices/common.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import { getGpioModes } from '../choices/control.js'
 import { getGpios } from '../choices/control.js'
 import { FadeDurationChoice } from '../choices/fades.js'
 import * as ActionUtil from './utils.js'
+import { GetDropdown, GetNumberField, GetOnOffToggleDropdown } from '../choices/common.js'
 
 export enum OtherActionId {
 	RecallSceneByName = 'recall-scene-by-name',
@@ -41,7 +37,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Recall Scene by Name',
 			description:
 				'ATTENTION: if you have the same scene name twice in your show, you will not be able to recall it by name! In this case, use the "Recall Scene by Number" action instead.',
-			options: [...GetDropdownWithVariables('Scene Name', 'sceneName', state.namedChoices.scenes)],
+			options: [GetDropdown('Scene Name', 'sceneName', state.namedChoices.scenes)],
 			callback: async (event) => {
 				const sceneName = ActionUtil.getStringWithVariables(event, 'sceneName')
 				const sceneId = state.sceneNameToIdMap.get(sceneName) ?? 0
@@ -60,7 +56,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 		[OtherActionId.RecallSceneByNumber]: {
 			name: 'Recall Scene by Number',
 			description: 'Recall scene in a show by its number',
-			options: [...GetNumberFieldWithVariables('Scene Number', 'sceneId', 1, 16384)],
+			options: [GetNumberField('Scene Number', 'sceneId', 1, 16384)],
 			callback: async (event) => {
 				const sceneId = ActionUtil.getNumberWithVariables(event, 'sceneId')
 				await send(ControlCommands.LibrarySceneSelectionIndex(), sceneId)
@@ -80,7 +76,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Send Library Action',
 			description: 'Trigger a library action (Select and navigate scenes in a show)',
 			options: [
-				...GetDropdownWithVariables(
+				GetDropdown(
 					'Action',
 					'act',
 					[
@@ -107,8 +103,8 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set GPIO Mode',
 			description: 'Configure the mode of a GPIO',
 			options: [
-				...GetDropdownWithVariables('Mode', 'mode', getGpioModes(), 'TGLNO'),
-				...GetDropdownWithVariables('GPIO', 'gpio', getGpios(model.gpio), '1'),
+				GetDropdown('Mode', 'mode', getGpioModes(), 'TGLNO'),
+				GetDropdown('GPIO', 'gpio', getGpios(model.gpio), '1'),
 			],
 			callback: async (event) => {
 				const gpio = ActionUtil.getNumberWithVariables(event, 'gpio')
@@ -121,8 +117,8 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set GPIO State',
 			description: 'Set the state of a GPIO',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', getGpios(model.gpio), '1'),
-				...GetOnOffToggleDropdownWithVariables('state', 'State', true),
+				GetDropdown('Selection', 'sel', getGpios(model.gpio), '1'),
+				GetOnOffToggleDropdown('state', 'State', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
@@ -152,7 +148,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 					default: false,
 					tooltip: 'Toggle the Sends-on-fade state of a selected channel, aux, bus, main or matrix',
 				},
-				...GetDropdownWithVariables(
+				GetDropdown(
 					'Channel',
 					'channel',
 					[
@@ -194,7 +190,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set Selected',
 			description: 'Set Selected Channel Strip',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', [
+				GetDropdown('Channel', 'channel', [
 					...state.namedChoices.channels,
 					...state.namedChoices.auxes,
 					...state.namedChoices.busses,

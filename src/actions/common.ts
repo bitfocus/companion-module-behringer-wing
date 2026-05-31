@@ -6,19 +6,18 @@ export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition,
 import { CompanionActionDefinitions } from '@companion-module/base'
 import {
 	GetDropdown,
-	GetDropdownWithVariables,
-	GetTextFieldWithVariables,
 	GetColorDropdown,
-	GetNumberFieldWithVariables,
 	getDelayModes,
 	getIconChoices,
-	GetOnOffToggleDropdownWithVariables,
-	GetMuteDropdownWithVariables,
-	GetFaderInputFieldWithVariables,
-	GetFaderDeltaInputFieldWithVariables,
-	GetPanoramaSliderWithVariables,
-	GetPanoramaDeltaSliderWithVariables,
-	GetSendSourceDestinationFieldsWithVariables,
+	GetNumberField,
+	GetOnOffToggleDropdown,
+	getTextField,
+	GetMuteDropdown,
+	GetPanoramaSlider,
+	GetFaderInputField,
+	GetFaderDeltaInputField,
+	GetPanoramaDeltaSlider,
+	GetSendSourceDestinationFields,
 } from '../choices/common.js'
 import { runTransition } from './utils.js'
 import { InstanceBaseExt } from '../types.js'
@@ -132,12 +131,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Channel/Aux Main Connection',
 			description: 'Set the index of the main connection of a channel or aux',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', [
-					...state.namedChoices.channels,
-					...state.namedChoices.auxes,
-				]),
-				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
-				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
+				GetDropdown('Channel', 'channel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('Group', 'group', getSourceGroupChoices()),
+				GetNumberField('Index', 'index', 1, 64, 1, 1),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'channel')
@@ -153,12 +149,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Channel/Aux Alt Connection',
 			description: 'Set the index of the alt connection of a channel or aux',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', [
-					...state.namedChoices.channels,
-					...state.namedChoices.auxes,
-				]),
-				...GetDropdownWithVariables('Group', 'group', getSourceGroupChoices()),
-				...GetNumberFieldWithVariables('Index', 'index', 1, 64, 1, 1),
+				GetDropdown('Channel', 'channel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('Group', 'group', getSourceGroupChoices()),
+				GetNumberField('Index', 'index', 1, 64, 1, 1),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'channel')
@@ -174,11 +167,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Channel/Aux Auto Source Switch',
 			description: 'Enable or disable the global switching between main and alt inputs on a channel or aux',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', [
-					...state.namedChoices.channels,
-					...state.namedChoices.auxes,
-				]),
-				...GetDropdownWithVariables('Auto Source Switch', 'auto_source', [
+				GetDropdown('Channel', 'channel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('Auto Source Switch', 'auto_source', [
 					getIdLabelPair('0', 'Individual'),
 					getIdLabelPair('1', 'Global'),
 					getIdLabelPair('-1', 'Toggle'),
@@ -195,11 +185,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Channel/Aux Main/Alt',
 			description: 'Set whether a channel or aux is using the main or alt input',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', [
-					...state.namedChoices.channels,
-					...state.namedChoices.auxes,
-				]),
-				...GetDropdownWithVariables('Source', 'main_alt', [
+				GetDropdown('Channel', 'channel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('Source', 'main_alt', [
 					getIdLabelPair('0', 'Main'),
 					getIdLabelPair('1', 'Alt'),
 					getIdLabelPair('-1', 'Toggle'),
@@ -216,8 +203,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Scribble Light',
 			description: 'Set or toggle the scribble light state of a channel, aux, bus, dca, matrix, or main.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetOnOffToggleDropdownWithVariables('led', 'Scribble Light', true),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetOnOffToggleDropdown('led', 'Scribble Light', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -230,7 +217,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Scribble Light Color',
 			description: 'Set the scribble light color of a channel, aux, bus, dca, matrix, or main.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
 				GetColorDropdown('color', 'Color'),
 			],
 			callback: async (event) => {
@@ -243,12 +230,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Name',
 			description: 'Set the name of a channel, aux, bus, dca, matrix, main, or a mutegroup.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [
-					...allChannels,
-					...state.namedChoices.dcas,
-					...state.namedChoices.mutegroups,
-				]),
-				...GetTextFieldWithVariables('Name', 'name'),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
+				getTextField('Name', 'name'),
 			],
 			callback: async (event) => {
 				const name = ActionUtil.getStringWithVariables(event, 'name')
@@ -261,8 +244,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Channel Icon',
 			description: 'Set the icon displayed for a channel.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetDropdownWithVariables('Icon', 'icon', getIconChoices()),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetDropdown('Icon', 'icon', getIconChoices()),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -278,8 +261,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Gain',
 			description: 'Set the input gain of a channel or aux.',
 			options: [
-				...GetDropdownWithVariables('Channel', 'sel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0),
+				GetDropdown('Channel', 'sel', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetNumberField('Gain (dB)', 'gain', -3.0, 45.5, 0.5, 0),
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
@@ -302,7 +285,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.StoreGain]: {
 			name: 'Store Gain',
 			description: 'Store the gain of a channel or aux.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels)],
+			options: [GetDropdown('Selection', 'sel', allChannels)],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -317,7 +300,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.RestoreGain]: {
 			name: 'Restore Gain',
 			description: 'Restore the gain of a channel or aux.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
+			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -329,8 +312,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Gain',
 			description: 'Adjust the input gain of a channel or aux.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', allChannels),
-				...GetNumberFieldWithVariables('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0),
+				GetDropdown('Selection', 'sel', allChannels),
+				GetNumberField('Gain (dB)', 'gain', -48.5, 48.5, 0.5, 0),
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
@@ -353,7 +336,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.UndoDeltaGain]: {
 			name: 'Undo Gain Adjust',
 			description: 'Undo the previous input gain adjustment on a channel or aux.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
+			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getGainCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -377,12 +360,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Mute',
 			description: 'Set or toggle the mute state of a channel, aux, bus, dca, matrix or main.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [
-					...allChannels,
-					...state.namedChoices.dcas,
-					...state.namedChoices.mutegroups,
-				]),
-				...GetMuteDropdownWithVariables('mute', 'Mute', true),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas, ...state.namedChoices.mutegroups]),
+				GetMuteDropdown('mute', 'Mute', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -398,8 +377,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Level',
 			description: 'Set the fader level of a channel, aux, bus, dca, matrix or main to a value.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetFaderInputFieldWithVariables('level'),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetFaderInputField('level'),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -421,7 +400,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.StoreFader]: {
 			name: 'Store Level',
 			description: 'Store the fader level of a channel, aux, bus, dca, matrix or main.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
+			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas])],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -436,10 +415,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.RestoreFader]: {
 			name: 'Restore Level',
 			description: 'Restore the fader level of a channel, aux, bus, dca, matrix or main.',
-			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...FadeDurationChoice(),
-			],
+			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -451,8 +427,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Fader Level',
 			description: 'Adjust the level of a channel, aux, bus, dca, matrix or main.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				...GetFaderDeltaInputField('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -488,10 +464,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.UndoDeltaFader]: {
 			name: 'Undo Level Adjust',
 			description: 'Undo the previous level adjustment on a channel, aux, bus, dca, matrix or main.',
-			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...FadeDurationChoice(),
-			],
+			options: [GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getFaderCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -515,7 +488,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetPanorama]: {
 			name: 'Set Panorama',
 			description: 'Set the panorama of a channel, aux, bus, matrix or main.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...GetPanoramaSliderWithVariables('pan')],
+			options: [GetDropdown('Selection', 'sel', allChannels), ...GetPanoramaSlider('pan')],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const pan = ActionUtil.getNumberWithVariables(event, 'pan')
@@ -536,7 +509,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.StorePanorama]: {
 			name: 'Store Panorama',
 			description: 'Store the panorama of a channel, aux, bus, matrix or main.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels)],
+			options: [GetDropdown('Selection', 'sel', allChannels)],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -551,7 +524,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.RestorePanorama]: {
 			name: 'Restore Panorama',
 			description: 'Restore the panorama of a channel, aux, bus, matrix or main.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
+			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -562,10 +535,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.DeltaPanorama]: {
 			name: 'Adjust Panorama',
 			description: 'Adjust the panorama of a channel, aux, bus, matrix or main.',
-			options: [
-				...GetDropdownWithVariables('Selection', 'sel', allChannels),
-				...GetPanoramaDeltaSliderWithVariables('pan', 'Panorama'),
-			],
+			options: [GetDropdown('Selection', 'sel', allChannels), ...GetPanoramaDeltaSlider('pan', 'Panorama')],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -586,7 +556,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.UndoDeltaPanorama]: {
 			name: 'Undo Panorama Adjust',
 			description: 'Undo the previous adjustment on the panorama of a channel, aux, bus, matrix or main.',
-			options: [...GetDropdownWithVariables('Selection', 'sel', allChannels), ...FadeDurationChoice()],
+			options: [GetDropdown('Selection', 'sel', allChannels), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getPanoramaCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -610,8 +580,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Solo',
 			description: 'Set the solo state for a channel, aux, bux, matrix or main',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
-				...GetOnOffToggleDropdownWithVariables('solo', 'Solo', true),
+				GetDropdown('Selection', 'sel', [...allChannels, ...state.namedChoices.dcas]),
+				GetOnOffToggleDropdown('solo', 'Solo', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -647,13 +617,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Delay',
 			description: 'Enable or disable the delay of a channel, bus, matrix or main.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [
+				GetDropdown('Selection', 'sel', [
 					...state.namedChoices.channels,
 					...state.namedChoices.matrices,
 					...state.namedChoices.busses,
 					...state.namedChoices.mains,
 				]),
-				...GetOnOffToggleDropdownWithVariables('delay', 'Delay', true),
+				GetOnOffToggleDropdown('delay', 'Delay', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -667,26 +637,17 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Delay Mode',
 			description: 'Set the delay mode of a channel, bus, matrix or main.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [
+				GetDropdown('Selection', 'sel', [
 					...state.namedChoices.channels,
 					...state.namedChoices.matrices,
 					...state.namedChoices.busses,
 					...state.namedChoices.mains,
 				]),
 				GetDropdown('Delay Mode', 'mode', getDelayModes()),
-				...GetNumberFieldWithVariables('Amount (meters)', 'amount_m', 0, 150, 0.1, 0, '', `$(options:mode) == 'M'`),
-				...GetNumberFieldWithVariables('Amount (ft)', 'amount_ft', 0.5, 500, 0.5, 0.5, '', `$(options:mode) == 'FT'`),
-				...GetNumberFieldWithVariables('Amount (ms)', 'amount_ms', 0.5, 500, 0.1, 0.5, '', `$(options:mode) == 'MS'`),
-				...GetNumberFieldWithVariables(
-					'Amount (samples)',
-					'amount_samples',
-					16,
-					500,
-					1,
-					16,
-					'',
-					`$(options:mode) == 'SMP'`,
-				),
+				GetNumberField('Amount (meters)', 'amount_m', 0, 150, 0.1, 0, undefined, `$(options:mode) == 'M'`),
+				GetNumberField('Amount (ft)', 'amount_ft', 0.5, 500, 0.5, 0.5, undefined, `$(options:mode) == 'FT'`),
+				GetNumberField('Amount (ms)', 'amount_ms', 0.5, 500, 0.1, 0.5, undefined, `$(options:mode) == 'MS'`),
+				GetNumberField('Amount (samples)', 'amount_samples', 16, 500, 1, 16, undefined, `$(options:mode) == 'SMP'`),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -731,8 +692,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Gate On',
 			description: 'Enable, disable or toggle the on-state of a gate on a channel',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.channels),
-				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
+				GetDropdown('Selection', 'sel', state.namedChoices.channels),
+				GetOnOffToggleDropdown('enable', 'Enable', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -747,10 +708,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetEqOn]: {
 			name: 'Set EQ On',
 			description: 'Enable, disable or toggle the on-state of an EQ on a channel, bus, aux, matrix or main.',
-			options: [
-				...GetDropdownWithVariables('Selection', 'sel', allChannels),
-				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
-			],
+			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('enable', 'Enable', true)],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getEqEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -764,10 +722,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetDynamicsOn]: {
 			name: 'Set Dynamics On',
 			description: 'Enable, disable or toggle the on-state of dynamics on a channel, bus, aux, matrix or main.',
-			options: [
-				...GetDropdownWithVariables('Selection', 'sel', allChannels),
-				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
-			],
+			options: [GetDropdown('Selection', 'sel', allChannels), GetOnOffToggleDropdown('enable', 'Enable', true)],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = ActionUtil.getDynamicsEnableCommand(sel, ActionUtil.getNodeNumberFromID(sel))
@@ -782,12 +737,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Send Level',
 			description: 'Set the send level from a destination channel strip to a source',
 			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
-				...GetFaderInputFieldWithVariables('level'),
+				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
+				...GetFaderInputField('level'),
 			],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
@@ -804,13 +755,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.StoreSendFader]: {
 			name: 'Store Send Level',
 			description: 'Store the send level from a destination channel strip to a source',
-			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
-			],
+			options: [...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations)],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
@@ -826,11 +771,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Restore Send Level',
 			description: 'Restore the send level from a destination channel strip to a source',
 			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
+				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
@@ -844,12 +785,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Send Level',
 			description: 'Adjust the send level from a destination channel strip to a source',
 			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
+				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
+				...GetFaderDeltaInputField('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
@@ -886,11 +823,7 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Undo Send Level Adjust',
 			description: 'Undo the previous send level adjustment from a destination channel strip to a source',
 			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
+				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
@@ -913,12 +846,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Send Mute',
 			description: 'Set or toggle the mute state of a send from a destination channel strip to a source',
 			options: [
-				...GetSendSourceDestinationFieldsWithVariables(
-					allSendSources,
-					channelAuxBusSendDestinations,
-					mainSendDestinations,
-				),
-				...GetMuteDropdownWithVariables('mute', 'Mute', true),
+				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
+				GetMuteDropdown('mute', 'Mute', true),
 			],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
@@ -938,9 +867,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Send Panorama',
 			description: 'Set the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...GetPanoramaSliderWithVariables('pan'),
+				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				...GetPanoramaSlider('pan'),
 			],
 			callback: async (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
@@ -966,8 +895,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Store Send Panorama',
 			description: 'Store the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
 			],
 			callback: async (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
@@ -986,8 +915,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Restore Send Panorama',
 			description: 'Restore the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
@@ -1002,9 +931,9 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Send Panorama',
 			description: 'Adjust the panorama of a send from a channel or aux to a bus or matrix.',
 			options: [
-				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
-				...GetPanoramaDeltaSliderWithVariables('delta', 'Panorama'),
+				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				...GetPanoramaDeltaSlider('delta', 'Panorama'),
 			],
 			callback: async (event) => {
 				const src = ActionUtil.getStringWithVariables(event, 'src')
@@ -1029,8 +958,8 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Undo Send Panorama Adjust',
 			description: 'Undo the panorama adjustment of a send from a channel or aux to a bus or matrix.',
 			options: [
-				...GetDropdownWithVariables('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
-				...GetDropdownWithVariables('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
+				GetDropdown('From', 'src', [...state.namedChoices.channels, ...state.namedChoices.auxes]),
+				GetDropdown('To', 'dest', [...state.namedChoices.busses, ...state.namedChoices.matrices]),
 				...FadeDurationChoice(),
 			],
 			callback: async (event) => {
@@ -1055,13 +984,13 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Insert On',
 			description: 'Enable or disable an insert for a channel, aux, bus, matrix or main.',
 			options: [
-				...GetDropdownWithVariables('Insert', 'insert', [
+				GetDropdown('Insert', 'insert', [
 					getIdLabelPair('pre', 'Pre-Insert'),
 					getIdLabelPair('post', 'Post-Insert'),
 					getIdLabelPair('pre-post', 'Both'),
 				]),
-				...GetDropdownWithVariables('Selection', 'sel', [...allChannels]),
-				...GetOnOffToggleDropdownWithVariables('enable', 'Enable', true),
+				GetDropdown('Selection', 'sel', [...allChannels]),
+				GetOnOffToggleDropdown('enable', 'Enable', true),
 			],
 			callback: async (event) => {
 				const insert = ActionUtil.getStringWithVariables(event, 'insert')

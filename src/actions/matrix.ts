@@ -1,11 +1,4 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
-import {
-	GetFaderDeltaInputFieldWithVariables,
-	GetDropdownWithVariables,
-	GetMuteDropdownWithVariables,
-	GetOnOffToggleDropdownWithVariables,
-	GetFaderInputFieldWithVariables,
-} from '../choices/common.js'
 import { CompanionActionWithCallback } from './common.js'
 import { MatrixCommands as Commands } from '../commands/matrix.js'
 import { InstanceBaseExt } from '../types.js'
@@ -14,6 +7,13 @@ import * as ActionUtil from './utils.js'
 import { StateUtil } from '../state/index.js'
 import { getMatrixDirectInInputs } from '../choices/matrix.js'
 import { FadeDurationChoice } from '../choices/fades.js'
+import {
+	GetDropdown,
+	GetMuteDropdown,
+	GetOnOffToggleDropdown,
+	GetFaderInputField,
+	GetFaderDeltaInputField,
+} from '../choices/common.js'
 
 export enum MatrixActions {
 	MatrixDirectInOn = 'matrix_direct_in_level_on',
@@ -37,10 +37,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 		[MatrixActions.MatrixDirectInOn]: {
 			name: 'Set Direct Input Mute',
 			description: 'Set or toggle the direct input on a matrix',
-			options: [
-				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices),
-				...GetMuteDropdownWithVariables('mute', 'Mute', true),
-			],
+			options: [GetDropdown('Selection', 'sel', state.namedChoices.matrices), GetMuteDropdown('mute', 'Mute', true)],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const mute = ActionUtil.getNumberWithVariables(event, 'mute')
@@ -53,8 +50,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Set Direct Input Source',
 			description: 'Set the source of a direct input on a matrix',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices),
-				...GetDropdownWithVariables('Source', 'source', getMatrixDirectInInputs()),
+				GetDropdown('Selection', 'sel', state.namedChoices.matrices),
+				GetDropdown('Source', 'source', getMatrixDirectInInputs()),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -67,8 +64,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Invert Direct Input',
 			description: 'Invert the polarity of a direct input on a matrix',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices),
-				...GetOnOffToggleDropdownWithVariables('invert', 'Invert', true),
+				GetDropdown('Selection', 'sel', state.namedChoices.matrices),
+				GetOnOffToggleDropdown('invert', 'Invert', true),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -81,8 +78,8 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Direct Input Level',
 			description: 'Adjust the level of a direct input on a matrix',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices),
-				...GetFaderDeltaInputFieldWithVariables('delta', 'Adjust'),
+				GetDropdown('Selection', 'sel', state.namedChoices.matrices),
+				...GetFaderDeltaInputField('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
@@ -117,7 +114,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 		[MatrixActions.MatrixDirectInUndoDeltaFader]: {
 			name: 'Undo Direct Input Level Adjustment',
 			description: 'Undo the previous level adjustment of a direct input on a matrix',
-			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
+			options: [GetDropdown('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
@@ -136,7 +133,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 		[MatrixActions.MatrixDirectInRecallFader]: {
 			name: 'Recall Direct Input Level',
 			description: 'Recall the level of a direct input on a matrix',
-			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
+			options: [GetDropdown('Selection', 'sel', state.namedChoices.matrices), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
@@ -151,10 +148,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 		[MatrixActions.MatrixDirectInSetFader]: {
 			name: 'Set Direct Input Level',
 			description: 'Set the level of a direct input on a matrix',
-			options: [
-				...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices),
-				...GetFaderInputFieldWithVariables('level'),
-			],
+			options: [GetDropdown('Selection', 'sel', state.namedChoices.matrices), ...GetFaderInputField('level')],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const level = ActionUtil.getNumberWithVariables(event, 'level')
@@ -169,7 +163,7 @@ export function createMatrixActions(self: InstanceBaseExt<WingConfig>): Companio
 		[MatrixActions.MatrixDirectInStoreFader]: {
 			name: 'Store Direct Input Level',
 			description: 'Store the fader level of a direct input on a matrix',
-			options: [...GetDropdownWithVariables('Selection', 'sel', state.namedChoices.matrices)],
+			options: [GetDropdown('Selection', 'sel', state.namedChoices.matrices)],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const cmd = Commands.DirectInputLevel(ActionUtil.getNodeNumberFromID(sel))
