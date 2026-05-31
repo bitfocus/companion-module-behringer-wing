@@ -4,7 +4,7 @@ import { WingState } from '../state/index.js'
 import PQueue from 'p-queue'
 import osc, { OscMessage } from 'osc'
 import debounceFn from 'debounce-fn'
-import { ModuleLogger } from './logger.js'
+import { ModuleLogger } from '@companion-module/base'
 
 /**
  * Manages the internal state of the Behringer Wing, processes OSC messages, and emits state updates.

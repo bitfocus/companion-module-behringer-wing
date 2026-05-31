@@ -4,6 +4,8 @@ import {
 	SomeCompanionConfigField,
 	Regex,
 	CompanionVariableValues,
+	ModuleLogger,
+	createModuleLogger,
 } from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
@@ -21,7 +23,6 @@ import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './handlers/variable-handler.js'
 import { OscForwarder } from './handlers/osc-forwarder.js'
 import debounceFn from 'debounce-fn'
-import { ModuleLogger } from './handlers/logger.js'
 
 export default class WingInstance extends InstanceBase<any> implements InstanceBaseExt<WingConfig> {
 	private readonly debounceHandleMessages: () => void
@@ -60,12 +61,7 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 	}
 
 	async init(config: WingConfig): Promise<void> {
-		this.logger = new ModuleLogger(this.label)
-		this.logger.setLoggerFn((level, message) => {
-			this.log(level, message)
-		})
-		this.logger.debugMode = config.debugMode ?? false
-		this.logger.timestamps = config.debugMode ?? false
+		this.logger = createModuleLogger('Behringer-Wing')
 		await this.configUpdated(config)
 	}
 

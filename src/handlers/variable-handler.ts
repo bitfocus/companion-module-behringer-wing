@@ -5,7 +5,7 @@ import { CompanionVariableDefinitions, CompanionVariableValues, OSCMetaArgument 
 import * as ActionUtil from '../actions/utils.js'
 import { IoCommands } from '../commands/io.js'
 import debounceFn from 'debounce-fn'
-import { ModuleLogger } from '../handlers/logger.js'
+import { ModuleLogger } from '@companion-module/base'
 import { getAllVariables } from '../variables/index.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/

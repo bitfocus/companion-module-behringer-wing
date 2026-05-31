@@ -155,7 +155,7 @@ export function runTransition(
 	const target = targetValue ?? getNumber(action, valueId)
 	transitions.run(
 		cmd,
-		current as number,
+		current,
 		target,
 		getNumber(action, 'fadeDuration'),
 		getAlgorithm(action, 'fadeAlgorithm'),
