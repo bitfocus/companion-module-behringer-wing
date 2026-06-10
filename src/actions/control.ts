@@ -169,6 +169,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 			],
 			callback: async (event) => {
 				const cmd = ControlCommands.SetSof()
+				const toggle = event.options.toggle as boolean
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				const currentSelectedIndex = StateUtil.getNumberFromState(cmd, state) ?? 0
@@ -183,7 +184,7 @@ export function createControlActions(self: InstanceBaseExt<WingConfig>): Compani
 				 * When pressing on the console, the state is updated from the string the console sends,
 				 * which is always lower by 1 compared to the integer
 				 */
-				if (channelIndex === currentSelectedIndex) {
+				if (toggle && channelIndex === currentSelectedIndex) {
 					await send(cmd, 1)
 				} else {
 					await send(cmd, channelIndex + 1)
