@@ -1,5 +1,5 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
-import { GetDropdown, GetDropdownWithVariables } from '../choices/common.js'
+import { GetDropdown } from '../choices/common.js'
 import { getChannelProcessOrderChoices, getFilterModelOptions } from '../choices/channel.js'
 import { ChannelCommands as Commands } from '../commands/channel.js'
 import * as ActionUtil from './utils.js'
@@ -28,8 +28,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set Channel Filter Model',
 			description: 'Set the filter model for a channel.',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
-				...GetDropdownWithVariables('Filter', 'filter', getFilterModelOptions()),
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('Filter', 'filter', getFilterModelOptions()),
 			],
 			callback: async (event) => {
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
@@ -42,8 +42,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set Channel EQ Model',
 			description: 'Set the EQ model for a channel.',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
-				...GetDropdownWithVariables('EQ Model', 'model', EqModelChoice),
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('EQ Model', 'model', EqModelChoice),
 			],
 			callback: async (event) => {
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
@@ -67,9 +67,9 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			subscribe: (event) => {
 				ensureLoaded(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')))
 			},
+			optionsToMonitorForSubscribe: ['channel'],
 			learn: (event) => {
 				return {
-					...event.options,
 					model: getStringFromState(Commands.EqModel(ActionUtil.getNodeNumber(event, 'channel')), state),
 				}
 			},
@@ -78,8 +78,8 @@ export function createChannelActions(self: InstanceBaseExt<WingConfig>): Compani
 			name: 'Set Channel Process Order',
 			description: 'Set the process order of EQ, gate, dynamics and insert of a channel.',
 			options: [
-				...GetDropdownWithVariables('Channel', 'channel', state.namedChoices.channels),
-				...GetDropdownWithVariables('Order', 'order', getChannelProcessOrderChoices()),
+				GetDropdown('Channel', 'channel', state.namedChoices.channels),
+				GetDropdown('Order', 'order', getChannelProcessOrderChoices()),
 			],
 			callback: async (event) => {
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')

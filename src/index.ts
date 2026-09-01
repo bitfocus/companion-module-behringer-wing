@@ -1,14 +1,14 @@
 import {
 	InstanceBase,
-	runEntrypoint,
 	InstanceStatus,
 	SomeCompanionConfigField,
 	Regex,
 	CompanionVariableValues,
+	ModuleLogger,
+	createModuleLogger,
 } from '@companion-module/base'
 import { InstanceBaseExt } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
-import { UpgradeScripts } from './upgrades.js'
 import { createActions } from './actions/index.js'
 import { GetFeedbacksList } from './feedbacks.js'
 import { OscMessage } from 'osc'
@@ -16,16 +16,15 @@ import { WingTransitions } from './handlers/transitions.js'
 import { WingDeviceDetectorInstance, WingDeviceDetectorInterface } from './handlers/device-detector.js'
 import { ModelSpec, WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
-import { GetPresets } from './presets.js'
+import { GetPresets } from './presets/index.js'
 import { ConnectionHandler } from './handlers/connection-handler.js'
 import { StateHandler } from './handlers/state-handler.js'
 import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './handlers/variable-handler.js'
 import { OscForwarder } from './handlers/osc-forwarder.js'
 import debounceFn from 'debounce-fn'
-import { ModuleLogger } from './handlers/logger.js'
 
-export class WingInstance extends InstanceBase<WingConfig> implements InstanceBaseExt<WingConfig> {
+export default class WingInstance extends InstanceBase<any> implements InstanceBaseExt<WingConfig> {
 	private readonly debounceHandleMessages: () => void
 	private readonly messages = new Set<OscMessage>()
 
@@ -62,12 +61,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 	}
 
 	async init(config: WingConfig): Promise<void> {
-		this.logger = new ModuleLogger(this.label)
-		this.logger.setLoggerFn((level, message) => {
-			this.log(level, message)
-		})
-		this.logger.debugMode = config.debugMode ?? false
-		this.logger.timestamps = config.debugMode ?? false
+		this.logger = createModuleLogger('Behringer-Wing')
 		await this.configUpdated(config)
 	}
 
@@ -204,10 +198,11 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.stateHandler.on('update', () => {
 			this.updateActions()
 			this.updateFeedbacks()
-			this.setPresetDefinitions(GetPresets(this))
+			const [presetSections, presetDefinitions] = GetPresets(this)
+			this.setPresetDefinitions(presetSections, presetDefinitions)
 			this.setActionDefinitions(createActions(this))
 			this.setFeedbackDefinitions(GetFeedbacksList(this))
-			this.checkFeedbacks()
+			this.checkAllFeedbacks()
 		})
 	}
 
@@ -216,7 +211,7 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		this.feedbackHandler.setPollInterval(this.config.statusPollUpdateRate ?? 3000)
 
 		this.feedbackHandler.on('check-feedbacks', (feedbacks: string[]) => {
-			this.checkFeedbacks(...feedbacks)
+			if (feedbacks.length > 0) this.checkFeedbacks(...(feedbacks as [string, ...string[]]))
 		})
 
 		this.feedbackHandler.on('poll-request', (paths: string[]) => {
@@ -261,5 +256,3 @@ export class WingInstance extends InstanceBase<WingConfig> implements InstanceBa
 		)
 	}
 }
-
-runEntrypoint(WingInstance, UpgradeScripts)

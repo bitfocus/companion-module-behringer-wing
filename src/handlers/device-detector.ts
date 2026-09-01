@@ -1,7 +1,7 @@
 import osc from 'osc'
 import { WingModel } from '../models/types.js'
 import { EventEmitter } from 'events'
-import { ModuleLogger } from './logger.js'
+import { ModuleLogger } from '@companion-module/base'
 
 export interface DeviceInfo {
 	deviceName: string

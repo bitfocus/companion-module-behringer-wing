@@ -3,9 +3,9 @@ import { CompanionActionWithCallback } from './common.js'
 import { InstanceBaseExt } from '../types.js'
 import { WingConfig } from '../config.js'
 import { IoCommands } from '../commands/io.js'
-import { GetDropdownWithVariables } from '../choices/common.js'
 import { getIdLabelPair } from '../choices/utils.js'
 import * as ActionUtil from './utils.js'
+import { GetDropdown } from '../choices/common.js'
 
 export enum IoActionId {
 	MainAltSwitch = 'main-alt-swtich',
@@ -19,7 +19,7 @@ export function createIoActions(self: InstanceBaseExt<WingConfig>): CompanionAct
 			name: 'Set Main/Alt Switch',
 			description: 'Sets the desk to use the configured main/alt input sources.',
 			options: [
-				...GetDropdownWithVariables('Selection', 'sel', [
+				GetDropdown('Selection', 'sel', [
 					getIdLabelPair('1', 'Alt'),
 					getIdLabelPair('0', 'Main'),
 					getIdLabelPair('-1', 'Toggle'),
