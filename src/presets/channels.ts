@@ -9,7 +9,7 @@ import type { ModelSpec } from '../models/types.js'
  * Expression that resolves to the OSC path for the current template instance,
  * e.g. "/ch/1", "/aux/3". Requires local variables `base` and `index`.
  */
-const SEL_EXPR = { isExpression: true as const, value: "$(local:base) + '/' + $(local:index)" }
+const SEL_EXPR = { isExpression: true as const, value: '`${$(local:base)}/${$(local:index)}`' }
 
 interface ChannelTypeSpec {
 	id: string
@@ -36,7 +36,8 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Mute',
 		style: {
-			text: 'Mute $(local:index)',
+			text: '`Mute ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(0, 0, 0),
@@ -68,7 +69,8 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Solo',
 		style: {
-			text: 'Solo $(local:index)',
+			text: '`Solo ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(0, 0, 0),
@@ -100,7 +102,8 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Sends on Fader',
 		style: {
-			text: 'SOF $(local:index)',
+			text: '`SOF ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(0, 0, 0),
@@ -128,7 +131,8 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Boost & Center',
 		style: {
-			text: 'Boost & Center $(local:index)',
+			text: '`Boost & Center ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(0, 0, 0),
