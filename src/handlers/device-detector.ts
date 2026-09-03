@@ -15,6 +15,7 @@ export interface WingDeviceDetectorInterface {
 	unsubscribe(instanceId: string): void
 	listKnown(): DeviceInfo[]
 	addLogger(logger: ModuleLogger): void
+	onDeviceDetected(listener: (device: DeviceInfo) => void): () => void
 }
 
 /**
@@ -40,6 +41,11 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	 */
 	public addLogger(logger: ModuleLogger): void {
 		this.logger = logger
+	}
+
+	public onDeviceDetected(listener: (device: DeviceInfo) => void): () => void {
+		this.on('device-detected', listener)
+		return () => this.off('device-detected', listener)
 	}
 
 	/**
@@ -147,6 +153,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 
 			// If a device has not been seen for over a minute, remove it
 			this.knownDevices.set(info.address, info)
+			this.emit('device-detected', info)
 			for (const [id, data] of Array.from(this.knownDevices.entries())) {
 				if (data.lastSeen < Date.now() - 20000) {
 					this.logger?.info(`Removing console ${data.deviceName} at ${data.address} from known devices due to timeout`)
