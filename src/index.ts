@@ -34,6 +34,7 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 	connected: boolean = false
 
 	deviceDetector: WingDeviceDetectorInterface | undefined
+	private removeDeviceDetectedListener: (() => void) | undefined
 	connection: ConnectionHandler | undefined
 	stateHandler: StateHandler | undefined
 	feedbackHandler: FeedbackHandler | undefined
@@ -88,6 +89,8 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 		this.oscForwarder?.close()
 		this.oscForwarder = undefined
 		this.variableHandler?.destroy()
+		this.removeDeviceDetectedListener?.()
+		this.removeDeviceDetectedListener = undefined
 	}
 
 	async configUpdated(config: WingConfig): Promise<void> {
@@ -116,6 +119,11 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 			this.deviceDetector.addLogger(this.logger)
 		}
 		this.deviceDetector.subscribe(this.id)
+		this.removeDeviceDetectedListener = this.deviceDetector.onDeviceDetected((device) => {
+			if (device.address === this.config.host) {
+				this.setVariableValues({ desk_ip: device.address, desk_name: device.deviceName })
+			}
+		})
 		if (this.deviceDetector) {
 			;(this.deviceDetector as any).on?.('no-device-detected', () => {
 				this.logger?.warn(
@@ -243,6 +251,12 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 		})
 
 		this.variableHandler?.setupVariables()
+
+		const knownDevice = this.deviceDetector?.listKnown().find((device) => device.address === this.config.host)
+		this.setVariableValues({
+			desk_ip: this.config.host ?? '',
+			desk_name: knownDevice?.deviceName ?? '',
+		})
 	}
 
 	private setupOscForwarder(): void {
