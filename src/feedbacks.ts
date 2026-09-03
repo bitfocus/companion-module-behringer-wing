@@ -141,7 +141,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 					val = val == 0 ? 1 : 0
 				}
 				const currentValue = StateUtil.getNumberFromState(cmd, state)
-				return typeof currentValue === 'number' && currentValue != val
+				return typeof currentValue === 'number' && currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
