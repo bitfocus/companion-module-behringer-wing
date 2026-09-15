@@ -24,7 +24,7 @@ export type VariableUpdate = { name: string; value: string | number }
 export class VariableHandler extends EventEmitter {
 	private model: ModelSpec
 	private readonly messages = new Set<OscMessage>()
-	private readonly debounceUpdateVariables: () => void
+	private readonly debounceUpdateVariables: (() => void) & { cancel: () => void }
 	private logger: ModuleLogger | undefined
 
 	private variables: CompanionVariableDefinitions = {}
@@ -68,21 +68,26 @@ export class VariableHandler extends EventEmitter {
 		const updates: VariableUpdate[] = []
 		for (const message of messages) {
 			const path = message.address
-			const args = message.args as osc.MetaArgument[]
+			const args = message.args as osc.MetaArgument[] | undefined
+			const arg = args?.[0]
+			if (arg === undefined) {
+				// Messages without arguments do not carry a value for a variable
+				continue
+			}
 
 			const result =
-				this.updateNameVariables(path, args[0]?.value as string) ??
-				this.updateGainVariables(path, args[0]?.value as number) ??
-				this.updateMuteVariables(path, args[0]?.value as number) ??
-				this.updateFaderVariables(path, args[0]?.value as number) ??
-				this.updatePanoramaVariables(path, args[0]?.value as number) ??
-				this.updateUsbVariables(path, args[0]) ??
-				this.updateSdVariables(path, args[0]) ??
-				this.updateTalkbackVariables(path, args[0]) ??
-				this.updateGpioVariables(path, args[0]?.value as number) ??
-				this.updateControlVariables(path, args[0]) ??
-				this.updateIoVariables(path, args[0]) ??
-				this.updateColorVariables(path, args[0]?.value as string)
+				this.updateNameVariables(path, arg.value as string) ??
+				this.updateGainVariables(path, arg.value as number) ??
+				this.updateMuteVariables(path, arg.value as number) ??
+				this.updateFaderVariables(path, arg.value as number) ??
+				this.updatePanoramaVariables(path, arg.value as number) ??
+				this.updateUsbVariables(path, arg) ??
+				this.updateSdVariables(path, arg) ??
+				this.updateTalkbackVariables(path, arg) ??
+				this.updateGpioVariables(path, arg.value as number) ??
+				this.updateControlVariables(path, arg) ??
+				this.updateIoVariables(path, arg) ??
+				this.updateColorVariables(path, arg.value as string)
 
 			if (result) {
 				updates.push(...result)
@@ -591,7 +596,11 @@ export class VariableHandler extends EventEmitter {
 		this.debounceUpdateVariables()
 	}
 
-	destroy(): void {}
+	destroy(): void {
+		this.debounceUpdateVariables.cancel()
+		this.messages.clear()
+		this.removeAllListeners()
+	}
 
 	round(num: number, precision: number): number {
 		return Math.round(num * Math.pow(10, precision)) / Math.pow(10, precision)

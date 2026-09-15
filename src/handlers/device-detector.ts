@@ -15,6 +15,8 @@ export interface WingDeviceDetectorInterface {
 	unsubscribe(instanceId: string): void
 	listKnown(): DeviceInfo[]
 	addLogger(logger: ModuleLogger): void
+	on(event: 'no-device-detected', listener: () => void): void
+	off(event: 'no-device-detected', listener: () => void): void
 }
 
 /**
@@ -27,6 +29,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	private knownDevices = new Map<string, DeviceInfo>()
 	private queryTimer: NodeJS.Timeout | undefined
 	private noDeviceTimeout: NodeJS.Timeout | undefined
+	private restartTimer: NodeJS.Timeout | undefined
 	private logger?: ModuleLogger
 
 	constructor(logger?: ModuleLogger) {
@@ -92,7 +95,7 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 			this.noDeviceTimeout = undefined
 		}, 30000)
 
-		this.osc = new osc.UDPPort({
+		const port = new osc.UDPPort({
 			localAddress: '0.0.0.0',
 			localPort: 0,
 			broadcast: true,
@@ -100,10 +103,18 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 			remoteAddress: '255.255.255.255', // broadcast it
 			remotePort: 2223,
 		})
+		this.osc = port
 
-		this.osc.on('error', (_err: Error): void => {
+		this.osc.on('error', (err: Error): void => {
+			this.logger?.warn(`Device detector error: ${err?.message ?? err}`)
 			this.stopListening()
-			this.startListening()
+			// Retry with a delay, an immediate restart would spin if the socket keeps failing
+			if (this.subscribers.size > 0) {
+				this.restartTimer = setTimeout(() => {
+					this.restartTimer = undefined
+					this.startListening()
+				}, 10000)
+			}
 		})
 		this.osc.on('ready', () => {
 			if (!this.queryTimer) {
@@ -114,7 +125,10 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 		})
 
 		this.osc.on('close' as any, () => {
-			this.stopListening()
+			// Ignore the close event of a port that has already been replaced
+			if (this.osc === port) {
+				this.stopListening()
+			}
 		})
 
 		this.osc.on('message', (message): void => {
@@ -166,6 +180,16 @@ export class WingDeviceDetector extends EventEmitter implements WingDeviceDetect
 	 * Stop listening for device broadcasts and clean up resources.
 	 */
 	private stopListening(): void {
+		if (this.restartTimer) {
+			clearTimeout(this.restartTimer)
+			this.restartTimer = undefined
+		}
+
+		if (this.noDeviceTimeout) {
+			clearTimeout(this.noDeviceTimeout)
+			this.noDeviceTimeout = undefined
+		}
+
 		if (this.osc) {
 			try {
 				this.osc.close()

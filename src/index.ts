@@ -42,6 +42,12 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 	oscForwarder: OscForwarder | undefined
 	logger: ModuleLogger | undefined
 
+	private readonly onNoDeviceDetected = (): void => {
+		this.logger?.warn(
+			'The device detector was not able to detect a console on the network. This behavior is normal when multiple network interfaces are active. The module is still functional.',
+		)
+	}
+
 	constructor(internal: unknown) {
 		super(internal)
 		this.model = getDeskModel(WingModel.Full) // later populated correctly
@@ -66,8 +72,10 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 	}
 
 	async destroy(): Promise<void> {
+		this.deviceDetector?.off('no-device-detected', this.onNoDeviceDetected)
 		this.deviceDetector?.unsubscribe(this.id)
-		this.transitions.stopAll()
+		this.deviceDetector = undefined
+		this.stop()
 	}
 
 	private start(config: WingConfig): void {
@@ -83,11 +91,21 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 	}
 
 	private stop(): void {
+		this.transitions.stopAll()
+		this.connection?.stopSubscription()
 		this.connection?.close()
+		this.connection?.removeAllListeners()
+		this.connection = undefined
 		this.stateHandler?.clearState()
+		this.stateHandler?.removeAllListeners()
+		this.stateHandler = undefined
+		this.feedbackHandler?.destroy()
+		this.feedbackHandler = undefined
 		this.oscForwarder?.close()
 		this.oscForwarder = undefined
 		this.variableHandler?.destroy()
+		this.variableHandler = undefined
+		this.connected = false
 	}
 
 	async configUpdated(config: WingConfig): Promise<void> {
@@ -116,13 +134,9 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 			this.deviceDetector.addLogger(this.logger)
 		}
 		this.deviceDetector.subscribe(this.id)
-		if (this.deviceDetector) {
-			;(this.deviceDetector as any).on?.('no-device-detected', () => {
-				this.logger?.warn(
-					'The device detector was not able to detect a console on the network. This behavior is normal when multiple network interfaces are active. The module is still functional.',
-				)
-			})
-		}
+		// The detector is shared between all instances, so make sure this instance is only registered once
+		this.deviceDetector.off('no-device-detected', this.onNoDeviceDetected)
+		this.deviceDetector.on('no-device-detected', this.onNoDeviceDetected)
 	}
 
 	private setupConnectionHandler(): void {
@@ -131,16 +145,19 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 		const ipPattern = Regex.IP.replace(/^\/|\/$/g, '')
 		const ipRegex = new RegExp(ipPattern)
 
-		if (!ipRegex.test(this.config.host ?? '')) {
+		const host = this.config.host ?? ''
+		if (!ipRegex.test(host)) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
+			return
 		}
 
-		this.connection.open('0.0.0.0', 0, this.config.host!, 2223)
+		this.connection.open('0.0.0.0', 0, host, 2223)
 		this.connection.setSubscriptionInterval(this.config.subscriptionInterval ?? 9000)
 		this.connection.startSubscription()
 
 		this.connection?.on('ready', () => {
 			this.updateStatus(InstanceStatus.Connecting, 'Waiting for answer from console...')
+			this.updateDeskVariables()
 			this.feedbackHandler?.startPolling()
 			this.stateHandler?.state?.requestNames(this)
 			if (this.config.prefetchVariablesOnStartup) {
@@ -157,7 +174,7 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 		this.connection?.on('close', () => {
 			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
 			this.connected = false
-			this.feedbackHandler?.startPolling()
+			this.feedbackHandler?.stopPolling()
 			this.stateHandler?.clearState()
 		})
 
@@ -175,10 +192,20 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 
 			this.logger?.info('OSC connection established')
 		}
-		this.feedbackHandler?.clearPollTimeout()
+		this.feedbackHandler?.notifyMessageReceived()
 		this.stateHandler?.processMessage(this.messages)
 		this.feedbackHandler?.processMessage(this.messages)
 		this.variableHandler?.processMessage(this.messages)
+	}
+
+	/** Populate the variables describing the connected console */
+	private updateDeskVariables(): void {
+		const host = this.config.host ?? ''
+		const detected = this.deviceDetector?.listKnown().find((device) => device.address === host)
+		this.setVariableValues({
+			desk_ip: host,
+			desk_name: detected?.deviceName ?? '',
+		})
 	}
 
 	private setupStateHandler(): void {
@@ -216,7 +243,7 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 
 		this.feedbackHandler.on('poll-request', (paths: string[]) => {
 			paths.forEach((path) => {
-				this.logger?.info(path)
+				this.logger?.debug(`Polling ${path}`)
 				this.stateHandler?.ensureLoaded(path)
 			})
 		})

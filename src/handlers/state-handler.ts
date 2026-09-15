@@ -110,11 +110,14 @@ export class StateHandler extends EventEmitter {
 				delete this.inFlightRequests[msg.address]
 			}
 
-			const value = args as osc.MetaArgument[]
+			const value = (args ?? []) as osc.MetaArgument[]
+			if (value.length === 0) {
+				// Messages without arguments carry no state, they are only used as request acknowledgements
+				continue
+			}
 			this.state?.set(address, value)
 
-			const stringValue = value[0].value
-			this.logger?.debug(`State updated for ${address}: ${stringValue}`)
+			this.logger?.debug(`State updated for ${address}: ${value[0].value}`)
 
 			const hadStructuralChange = this.updateLists(msg)
 			if (!wasExpected && hadStructuralChange) {

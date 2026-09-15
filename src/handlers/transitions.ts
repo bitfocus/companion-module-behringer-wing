@@ -41,7 +41,7 @@ export class WingTransitions {
 	 */
 	private sendOsc(cmd: string, arg?: string | number): void {
 		if (this.instance.config.host) {
-			this.instance.connection!.sendCommand(cmd, arg, true).catch(() => {})
+			this.instance.connection?.sendCommand(cmd, arg, true).catch(() => {})
 		}
 	}
 
@@ -164,7 +164,7 @@ function floatToDb(f: number): number {
  * @returns The fader position between 0.0 and 1.0
  */
 function dbToFloat(d: number): number {
-	if (d > 1.0 || d < 0.0) {
+	if (d > 10.0 || d < -144.0) {
 		console.error(`Illegal value for fader ([-144 10]) = ${d}`)
 	}
 
@@ -180,5 +180,7 @@ function dbToFloat(d: number): number {
 	} else {
 		f = 1
 	}
-	return f
+	// Values below the lowest supported fader position (-90 dB) would map to a negative
+	// position, which cannot be converted back to dB again
+	return Math.min(1, Math.max(0, f))
 }

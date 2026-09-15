@@ -11,8 +11,9 @@ import { ModuleLogger } from '@companion-module/base'
  */
 export class FeedbackHandler extends EventEmitter {
 	private readonly messageFeedbacks = new Set<FeedbackId>()
-	private readonly debounceMessageFeedbacks: () => void
-	private pollTimeout?: NodeJS.Timeout
+	private readonly debounceMessageFeedbacks: (() => void) & { cancel: () => void }
+	private pollTimer?: NodeJS.Timeout
+	private awaitingPollResponse: boolean = false
 	private pollInterval: number = 3000
 	private logger: ModuleLogger | undefined
 
@@ -63,32 +64,58 @@ export class FeedbackHandler extends EventEmitter {
 
 	/**
 	 * Start polling for feedback updates and set up connection timeout detection.
-	 * Emits 'poll-request' with array of paths to poll.
-	 * Emits 'connection-timeout' if no response received within the poll interval.
+	 * Emits 'poll-request' with array of paths to poll on every interval.
+	 * Emits 'poll-connection-timeout' if no data was received from the console since the last poll.
 	 */
 	public startPolling(): void {
-		const paths = this.subscriptions?.getPollPaths() || []
+		this.stopPolling()
+		this.pollTimer = setInterval(() => this.poll(), this.pollInterval)
+		this.poll()
+	}
+
+	/**
+	 * Stop polling for feedback updates.
+	 */
+	public stopPolling(): void {
+		if (this.pollTimer) {
+			clearInterval(this.pollTimer)
+			this.pollTimer = undefined
+		}
+		this.awaitingPollResponse = false
+	}
+
+	private poll(): void {
+		const paths = this.subscriptions?.getPollPaths() ?? []
 		if (paths.length === 0) {
+			// Nothing to poll, so nothing can time out either
+			this.awaitingPollResponse = false
 			return
 		}
 
-		this.clearPollTimeout()
-		this.pollTimeout = setTimeout(() => {
+		if (this.awaitingPollResponse) {
 			this.logger?.warn('Poll request was not answered')
 			this.emit('poll-connection-timeout')
-		}, this.pollInterval)
+		}
 
+		this.awaitingPollResponse = true
 		this.emit('poll-request', paths)
 	}
 
 	/**
-	 * Clear the current poll timeout (called when a response is received).
+	 * Report that data was received from the console, which keeps the connection marked as alive.
 	 */
-	public clearPollTimeout(): void {
-		if (this.pollTimeout) {
-			clearTimeout(this.pollTimeout)
-			this.pollTimeout = undefined
-		}
+	public notifyMessageReceived(): void {
+		this.awaitingPollResponse = false
+	}
+
+	/**
+	 * Stop all timers and listeners of this handler.
+	 */
+	public destroy(): void {
+		this.stopPolling()
+		this.debounceMessageFeedbacks.cancel()
+		this.messageFeedbacks.clear()
+		this.removeAllListeners()
 	}
 
 	/**
@@ -97,5 +124,8 @@ export class FeedbackHandler extends EventEmitter {
 	 */
 	public setPollInterval(interval: number): void {
 		this.pollInterval = interval
+		if (this.pollTimer) {
+			this.startPolling()
+		}
 	}
 }
