@@ -85,6 +85,7 @@ export class VariableHandler extends EventEmitter {
 				this.updateColorVariables(path, args[0]?.value as string)
 
 			if (result) {
+				this.updateStatusVariables(path, args[0]?.value as string | number)
 				updates.push(...result)
 			}
 		}
@@ -584,6 +585,15 @@ export class VariableHandler extends EventEmitter {
 		const base = match[1]
 		const num = match[2]
 		return [{ name: `${base}${num}_color`, value }]
+	}
+
+	private updateStatusVariables(path: string, value: string | number): VariableUpdate[] | undefined {
+		const variables = []
+		variables.push({ name: 'last_msg_received_timestamp', value: Date.now() })
+		variables.push({ name: 'last_msg_path', value: path })
+		variables.push({ name: 'last_msg_value', value })
+
+		return variables
 	}
 
 	processMessage(msgs: Set<OscMessage>): void {

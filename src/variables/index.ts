@@ -8,6 +8,7 @@ import { getMainVariables } from './main.js'
 import { getMatrixVariables } from './matrix.js'
 import { getMuteGroupVariables } from './mutegroup.js'
 import { getShowControlVariables } from './showcontrol.js'
+import { getStatusVariables } from './status.js'
 import { getTalkbackVariables } from './talkback.js'
 import { getUsbVariables } from './usb.js'
 import { getWliveVariables } from './wlive.js'
@@ -20,9 +21,6 @@ export interface VariableDefinition {
 
 export function getAllVariables(model: ModelSpec): VariableDefinition[] {
 	const variables = []
-	variables.push({ variableId: 'desk_ip', name: 'Desk IP Address' })
-	variables.push({ variableId: 'desk_name', name: 'Desk Name' })
-	variables.push({ variableId: 'main_alt_status', name: 'Main/Alt Input Source' })
 
 	variables.push(...getChannelVariables(model))
 	variables.push(...getAuxVariables(model))
@@ -36,6 +34,7 @@ export function getAllVariables(model: ModelSpec): VariableDefinition[] {
 	variables.push(...getShowControlVariables())
 	variables.push(...getGpioVariables(model))
 	variables.push(...getTalkbackVariables(model))
+	variables.push(...getStatusVariables(model))
 
 	return variables
 }
