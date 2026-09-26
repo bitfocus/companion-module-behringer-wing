@@ -23,6 +23,9 @@ import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './handlers/variable-handler.js'
 import { OscForwarder } from './handlers/osc-forwarder.js'
 import debounceFn from 'debounce-fn'
+import { UpgradeScripts } from './upgrades.js'
+
+export { UpgradeScripts }
 
 export default class WingInstance extends InstanceBase<any> implements InstanceBaseExt<WingConfig> {
 	private readonly debounceHandleMessages: () => void
