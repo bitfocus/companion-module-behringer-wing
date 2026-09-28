@@ -1,4 +1,4 @@
-import { WingSubscriptions } from './state/index.js'
+import { WingState, WingSubscriptions } from './state/index.js'
 import { InstanceBaseExt } from './types.js'
 import { WingConfig } from './config.js'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
@@ -47,6 +47,28 @@ export enum FeedbackId {
 	SofActive = 'sof-active',
 }
 
+/**
+ * Register a feedback as interested in an OSC path, so that incoming messages for that path
+ * trigger a re-evaluation of the feedback.
+ *
+ * Since module API v2 there is no `subscribe` callback on feedback definitions anymore, so this
+ * has to happen from within the feedback callback itself. The value is only requested from the
+ * console if it is not known yet, because the callback runs on every evaluation of the feedback.
+ */
+function subscribeFeedback(
+	state: WingState,
+	ensureLoaded: (path: string, arg?: string | number) => void,
+	subs: WingSubscriptions,
+	path: string,
+	event: CompanionFeedbackInfo,
+): void {
+	if (!path) return
+	subs.subscribe(path, event.id, event.feedbackId as FeedbackId)
+	if (state.get(path) === undefined) {
+		ensureLoaded(path)
+	}
+}
+
 function unsubscribeFeedback(subs: WingSubscriptions, path: string, event: CompanionFeedbackInfo): void {
 	subs.unsubscribe(path, event.id)
 }
@@ -58,6 +80,19 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 	if (!subs) throw new Error('Feedback handler or subscriptions are not available')
 	const ensureLoaded = _self.stateHandler?.ensureLoaded.bind(_self.stateHandler)
 	if (!ensureLoaded) throw new Error('State handler or ensureLoaded is not available')
+
+	/** Read a numeric value from the state and subscribe the feedback to updates of that path */
+	const trackedNumber = (path: string, event: CompanionFeedbackInfo): number | undefined => {
+		subscribeFeedback(state, ensureLoaded, subs, path, event)
+		return StateUtil.getNumberFromState(path, state)
+	}
+
+	/** Read a string value from the state and subscribe the feedback to updates of that path */
+	const trackedString = (path: string, event: CompanionFeedbackInfo): string | undefined => {
+		subscribeFeedback(state, ensureLoaded, subs, path, event)
+		return StateUtil.getStringFromState(path, state)
+	}
+
 	const allChannels = [
 		...state.namedChoices.channels,
 		...state.namedChoices.auxes,
@@ -92,7 +127,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const cmd = IoCommands.MainAltSwitch()
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				// Wing reports 0 for Main, 1 for Alt; invert to match UI labels
 				return typeof currentValue === 'number' && `${Number(!currentValue)}` === sel
 			},
@@ -114,7 +149,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const mute = ActionUtil.getNumberWithVariables(event, 'mute')
 				const cmd = ActionUtil.getMuteCommand(sel, ActionUtil.getNodeNumberFromID(sel))
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue == mute
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -140,7 +175,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				if (val != -1) {
 					val = val == 0 ? 1 : 0
 				}
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue != val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -171,7 +206,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const aes = ActionUtil.getStringWithVariables(event, 'aes')
 				const status = ActionUtil.getStringWithVariables(event, 'status')
 				const cmd = StatusCommands.AesStatus(aes)
-				const val = StateUtil.getStringFromState(cmd, state) as string
+				const val = trackedString(cmd, event) as string
 				return val === status
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -195,7 +230,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getStringWithVariables(event, 'state')
 				const cmd = UsbPlayerCommands.RecorderActiveState()
-				const recState = StateUtil.getStringFromState(cmd, state)
+				const recState = trackedString(cmd, event)
 				return recState === val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -218,7 +253,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getStringWithVariables(event, 'state')
 				const cmd = UsbPlayerCommands.PlayerActiveState()
-				const playerState = StateUtil.getStringFromState(cmd, state)
+				const playerState = trackedString(cmd, event)
 				return playerState === val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -236,7 +271,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const card = ActionUtil.getNumberWithVariables(event, 'card')
 				const val = ActionUtil.getStringWithVariables(event, 'state')
 				const cmd = CardsCommands.WLiveCardSDState(card)
-				const currentValue = StateUtil.getStringFromState(cmd, state)
+				const currentValue = trackedString(cmd, event)
 				return currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -255,7 +290,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const card = ActionUtil.getNumberWithVariables(event, 'card')
 				const val = ActionUtil.getStringWithVariables(event, 'state')
 				const cmd = CardsCommands.WLiveCardState(card)
-				const currentValue = StateUtil.getStringFromState(cmd, state)
+				const currentValue = trackedString(cmd, event)
 				return currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -277,7 +312,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const sel = ActionUtil.getNumberWithVariables(event, 'sel')
 				const val = ActionUtil.getNumberWithVariables(event, 'state')
 				const cmd = ControlCommands.GpioReadState(sel)
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -302,23 +337,19 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')
 				const solo = ActionUtil.getNumberWithVariables(event, 'solo')
-				if (sel == 'any') {
-					return allChannelsAndDcas.some((s) => {
+				if (sel == 'any' || sel == 'all') {
+					// Read every value (instead of short-circuiting) so that all paths get subscribed
+					const currentValues = allChannelsAndDcas.map((s) => {
 						const num = s.id.toString().split('/')[2] as unknown as number
 						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
-						const currentValue = StateUtil.getNumberFromState(cmd, state)
-						return currentValue == solo
+						return trackedNumber(cmd, event)
 					})
-				} else if (sel == 'all') {
-					return allChannelsAndDcas.every((s) => {
-						const num = s.id.toString().split('/')[2] as unknown as number
-						const cmd = ActionUtil.getSoloCommand(s.id as string, num)
-						const currentValue = StateUtil.getNumberFromState(cmd, state)
-						return currentValue == solo
-					})
+					return sel == 'any'
+						? currentValues.some((currentValue) => currentValue == solo)
+						: currentValues.every((currentValue) => currentValue == solo)
 				} else {
 					const cmd = ActionUtil.getSoloCommand(sel, getNodeNumber(event, 'sel'))
-					const currentValue = StateUtil.getNumberFromState(cmd, state)
+					const currentValue = trackedNumber(cmd, event)
 					return typeof currentValue === 'number' && currentValue == solo
 				}
 			},
@@ -345,7 +376,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getNumberWithVariables(event, 'dim')
 				const cmd = ConfigurationCommands.SoloDim()
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -362,7 +393,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getNumberWithVariables(event, 'mono')
 				const cmd = ConfigurationCommands.SoloMono()
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -379,7 +410,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 			callback: (event: CompanionFeedbackInfo): boolean => {
 				const val = ActionUtil.getNumberWithVariables(event, 'swap')
 				const cmd = ConfigurationCommands.SoloLRSwap()
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -400,7 +431,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const tb = ActionUtil.getStringWithVariables(event, 'tb')
 				const val = ActionUtil.getNumberWithVariables(event, 'on')
 				const cmd = ConfigurationCommands.TalkbackOn(tb)
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue == val
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -428,7 +459,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const destination = ActionUtil.getStringWithVariables(event, 'dest')
 				const assign = ActionUtil.getNumberWithVariables(event, 'assign')
 				const cmd = ActionUtil.getTalkbackAssignCommand(talkback, destination)
-				const currentValue = StateUtil.getNumberFromState(cmd, state)
+				const currentValue = trackedNumber(cmd, event)
 				return typeof currentValue === 'number' && currentValue == assign
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -459,11 +490,11 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const on = ActionUtil.getNumberWithVariables(event, 'on')
 
 				let cmd = ActionUtil.getPreInsertOnCommand(sel, getNodeNumber(event, 'sel'))
-				let currentValue = StateUtil.getNumberFromState(cmd, state)
+				let currentValue = trackedNumber(cmd, event)
 				const preOn = (currentValue ?? 0) == on
 
 				cmd = ActionUtil.getPostInsertCommand(sel, getNodeNumber(event, 'sel'))
-				currentValue = StateUtil.getNumberFromState(cmd, state)
+				currentValue = trackedNumber(cmd, event)
 				const postOn = (currentValue ?? 0) == on
 
 				if (insert === 'pre') return preOn
@@ -490,7 +521,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const sceneName = ActionUtil.getStringWithVariables(event, 'scene')
 				const sceneNumber = state.sceneNameToIdMap.get(sceneName) ?? 0
 				const cmd = ControlCommands.LibraryActiveSceneIndex()
-				const currentSceneNumber = StateUtil.getNumberFromState(cmd, state)
+				const currentSceneNumber = trackedNumber(cmd, event)
 				return typeof currentSceneNumber === 'number' && currentSceneNumber === sceneNumber
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {
@@ -522,7 +553,7 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 				const channel = ActionUtil.getStringWithVariables(event, 'channel')
 				const channelIndex = ActionUtil.getStripIndexFromString(channel)
 				const cmd = ControlCommands.SetSof()
-				const currentSelectedIndex = StateUtil.getNumberFromState(cmd, state)
+				const currentSelectedIndex = trackedNumber(cmd, event)
 				return currentSelectedIndex === channelIndex
 			},
 			unsubscribe: (event: CompanionFeedbackInfo): void => {

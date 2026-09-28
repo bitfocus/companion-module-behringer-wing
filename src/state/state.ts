@@ -92,6 +92,9 @@ export class WingState implements IStoredChannelSubject {
 	}
 	public set(path: string, data: osc.MetaArgument[]): void {
 		const key = path
+		if (data.length === 0) {
+			return
+		}
 		if (data[0].value == '-oo') {
 			data[0] = { type: 'f', value: -140 }
 		}

@@ -60,9 +60,8 @@ export class ConnectionHandler extends EventEmitter {
 		})
 
 		this.osc.on('message', (msg: OscMessage) => {
-			const args = msg.args as osc.MetaArgument[]
-			const stringValue = args[0].value
-			this.logger?.debug(`Received ${msg.address}: ${stringValue} (string)`)
+			const args = msg.args as osc.MetaArgument[] | undefined
+			this.logger?.debug(`Received ${msg.address}: ${args?.[0]?.value ?? '<no argument>'}`)
 			this.emit('message', msg)
 		})
 
@@ -163,7 +162,16 @@ export class ConnectionHandler extends EventEmitter {
 			address: cmd,
 			args: args,
 		}
-		this.osc.send(command)
-		this.osc.send({ address: cmd, args: [] }) // a bit ugly, but needed to keep the desk state up to date in companion
+		try {
+			this.osc.send(command)
+			if (argument !== undefined) {
+				// a bit ugly, but needed to keep the desk state up to date in companion.
+				// Only needed when a value was set, a bare request is already identical to this message.
+				this.osc.send({ address: cmd, args: [] })
+			}
+		} catch (e: any) {
+			// Sending on a port that is not (or no longer) open must not take the module down
+			this.logger?.warn(`Failed to send OSC command ${cmd}: ${e?.message ?? e}`)
+		}
 	}
 }

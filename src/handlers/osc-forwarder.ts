@@ -13,7 +13,9 @@ export class OscForwarder {
 	setup(enabled: boolean | undefined, host?: string, port?: number, logger?: ModuleLogger): void {
 		this.close()
 
-		this.logger = logger
+		if (logger !== undefined) {
+			this.logger = logger
+		}
 
 		if (!enabled || !host || !port) {
 			return
