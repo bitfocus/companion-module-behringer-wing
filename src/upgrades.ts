@@ -1,12 +1,13 @@
 import type { CompanionStaticUpgradeScript, CompanionStaticUpgradeResult } from '@companion-module/base'
+import type { WingConfig } from './config.js'
 
-export const UpgradeScripts: CompanionStaticUpgradeScript<any>[] = [
+export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 	/*
 	 * Place your upgrade scripts here
 	 * Remember that once it has been added it cannot be removed!
 	 */
 	// Upgrade RecorderState feedback from advanced to boolean (v2.2.0)
-	((_context, props): CompanionStaticUpgradeResult<any, undefined> => {
+	((_context, props): CompanionStaticUpgradeResult<WingConfig, undefined> => {
 		const updatedFeedbacks = []
 
 		for (const feedback of props.feedbacks) {
@@ -42,5 +43,5 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<any>[] = [
 			updatedActions: [],
 			updatedFeedbacks,
 		}
-	}) as CompanionStaticUpgradeScript<any>,
+	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
 ]

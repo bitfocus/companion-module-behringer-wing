@@ -1,6 +1,6 @@
 import EventEmitter from 'events'
 import debounceFn from 'debounce-fn'
-import { FeedbackId } from '../feedbacks.js'
+import { FeedbackId } from '../feedbacks/index.js'
 import { OscMessage } from 'osc'
 import { WingSubscriptions } from '../state/index.js'
 import { ModuleLogger } from '@companion-module/base'

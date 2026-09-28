@@ -7,10 +7,10 @@ import {
 	ModuleLogger,
 	createModuleLogger,
 } from '@companion-module/base'
-import { InstanceBaseExt } from './types.js'
+import { InstanceBaseExt, WingTypes } from './types.js'
 import { GetConfigFields, WingConfig } from './config.js'
 import { createActions } from './actions/index.js'
-import { GetFeedbacksList } from './feedbacks.js'
+import { GetFeedbacksList } from './feedbacks/index.js'
 import { OscMessage } from 'osc'
 import { WingTransitions } from './handlers/transitions.js'
 import { WingDeviceDetectorInstance, WingDeviceDetectorInterface } from './handlers/device-detector.js'
@@ -27,7 +27,7 @@ import { UpgradeScripts } from './upgrades.js'
 
 export { UpgradeScripts }
 
-export default class WingInstance extends InstanceBase<any> implements InstanceBaseExt<WingConfig> {
+export default class WingInstance extends InstanceBase<WingTypes> implements InstanceBaseExt<WingConfig> {
 	private readonly debounceHandleMessages: () => void
 	private readonly messages = new Set<OscMessage>()
 

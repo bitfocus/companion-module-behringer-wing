@@ -2,7 +2,7 @@ import { combineRgb } from '@companion-module/base'
 import type { WingPresetsContext } from './types.js'
 import { CommonActions } from '../actions/common.js'
 import { OtherActionId } from '../actions/control.js'
-import { FeedbackId } from '../feedbacks.js'
+import { FeedbackId } from '../feedbacks/index.js'
 import type { ModelSpec } from '../models/types.js'
 
 /**

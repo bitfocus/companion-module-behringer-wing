@@ -2,7 +2,7 @@ import { combineRgb } from '@companion-module/base'
 import type { WingPresetsContext } from './types.js'
 import { ConfigActions } from '../actions/config.js'
 import { OtherActionId } from '../actions/control.js'
-import { FeedbackId } from '../feedbacks.js'
+import { FeedbackId } from '../feedbacks/index.js'
 
 /**
  * Adds non-channel-strip presets (talkback and console lights) to the context.
