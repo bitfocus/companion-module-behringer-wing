@@ -25,7 +25,22 @@ export function getDcaVariables(model: ModelSpec): VariableDefinition[] {
 		variables.push({
 			variableId: `dca${dca}_color`,
 			name: `DCA ${dca} Color`,
-			path: Commands.Dca.Color(dca),
+			path: `${Commands.Dca.Node(dca)}/$col`,
+		})
+		variables.push({
+			variableId: `dca${dca}_color_index`,
+			name: `DCA ${dca} Color Index`,
+			path: `${Commands.Dca.Node(dca)}/$col`,
+		})
+		variables.push({
+			variableId: `dca${dca}_icon_id`,
+			name: `DCA ${dca} Icon ID`,
+			path: Commands.Dca.Icon(dca),
+		})
+		variables.push({
+			variableId: `dca${dca}_icon_image`,
+			name: `DCA ${dca} Icon Image Data URI`,
+			path: Commands.Dca.Icon(dca),
 		})
 	}
 

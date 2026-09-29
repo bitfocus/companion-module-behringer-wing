@@ -74,7 +74,22 @@ export function getBusVariables(model: ModelSpec): VariableDefinition[] {
 		variables.push({
 			variableId: `bus${bus}_color`,
 			name: `Bus ${bus} Color`,
-			path: Commands.Bus.Color(bus),
+			path: `${Commands.Bus.Node(bus)}/$col`,
+		})
+		variables.push({
+			variableId: `bus${bus}_color_index`,
+			name: `Bus ${bus} Color Index`,
+			path: `${Commands.Bus.Node(bus)}/$col`,
+		})
+		variables.push({
+			variableId: `bus${bus}_icon_id`,
+			name: `Bus ${bus} Icon ID`,
+			path: Commands.Bus.Icon(bus),
+		})
+		variables.push({
+			variableId: `bus${bus}_icon_image`,
+			name: `Bus ${bus} Icon Image Data URI`,
+			path: Commands.Bus.Icon(bus),
 		})
 	}
 

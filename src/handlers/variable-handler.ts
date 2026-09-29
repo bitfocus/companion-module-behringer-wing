@@ -7,6 +7,7 @@ import { IoCommands } from '../commands/io.js'
 import debounceFn from 'debounce-fn'
 import { ModuleLogger } from '@companion-module/base'
 import { getAllVariables } from '../variables/index.js'
+import { WING_ICON_DATA } from '../assets/wing-icons.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/
 const RE_GAIN = /\/(\w+)\/(\d+)\/in\/set\/\$g/
@@ -18,7 +19,28 @@ const RE_SD = /^\/cards\/wlive\/(\d)\/(\$?\w+)\/(\$?\w+)$/
 const RE_TALKBACK = /^\/cfg\/talk\/(A|B)\/(B|MX|M)(\d+)$/
 const RE_GPIO = /^\/\$ctl\/gpio\/(\d+)\/\$state$/
 const RE_CONTROL = /^\/\$ctl\/(lib|\$stat)\/(\$?\w+)/
-const RE_COLOR = /\/(\w+)\/(\d+)\/\$?col/
+const RE_COLOR = /^\/(ch|aux|bus|mtx|main|dca)\/(\d+)\/(?:\$?col)$/
+const RE_ICON = /^\/(ch|aux|bus|mtx|main|dca)\/(\d+)\/(?:\$?icon)$/
+const COLOR_RGB: Record<number, readonly [number, number, number]> = {
+	1: [62, 99, 204], // Default blue
+	2: [0, 128, 255], // Blue
+	3: [90, 51, 255], // Violet
+	4: [0, 206, 209], // Cyan
+	5: [6, 178, 62], // Green
+	6: [150, 203, 0], // Lime green
+	7: [241, 221, 0], // Yellow
+	8: [191, 106, 31], // Brown
+	9: [224, 31, 65], // Red
+	10: [255, 121, 122], // Salmon
+	11: [255, 51, 246], // Magenta
+	12: [165, 52, 255], // Purple
+	13: [255, 184, 26], // Orange
+	14: [37, 195, 255], // Light blue
+	15: [255, 90, 48], // Orange red
+	16: [51, 230, 165], // Mint
+	17: [112, 112, 112], // Gray
+	18: [224, 224, 224], // Light gray
+}
 
 export type VariableUpdate = { name: string; value: string | number }
 export class VariableHandler extends EventEmitter {
@@ -87,10 +109,11 @@ export class VariableHandler extends EventEmitter {
 				this.updateGpioVariables(path, arg.value as number) ??
 				this.updateControlVariables(path, arg) ??
 				this.updateIoVariables(path, arg) ??
-				this.updateColorVariables(path, arg.value as string)
+				this.updateColorVariables(path, arg.value) ??
+				this.updateIconVariables(path, arg.value)
 
 			if (result) {
-				this.updateStatusVariables(path, args[0]?.value as string | number)
+				this.updateStatusVariables(path, arg.value as string | number)
 				updates.push(...result)
 			}
 		}
@@ -581,7 +604,7 @@ export class VariableHandler extends EventEmitter {
 		return [{ name: 'main_alt_status', value: isMain ? 'Main' : 'Alt' }]
 	}
 
-	private updateColorVariables(path: string, value: string): VariableUpdate[] | undefined {
+	private updateColorVariables(path: string, value: unknown): VariableUpdate[] | undefined {
 		const match = path.match(RE_COLOR)
 		if (!match) {
 			return
@@ -589,7 +612,35 @@ export class VariableHandler extends EventEmitter {
 
 		const base = match[1]
 		const num = match[2]
-		return [{ name: `${base}${num}_color`, value }]
+		const colorIndex = typeof value === 'number' ? value : Number(value)
+		const rgb = COLOR_RGB[colorIndex]
+		if (!Number.isInteger(colorIndex) || rgb === undefined) {
+			this.logger?.debug(`Ignoring unsupported color value for ${path}: ${String(value)}`)
+			return
+		}
+		// Companion variables can be used directly in color-capable fields when
+		// represented as its packed 0xRRGGBB integer.
+		const companionColor = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2]
+		return [
+			{ name: `${base}${num}_color`, value: companionColor },
+			{ name: `${base}${num}_color_index`, value: colorIndex },
+		]
+	}
+
+	private updateIconVariables(path: string, value: unknown): VariableUpdate[] | undefined {
+		const match = path.match(RE_ICON)
+		if (!match) return
+
+		const iconId = typeof value === 'number' ? value : Number(value)
+		if (!Number.isInteger(iconId) || iconId < 0 || iconId > 999) {
+			this.logger?.debug(`Ignoring unsupported icon value for ${path}: ${String(value)}`)
+			return
+		}
+
+		return [
+			{ name: `${match[1]}${match[2]}_icon_id`, value: iconId },
+			{ name: `${match[1]}${match[2]}_icon_image`, value: WING_ICON_DATA[iconId] ?? WING_ICON_DATA[0] },
+		]
 	}
 
 	private updateStatusVariables(path: string, value: string | number): VariableUpdate[] | undefined {

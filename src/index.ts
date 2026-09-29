@@ -22,6 +22,7 @@ import { StateHandler } from './handlers/state-handler.js'
 import { FeedbackHandler } from './handlers/feedback-handler.js'
 import { VariableHandler } from './handlers/variable-handler.js'
 import { OscForwarder } from './handlers/osc-forwarder.js'
+import { MeterHandler } from './handlers/meter-handler.js'
 import debounceFn from 'debounce-fn'
 import { UpgradeScripts } from './upgrades.js'
 
@@ -43,6 +44,7 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 	variableHandler: VariableHandler | undefined
 	transitions: WingTransitions
 	oscForwarder: OscForwarder | undefined
+	meterHandler: MeterHandler | undefined
 	logger: ModuleLogger | undefined
 
 	private readonly onNoDeviceDetected = (): void => {
@@ -84,6 +86,7 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 	private start(config: WingConfig): void {
 		this.setupDeviceDetector()
 		this.setupConnectionHandler()
+		this.setupMeterHandler()
 		this.setupStateHandler()
 		this.setupFeedbackHandler()
 		this.setupVariableHandler()
@@ -106,6 +109,9 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 		this.feedbackHandler = undefined
 		this.oscForwarder?.close()
 		this.oscForwarder = undefined
+		this.meterHandler?.close()
+		this.meterHandler?.removeAllListeners()
+		this.meterHandler = undefined
 		this.variableHandler?.destroy()
 		this.variableHandler = undefined
 		this.connected = false
@@ -161,6 +167,7 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 		this.connection?.on('ready', () => {
 			this.updateStatus(InstanceStatus.Connecting, 'Waiting for answer from console...')
 			this.updateDeskVariables()
+			this.meterHandler?.start()
 			this.feedbackHandler?.startPolling()
 			this.stateHandler?.state?.requestNames(this)
 			if (this.config.prefetchVariablesOnStartup) {
@@ -179,12 +186,24 @@ export default class WingInstance extends InstanceBase<any> implements InstanceB
 			this.connected = false
 			this.feedbackHandler?.stopPolling()
 			this.stateHandler?.clearState()
+			this.meterHandler?.close()
 		})
 
 		this.connection?.on('message', (msg: OscMessage) => {
 			this.messages.add(msg)
 			this.oscForwarder?.send(msg)
 			this.debounceHandleMessages()
+		})
+	}
+
+	private setupMeterHandler(): void {
+		const host = this.config.host
+		if (!host) return
+
+		this.meterHandler = new MeterHandler(host, this.model.channels, this.logger)
+		this.meterHandler.on('update', (updates: Record<string, number>) => {
+			this.setVariableValues(updates)
+			this.checkFeedbacks('channel-meter')
 		})
 	}
 

@@ -4,8 +4,11 @@ import { WingConfig } from './config.js'
 import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
 import {
 	combineRgb,
+	CompanionAdvancedFeedbackDefinition,
+	CompanionAdvancedFeedbackResult,
 	CompanionBooleanFeedbackDefinition,
 	CompanionFeedbackDefinitions,
+	CompanionFeedbackAdvancedEvent,
 	CompanionFeedbackInfo,
 } from '@companion-module/base'
 import { GetDropdown, GetMuteDropdown, GetSendSourceDestinationFields } from './choices/common.js'
@@ -27,6 +30,7 @@ import { getCardsChoices, getCardsStatusChoices, getCardsActionChoices } from '.
 type CompanionFeedbackWithCallback = SetRequired<CompanionBooleanFeedbackDefinition, 'callback' | 'unsubscribe'>
 
 export enum FeedbackId {
+	ChannelMeter = 'channel-meter',
 	Mute = 'mute',
 	SendMute = 'send-mute',
 	AesStatus = 'aes-status',
@@ -45,6 +49,47 @@ export enum FeedbackId {
 	MainAltSwitch = 'main-alt-switch',
 	ActiveScene = 'active-scene',
 	SofActive = 'sof-active',
+}
+
+function renderChannelMeter(
+	db: number,
+	width: number,
+	height: number,
+	channel: number,
+	tap: 'pre' | 'post',
+): CompanionAdvancedFeedbackResult {
+	const pixelWidth = Math.max(1, Math.floor(width))
+	const pixelHeight = Math.max(1, Math.floor(height))
+	const image = Buffer.alloc(pixelWidth * pixelHeight * 4)
+	const barWidth = Math.max(1, Math.min(pixelWidth, Math.round(pixelWidth * 0.22)))
+	const barLeft = Math.max(0, pixelWidth - barWidth - Math.max(1, Math.round(pixelWidth * 0.06)))
+	const normalized = Math.max(0, Math.min(1, (db + 60) / 60))
+	const fillTop = Math.floor(pixelHeight * (1 - normalized))
+
+	for (let y = 0; y < pixelHeight; y++) {
+		for (let x = barLeft; x < Math.min(pixelWidth, barLeft + barWidth); x++) {
+			const offset = (y * pixelWidth + x) * 4
+			if (y < fillTop) {
+				image[offset] = 75
+				image[offset + 1] = 75
+				image[offset + 2] = 75
+				image[offset + 3] = 150
+			} else {
+				const levelDb = -60 + (1 - y / pixelHeight) * 60
+				image[offset] = levelDb >= -6 ? 255 : levelDb >= -18 ? 255 : 0
+				image[offset + 1] = levelDb >= -6 ? 0 : levelDb >= -18 ? 210 : 210
+				image[offset + 2] = 0
+				image[offset + 3] = 255
+			}
+		}
+	}
+
+	return {
+		text: `CH ${channel} ${tap === 'pre' ? 'PRE' : 'POST'}\n${Number.isFinite(db) && db > -128 ? `${db.toFixed(1)} dB` : 'No signal'}`,
+		imageBuffer: image.toString('base64'),
+		imageBufferEncoding: { pixelFormat: 'RGBA' },
+		imageBufferPosition: { x: 0, y: 0, width: pixelWidth, height: pixelHeight },
+	}
 }
 
 /**
@@ -117,7 +162,43 @@ export function GetFeedbacksList(_self: InstanceBaseExt<WingConfig>): CompanionF
 	]
 	const mainSendDestinations = [...state.namedChoices.matrices]
 
-	const feedbacks: { [id in FeedbackId]: CompanionFeedbackWithCallback | undefined } = {
+	const feedbacks: {
+		[id in FeedbackId]:
+			CompanionFeedbackWithCallback | SetRequired<CompanionAdvancedFeedbackDefinition, 'callback'> | undefined
+	} = {
+		[FeedbackId.ChannelMeter]: {
+			type: 'advanced',
+			name: 'Channel Meter',
+			description: 'Draw the live pre-fader or post-fader stereo level for a WING channel.',
+			options: [
+				GetDropdown(
+					'Channel',
+					'channel',
+					Array.from({ length: _self.model.channels }, (_, index) => ({
+						id: `${index + 1}`,
+						label: `Channel ${index + 1}`,
+					})),
+				),
+				GetDropdown(
+					'Meter Tap',
+					'tap',
+					[
+						{ id: 'pre', label: 'Pre-fader (input)' },
+						{ id: 'post', label: 'Post-fader (output)' },
+					],
+					'post',
+				),
+			],
+			affectedProperties: ['text', 'imageBuffer'],
+			callback: (event: CompanionFeedbackAdvancedEvent): CompanionAdvancedFeedbackResult => {
+				const channel = Number(ActionUtil.getStringWithVariables(event, 'channel'))
+				const tap = ActionUtil.getStringWithVariables(event, 'tap') === 'pre' ? 'pre' : 'post'
+				const meter = _self.meterHandler?.getChannelMeter(channel)
+				const image = event.image ?? { width: 72, height: 72 }
+				const db = tap === 'pre' ? meter?.preFaderPeakDb : meter?.postFaderPeakDb
+				return renderChannelMeter(db ?? -128, image.width, image.height, channel, tap)
+			},
+		},
 		[FeedbackId.MainAltSwitch]: {
 			type: 'boolean',
 			name: 'Main/Alt Input Source',

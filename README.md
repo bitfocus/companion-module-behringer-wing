@@ -2,7 +2,43 @@
 
 See also HELP.md and LICENSE
 
+## Channel strip icons
+
+The module exposes each strip's WING icon ID and a matching PNG data URI, for example `${wing:ch1_icon_id}` and `${wing:ch1_icon_image}`. Use the image variable in a Companion Image graphics element to display the channel icon. Icon images are embedded from [EazyO25/Behringer-Wing-Iconset](https://github.com/EazyO25/Behringer-Wing-Iconset) under its MIT license; the license is included at `src/assets/Behringer-Wing-Iconset-LICENSE`.
+
 # Changelog
+
+## 2.4.0-alpha-7
+
+### Added
+
+- Receive live WING channel meter levels through the native meter protocol
+- Expose pre-fader and post-fader left, right, and peak levels as dB variables
+- Add Channel Meter feedback and per-channel presets with selectable pre/post-fader display
+
+### Changed
+
+- Restore OSC feedback subscriptions and harden message handling, connection cleanup, timeout detection, and device detector recovery
+
+## 2.4.0-alpha-5
+
+### Fixed
+
+- Correct WING 3.1 color IDs and RGB values, including the default blue at ID 1
+- Read resolved strip colors from the read-only `/$col` OSC path
+
+## 2.4.0-alpha-4
+
+### Added
+
+- Expose WING icon IDs and embedded icon images as variables for channel strips, auxes, buses, matrices, mains and DCAs
+- Request strip colors and icons on startup
+- Embed the WING icon set under its MIT license
+
+### Changed
+
+- Update the color action choices and RGB variable mapping to match the current WING palette
+- Avoid repeated OSC requests for duplicate variable paths during startup prefetch
 
 ## 2.3.1
 
