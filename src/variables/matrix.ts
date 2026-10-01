@@ -30,7 +30,22 @@ export function getMatrixVariables(model: ModelSpec): VariableDefinition[] {
 		variables.push({
 			variableId: `mtx${mtx}_color`,
 			name: `Matrix ${mtx} Color`,
-			path: Commands.Matrix.Color(mtx),
+			path: `${Commands.Matrix.Node(mtx)}/$col`,
+		})
+		variables.push({
+			variableId: `mtx${mtx}_color_index`,
+			name: `Matrix ${mtx} Color Index`,
+			path: `${Commands.Matrix.Node(mtx)}/$col`,
+		})
+		variables.push({
+			variableId: `mtx${mtx}_icon_id`,
+			name: `Matrix ${mtx} Icon ID`,
+			path: Commands.Matrix.Icon(mtx),
+		})
+		variables.push({
+			variableId: `mtx${mtx}_icon_image`,
+			name: `Matrix ${mtx} Icon Image Data URI`,
+			path: Commands.Matrix.Icon(mtx),
 		})
 	}
 

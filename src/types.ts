@@ -14,4 +14,5 @@ export interface InstanceBaseExt<TConfig> extends InstanceBase<any> {
 	stateHandler?: import('./handlers/state-handler.js').StateHandler | undefined
 	feedbackHandler?: import('./handlers/feedback-handler.js').FeedbackHandler | undefined
 	variableHandler?: import('./handlers/variable-handler.js').VariableHandler | undefined
+	meterHandler?: import('./handlers/meter-handler.js').MeterHandler | undefined
 }

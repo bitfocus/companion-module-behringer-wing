@@ -127,6 +127,25 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		],
 	}
 
+	context.definitions['tpl-channel-meter'] = {
+		type: 'simple',
+		name: 'Channel Meter',
+		style: {
+			text: 'Channel meter',
+			size: 'auto',
+			color: combineRgb(255, 255, 255),
+			bgcolor: combineRgb(0, 0, 0),
+		},
+		steps: [{ down: [], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: FeedbackId.ChannelMeter,
+				options: { channel: { isExpression: true, value: '$(local:index)' }, tap: 'post' },
+			},
+		],
+		localVariables: [{ variableType: 'simple', variableName: 'index', startupValue: 1 }],
+	}
+
 	context.definitions['tpl-boost-center'] = {
 		type: 'simple',
 		name: 'Boost & Center',
@@ -275,6 +294,11 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 			definitions: active
 				.filter((ct) => ct.hasBoostAndCenter)
 				.map((ct) => makeGroup('boost-center', ct, 'Boost & Center')),
+		},
+		{
+			id: 'channel-meters',
+			name: 'Channel Meters',
+			definitions: active.filter((ct) => ct.id === 'ch').map((ct) => makeGroup('channel-meter', ct, 'Meter')),
 		},
 	)
 }

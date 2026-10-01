@@ -42,7 +42,22 @@ export function getMainVariables(model: ModelSpec): VariableDefinition[] {
 		variables.push({
 			variableId: `main${main}_color`,
 			name: `Main ${main} Color`,
-			path: Commands.Main.Color(main),
+			path: `${Commands.Main.Node(main)}/$col`,
+		})
+		variables.push({
+			variableId: `main${main}_color_index`,
+			name: `Main ${main} Color Index`,
+			path: `${Commands.Main.Node(main)}/$col`,
+		})
+		variables.push({
+			variableId: `main${main}_icon_id`,
+			name: `Main ${main} Icon ID`,
+			path: Commands.Main.Icon(main),
+		})
+		variables.push({
+			variableId: `main${main}_icon_image`,
+			name: `Main ${main} Icon Image Data URI`,
+			path: Commands.Main.Icon(main),
 		})
 	}
 

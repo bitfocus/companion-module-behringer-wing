@@ -92,6 +92,9 @@ export class WingState implements IStoredChannelSubject {
 	}
 	public set(path: string, data: osc.MetaArgument[]): void {
 		const key = path
+		if (data.length === 0) {
+			return
+		}
 		if (data[0].value == '-oo') {
 			data[0] = { type: 'f', value: -140 }
 		}
@@ -211,21 +214,33 @@ export class WingState implements IStoredChannelSubject {
 
 		for (let ch = 1; ch <= model.channels; ch++) {
 			void sendCommand(Commands.Channel.RealName(ch))
+			void sendCommand(`${Commands.Channel.Node(ch)}/$col`)
+			void sendCommand(Commands.Channel.Icon(ch))
 		}
 		for (let aux = 1; aux <= model.auxes; aux++) {
 			void sendCommand(Commands.Aux.RealName(aux))
+			void sendCommand(`${Commands.Aux.Node(aux)}/$col`)
+			void sendCommand(Commands.Aux.Icon(aux))
 		}
 		for (let bus = 1; bus <= model.busses; bus++) {
 			void sendCommand(Commands.Bus.Name(bus))
+			void sendCommand(`${Commands.Bus.Node(bus)}/$col`)
+			void sendCommand(Commands.Bus.Icon(bus))
 		}
 		for (let mtx = 1; mtx <= model.matrices; mtx++) {
 			void sendCommand(Commands.Matrix.RealName(mtx))
+			void sendCommand(`${Commands.Matrix.Node(mtx)}/$col`)
+			void sendCommand(Commands.Matrix.Icon(mtx))
 		}
 		for (let main = 1; main <= model.mains; main++) {
 			void sendCommand(Commands.Main.RealName(main))
+			void sendCommand(`${Commands.Main.Node(main)}/$col`)
+			void sendCommand(Commands.Main.Icon(main))
 		}
 		for (let dca = 1; dca <= model.dcas; dca++) {
 			void sendCommand(Commands.Dca.Name(dca))
+			void sendCommand(`${Commands.Dca.Node(dca)}/$col`)
+			void sendCommand(Commands.Dca.Icon(dca))
 		}
 		for (let mgrp = 1; mgrp <= model.mutegroups; mgrp++) {
 			void sendCommand(Commands.MuteGroup.Name(mgrp))
@@ -241,13 +256,15 @@ export class WingState implements IStoredChannelSubject {
 		const chunkSize = self.config.startupVariableRequestChunkSize ?? 500
 		const chunkWait = self.config.startupVariableRequestChunkWait ?? 100
 		const chunks = Math.ceil(vars.length / chunkSize)
+		const requestedPaths = new Set<string>()
 		for (let c = 0; c < chunks; c++) {
 			const wait = c * chunkWait
 			const varChunk = vars.slice(c * chunkSize, (c + 1) * chunkSize)
 			setTimeout(() => {
 				for (const v of varChunk) {
 					const p = v.path
-					if (p === undefined) continue
+					if (p === undefined || requestedPaths.has(p)) continue
+					requestedPaths.add(p)
 					void sendCommand(p, undefined, undefined, true)
 				}
 			}, wait)

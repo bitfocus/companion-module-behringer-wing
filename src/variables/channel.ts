@@ -31,6 +31,18 @@ export function getChannelVariables(model: ModelSpec): VariableDefinition[] {
 			name: `Channel ${ch} Pan`,
 			path: Commands.Channel.Pan(ch),
 		})
+		variables.push(
+			{ variableId: `ch${ch}_meter_pre_left_db`, name: `Channel ${ch} Pre-fader Meter Left (dB)` },
+			{ variableId: `ch${ch}_meter_pre_right_db`, name: `Channel ${ch} Pre-fader Meter Right (dB)` },
+			{ variableId: `ch${ch}_meter_pre_peak_db`, name: `Channel ${ch} Pre-fader Meter Peak (dB)` },
+			{ variableId: `ch${ch}_meter_post_left_db`, name: `Channel ${ch} Post-fader Meter Left (dB)` },
+			{ variableId: `ch${ch}_meter_post_right_db`, name: `Channel ${ch} Post-fader Meter Right (dB)` },
+			{ variableId: `ch${ch}_meter_post_peak_db`, name: `Channel ${ch} Post-fader Meter Peak (dB)` },
+			// Retain the initial meter variable names as post-fader aliases.
+			{ variableId: `ch${ch}_meter_left_db`, name: `Channel ${ch} Meter Left (dB)` },
+			{ variableId: `ch${ch}_meter_right_db`, name: `Channel ${ch} Meter Right (dB)` },
+			{ variableId: `ch${ch}_meter_peak_db`, name: `Channel ${ch} Meter Peak (dB)` },
+		)
 		for (let bus = 1; bus <= model.busses; bus++) {
 			variables.push({
 				variableId: `ch${ch}_bus${bus}_mute`,
@@ -81,7 +93,22 @@ export function getChannelVariables(model: ModelSpec): VariableDefinition[] {
 		variables.push({
 			variableId: `ch${ch}_color`,
 			name: `Channel ${ch} Color`,
-			path: Commands.Channel.Color(ch),
+			path: `${Commands.Channel.Node(ch)}/$col`,
+		})
+		variables.push({
+			variableId: `ch${ch}_color_index`,
+			name: `Channel ${ch} Color Index`,
+			path: `${Commands.Channel.Node(ch)}/$col`,
+		})
+		variables.push({
+			variableId: `ch${ch}_icon_id`,
+			name: `Channel ${ch} Icon ID`,
+			path: Commands.Channel.Icon(ch),
+		})
+		variables.push({
+			variableId: `ch${ch}_icon_image`,
+			name: `Channel ${ch} Icon Image Data URI`,
+			path: Commands.Channel.Icon(ch),
 		})
 	}
 

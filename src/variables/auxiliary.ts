@@ -81,7 +81,22 @@ export function getAuxVariables(model: ModelSpec): VariableDefinition[] {
 		variables.push({
 			variableId: `aux${aux}_color`,
 			name: `Aux ${aux} Color`,
-			path: Commands.Aux.Color(aux),
+			path: `${Commands.Aux.Node(aux)}/$col`,
+		})
+		variables.push({
+			variableId: `aux${aux}_color_index`,
+			name: `Aux ${aux} Color Index`,
+			path: `${Commands.Aux.Node(aux)}/$col`,
+		})
+		variables.push({
+			variableId: `aux${aux}_icon_id`,
+			name: `Aux ${aux} Icon ID`,
+			path: Commands.Aux.Icon(aux),
+		})
+		variables.push({
+			variableId: `aux${aux}_icon_image`,
+			name: `Aux ${aux} Icon Image Data URI`,
+			path: Commands.Aux.Icon(aux),
 		})
 	}
 
