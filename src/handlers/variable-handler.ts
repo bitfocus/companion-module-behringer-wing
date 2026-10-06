@@ -85,10 +85,11 @@ export class VariableHandler extends EventEmitter {
 				this.updateColorVariables(path, args[0]?.value as string)
 
 			if (result) {
-				this.updateStatusVariables(path, args[0]?.value as string | number)
 				updates.push(...result)
 			}
 		}
+		const lastMessage = messages[messages.length - 1]
+		updates.push(...this.updateStatusVariables(lastMessage.address, (lastMessage.args as osc.MetaArgument[])[0]))
 		const variables: CompanionVariableValues = {}
 		for (const { name, value } of updates) {
 			if (name === undefined || value === undefined) continue
@@ -587,13 +588,15 @@ export class VariableHandler extends EventEmitter {
 		return [{ name: `${base}${num}_color`, value }]
 	}
 
-	private updateStatusVariables(path: string, value: string | number): VariableUpdate[] | undefined {
-		const variables = []
-		variables.push({ name: 'last_msg_received_timestamp', value: Date.now() })
-		variables.push({ name: 'last_msg_path', value: path })
-		variables.push({ name: 'last_msg_value', value })
-
-		return variables
+	private updateStatusVariables(path: string, arg: osc.MetaArgument | undefined): VariableUpdate[] {
+		const raw = arg?.value as unknown
+		// OSC blobs (Uint8Array) and missing arguments are no valid variable values
+		const value = typeof raw === 'number' || typeof raw === 'string' ? raw : ''
+		return [
+			{ name: 'last_msg_received_timestamp', value: Date.now() },
+			{ name: 'last_msg_path', value: path },
+			{ name: 'last_msg_value', value },
+		]
 	}
 
 	processMessage(msgs: Set<OscMessage>): void {

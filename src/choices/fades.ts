@@ -11,6 +11,7 @@ export const FadeDurationChoice = (
 		min: 0,
 		step: 10,
 		max: 60000,
+		disableAutoExpression: true,
 		tooltip:
 			'Set the desired duration of the transition in milliseconds. Be aware that the minimal temporal resolution is defined by the Fader Update Rate setting of the module.',
 		isVisibleExpression: isVisibleExpression,
@@ -20,6 +21,7 @@ export const FadeDurationChoice = (
 		label: 'Algorithm',
 		id: 'fadeAlgorithm',
 		default: 'linear',
+		disableAutoExpression: true,
 		choices: [
 			{ id: 'linear', label: 'Linear' },
 			{ id: 'quadratic', label: 'Quadratic' },

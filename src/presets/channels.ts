@@ -2,7 +2,7 @@ import { combineRgb } from '@companion-module/base'
 import type { WingPresetsContext } from './types.js'
 import { CommonActions } from '../actions/common.js'
 import { OtherActionId } from '../actions/control.js'
-import { FeedbackId } from '../feedbacks.js'
+import { FeedbackId } from '../feedbacks/index.js'
 import type { ModelSpec } from '../models/types.js'
 
 /**
@@ -45,14 +45,14 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		options: { stepAutoProgress: true },
 		steps: [
 			{
-				down: [{ actionId: CommonActions.SetMute, options: { sel: SEL_EXPR, mute: -1 } }],
+				down: [{ actionId: CommonActions.SetMute, options: { sel: SEL_EXPR, mute: '-1' } }],
 				up: [],
 			},
 		],
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.Mute,
-				options: { sel: SEL_EXPR, mute: 1 },
+				options: { sel: SEL_EXPR, mute: '1' },
 				style: {
 					color: combineRgb(255, 255, 255),
 					bgcolor: combineRgb(255, 0, 0),
@@ -78,7 +78,7 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		options: { stepAutoProgress: true },
 		steps: [
 			{
-				down: [{ actionId: CommonActions.SetSolo, options: { sel: SEL_EXPR, solo: -1 } }],
+				down: [{ actionId: CommonActions.SetSolo, options: { sel: SEL_EXPR, solo: '-1' } }],
 				up: [],
 			},
 		],

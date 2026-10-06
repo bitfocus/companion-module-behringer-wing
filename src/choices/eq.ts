@@ -29,6 +29,7 @@ export function EqModelDropdown(id: string): SomeCompanionActionInputField[] {
 			id: id,
 			choices: EqModelChoice,
 			default: EqTypes.Standard.id,
+			disableAutoExpression: true,
 		},
 	]
 }

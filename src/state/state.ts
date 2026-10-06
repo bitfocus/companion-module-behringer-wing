@@ -1,6 +1,6 @@
 import osc from 'osc'
-import WingInstance from '../index.js'
-import { FeedbackId } from '../feedbacks.js'
+import type WingInstance from '../index.js'
+import { FeedbackId } from '../feedbacks/index.js'
 import { DropdownChoice } from '@companion-module/base'
 import { ModelSpec } from '../models/types.js'
 import { getIdLabelPair } from '../choices/utils.js'
@@ -325,18 +325,27 @@ export class WingSubscriptions {
 			return []
 		}
 	}
-	public subscribe(path: string, feedbackId: string, type: FeedbackId): void {
+	/**
+	 * Subscribe a feedback instance to a path.
+	 * @returns true if the feedback instance was not yet subscribed to this path
+	 */
+	public subscribe(path: string, feedbackId: string, type: FeedbackId): boolean {
 		let entries = this.data.get(path)
 		if (!entries) {
 			entries = new Map()
 			this.data.set(path, entries)
 		}
+		const isNew = !entries.has(feedbackId)
 		entries.set(feedbackId, type)
+		return isNew
 	}
 	public unsubscribe(path: string, feedbackId: string): void {
 		const entries = this.data.get(path)
 		if (entries) {
 			entries.delete(feedbackId)
+			if (entries.size === 0) {
+				this.data.delete(path)
+			}
 		}
 	}
 

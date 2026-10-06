@@ -2,7 +2,7 @@ import { combineRgb } from '@companion-module/base'
 import type { WingPresetsContext } from './types.js'
 import { ConfigActions } from '../actions/config.js'
 import { OtherActionId } from '../actions/control.js'
-import { FeedbackId } from '../feedbacks.js'
+import { FeedbackId } from '../feedbacks/index.js'
 
 /**
  * Adds non-channel-strip presets (talkback and console lights) to the context.
@@ -23,7 +23,7 @@ export function createControlPresets(context: WingPresetsContext): void {
 		options: { stepAutoProgress: true },
 		steps: [
 			{
-				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'A', solo: 2 } }],
+				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'A', solo: '-1' } }],
 				up: [],
 			},
 		],
@@ -51,7 +51,7 @@ export function createControlPresets(context: WingPresetsContext): void {
 		options: { stepAutoProgress: true },
 		steps: [
 			{
-				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'B', solo: 2 } }],
+				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'B', solo: '-1' } }],
 				up: [],
 			},
 		],

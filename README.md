@@ -4,6 +4,41 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.4.0
+
+### Breaking
+
+- Requires Companion 5.0 or newer (module API v2.1, `@companion-module/base` ~2.1.3)
+- The "Use Variables" checkboxes and their separate variable text fields were removed. Every option can now be switched to expression mode in Companion to use variables or expressions instead. Existing actions and feedbacks are converted by an upgrade script
+- The percentage mode of "Adjust Fader Level" and "Adjust Direct Input Level" was removed. Existing percentage adjustments are converted to the equivalent dB value (percent / 100), which is how they were applied before
+- Number options that used to be text fields are now number fields. Existing values and variables are converted automatically
+- Removed the unused variables `desk_ip` and `desk_name` (they were never populated)
+- Removed the "Debug Mode" configuration option. Use Companion's log level to see debug output instead
+
+### Added
+
+- Status variables `last_msg_received_timestamp`, `last_msg_path` and `last_msg_value` for the last message received from the console
+- Dropdowns list their valid values when switched to expression mode
+
+### Fixed
+
+- Feedbacks and push/poll updates now update reliably
+- Light presets ("Bright Lights" / "Dark Lights") work correctly and include the easing type
+- Channel preset button text is shown correctly
+- Talkback presets now toggle talkback instead of sending an invalid value
+- Mute and Solo presets use valid option values
+- The "Set SOF" action now respects its "Toggle" option. Existing "Set SOF" actions get "Toggle" enabled on upgrade to keep their previous behaviour
+- The delay amount fields of "Set Delay Mode" are only shown for the selected delay mode again
+- Text fields (Send Command, Set Name, Session Name) substitute variables again
+- The `main_alt_status` variable is listed in Companion again
+- Failing to auto-detect a console on the network (e.g. with multiple network interfaces) no longer marks the module as disconnected
+
+### Changed
+
+- Switched to Companion's built-in module logger
+- Presets were rewritten as template presets that can be used for any channel strip
+- Feedbacks and presets are split into separate files per category
+
 ## 2.3.1
 
 ### Changed
