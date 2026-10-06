@@ -46,7 +46,14 @@ export function getTextField(
 	defaultValue?: string,
 	tooltip?: string,
 ): CompanionInputFieldTextInput {
-	return { type: 'textinput', label: label, id: id, default: defaultValue ?? '', tooltip: tooltip }
+	return {
+		type: 'textinput',
+		label: label,
+		id: id,
+		default: defaultValue ?? '',
+		tooltip: tooltip,
+		useVariables: true,
+	}
 }
 
 export function GetSlider(
@@ -79,8 +86,16 @@ export function GetDropdown(
 			default: defaultChoice ?? choices[0].id ?? '',
 			choices: choices,
 			tooltip: tooltip,
+			expressionDescription: GetChoiceIdDescription(choices),
 		}
 	}
+}
+
+/**
+ * Lists the valid choice ids of a dropdown, so they can be used in expression mode
+ */
+export function GetChoiceIdDescription(choices: DropdownChoice[]): string {
+	return `Valid values: ${choices.map((choice) => `${choice.id} (${choice.label})`).join(', ')}`
 }
 
 export function GetMuteDropdown(id: string, label?: string, includeToggle?: boolean): CompanionInputFieldDropdown {
@@ -93,7 +108,8 @@ export function GetMuteDropdown(id: string, label?: string, includeToggle?: bool
 	)
 	if (includeToggle == false) return dropdown
 
-	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('-1', 'Toggle')], default: '-1' }
+	const choices = [...dropdown.choices, getIdLabelPair('-1', 'Toggle')]
+	return { ...dropdown, choices, default: '-1', expressionDescription: GetChoiceIdDescription(choices) }
 }
 
 export function GetOnOffToggleDropdown(
@@ -110,7 +126,8 @@ export function GetOnOffToggleDropdown(
 	)
 	if (includeToggle == false) return dropdown
 
-	return { ...dropdown, choices: [...dropdown.choices, getIdLabelPair('-1', 'Toggle')] }
+	const choices = [...dropdown.choices, getIdLabelPair('-1', 'Toggle')]
+	return { ...dropdown, choices, expressionDescription: GetChoiceIdDescription(choices) }
 }
 
 export function GetPanoramaSlider(

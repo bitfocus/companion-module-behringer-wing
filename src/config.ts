@@ -34,6 +34,7 @@ export type WingConfig = {
 	oscForwardingHost?: string
 	oscForwardingPort?: number
 
+	/** @deprecated no longer used, Companion's log level controls debug output */
 	debugMode?: boolean
 }
 
@@ -233,26 +234,6 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			max: 65535,
 			default: 2223,
 			isVisibleExpression: `$(options:enableOscForwarding) == true && $(options:show-advanced-options) == true`,
-		},
-		spacer,
-		{
-			type: 'static-text',
-			id: 'debug-mode-info',
-			width: 12,
-			label: 'Debug Mode',
-			value:
-				'Enables detailed logging including timestamps and source location information. </br>' +
-				'Useful for troubleshooting and development purposes.',
-			isVisibleExpression: `$(options:show-advanced-options) == true`,
-		},
-		{
-			type: 'checkbox',
-			id: 'debugMode',
-			label: 'Enable Debug Mode',
-			tooltip: 'Enable detailed logging including timestamps and source location information',
-			width: 12,
-			default: false,
-			isVisibleExpression: `$(options:show-advanced-options) == true`,
 		},
 	]
 }

@@ -5,7 +5,7 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
-"@companion-module/base@npm:^2.0.0":
+"@companion-module/base@npm:~2.1.3":
   version: 2.1.3
   resolution: "@companion-module/base@npm:2.1.3"
   dependencies:
@@ -774,7 +774,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "behringer-wing@workspace:."
   dependencies:
-    "@companion-module/base": "npm:^2.0.0"
+    "@companion-module/base": "npm:~2.1.3"
     "@companion-module/tools": "npm:^3.0.0"
     "@types/node": "npm:^22.10.2"
     debounce-fn: "npm:^6.0.0"

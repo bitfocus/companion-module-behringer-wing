@@ -644,11 +644,23 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 					...state.namedChoices.busses,
 					...state.namedChoices.mains,
 				]),
-				GetDropdown('Delay Mode', 'mode', getDelayModes()),
-				GetNumberField('Amount (meters)', 'amount_m', 0, 150, 0.1, 0, undefined, `$(options:mode) == 'M'`),
-				GetNumberField('Amount (ft)', 'amount_ft', 0.5, 500, 0.5, 0.5, undefined, `$(options:mode) == 'FT'`),
-				GetNumberField('Amount (ms)', 'amount_ms', 0.5, 500, 0.1, 0.5, undefined, `$(options:mode) == 'MS'`),
-				GetNumberField('Amount (samples)', 'amount_samples', 16, 500, 1, 16, undefined, `$(options:mode) == 'SMP'`),
+				{ ...GetDropdown('Delay Mode', 'mode', getDelayModes()), disableAutoExpression: true },
+				{
+					...GetNumberField('Amount (meters)', 'amount_m', 0, 150, 0.1, 0),
+					isVisibleExpression: `$(options:mode) == 'M'`,
+				},
+				{
+					...GetNumberField('Amount (ft)', 'amount_ft', 0.5, 500, 0.5, 0.5),
+					isVisibleExpression: `$(options:mode) == 'FT'`,
+				},
+				{
+					...GetNumberField('Amount (ms)', 'amount_ms', 0.5, 500, 0.1, 0.5),
+					isVisibleExpression: `$(options:mode) == 'MS'`,
+				},
+				{
+					...GetNumberField('Amount (samples)', 'amount_samples', 16, 500, 1, 16),
+					isVisibleExpression: `$(options:mode) == 'SMP'`,
+				},
 			],
 			callback: async (event) => {
 				const sel = ActionUtil.getStringWithVariables(event, 'sel')

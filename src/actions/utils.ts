@@ -12,9 +12,19 @@ import { DcaCommands } from '../commands/dca.js'
 import { MuteGroupCommands } from '../commands/mutegroup.js'
 import { ConfigurationCommands } from '../commands/config.js'
 
+/**
+ * Converts an option value to a string
+ */
+export function optionToString(val: unknown): string {
+	if (typeof val === 'string') return val
+	if (typeof val === 'number' || typeof val === 'boolean') return val.toString()
+	if (val === undefined || val === null) return ''
+	return JSON.stringify(val)
+}
+
 export function getNodeNumber(action: CompanionActionInfo | CompanionFeedbackInfo, id: string): number {
 	const val = action.options[id]
-	return (typeof val === 'string' ? val : '').split('/')[2] as unknown as number
+	return optionToString(val).split('/')[2] as unknown as number
 }
 
 export function getNodeNumberFromID(id: string): number {
@@ -58,31 +68,29 @@ export function getString(action: CompanionActionInfo, key: string, defaultValue
 }
 
 /**
- * Retrieves a string value from the provided event options, optionally parsing variables if specified.
+ * Retrieves a string value from the provided event options. Variables and expressions are already resolved by Companion.
  *
- * @param self - The instance of the module, providing access to parseVariablesInString.
  * @param event - The action or feedback event containing the options to extract the value from.
  * @param id - The identifier for the option to retrieve.
  * @param defaultValue - An optional default value to return if the result is undefined or empty.
- * @returns A promise that resolves to the resulting string
+ * @returns The resulting string
  */
 export function getStringWithVariables(
 	event: CompanionActionInfo | CompanionFeedbackInfo,
 	id: string,
 	defaultValue?: string,
 ): string {
-	const res = event.options[id] as string | undefined
-	return res ?? defaultValue ?? ''
+	const res = event.options[id]
+	return res === undefined ? (defaultValue ?? '') : optionToString(res)
 }
 
 /**
- * Retrieves a numeric value from the provided event options, supporting both direct input and variable substitution.
+ * Retrieves a numeric value from the provided event options. Variables and expressions are already resolved by Companion.
  *
- * @param self - The instance of the module, providing access to parseVariablesInString
  * @param event - The action or feedback event containing the options to extract the value from.
  * @param id - The identifier for the option to retrieve.
  * @param defaultValue - An optional default value to return if the extracted value is invalid.
- * @returns A promise that resolves to the resulting number
+ * @returns The resulting number
  * @throws If the value is invalid and no default value is provided.
  */
 export function getNumberWithVariables(

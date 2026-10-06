@@ -23,7 +23,7 @@ export function createControlPresets(context: WingPresetsContext): void {
 		options: { stepAutoProgress: true },
 		steps: [
 			{
-				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'A', solo: 2 } }],
+				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'A', solo: '-1' } }],
 				up: [],
 			},
 		],
@@ -51,7 +51,7 @@ export function createControlPresets(context: WingPresetsContext): void {
 		options: { stepAutoProgress: true },
 		steps: [
 			{
-				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'B', solo: 2 } }],
+				down: [{ actionId: ConfigActions.TalkbackOn, options: { tb: 'B', solo: '-1' } }],
 				up: [],
 			},
 		],
