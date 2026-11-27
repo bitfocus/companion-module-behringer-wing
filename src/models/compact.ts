@@ -1,4 +1,5 @@
-import { WingModel, ModelSpec } from './types.js'
+import type { ModelSpec } from './types.js'
+import { WingModel } from './types.js'
 
 export const WingCompact: ModelSpec = {
 	id: WingModel.Compact,

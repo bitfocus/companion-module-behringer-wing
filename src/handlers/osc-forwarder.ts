@@ -1,6 +1,6 @@
-import { OscMessage } from 'osc'
+import type { OscMessage } from 'osc'
 import osc from 'osc'
-import { ModuleLogger } from '@companion-module/base'
+import type { ModuleLogger } from '@companion-module/base'
 
 export class OscForwarder {
 	private port: osc.UDPPort | undefined

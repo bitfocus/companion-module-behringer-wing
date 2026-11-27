@@ -1,6 +1,6 @@
-import { WingConfig } from '../config.js'
+import type { WingConfig } from '../config.js'
 import { Easing } from '../easings.js'
-import { InstanceBaseExt } from '../types.js'
+import type { InstanceBaseExt } from '../types.js'
 
 export interface TransitionInfo {
 	steps: number[]

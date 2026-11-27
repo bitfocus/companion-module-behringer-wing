@@ -1,8 +1,8 @@
-import { CompanionActionDefinitions } from '@companion-module/base'
-import { CompanionActionWithCallback } from './common.js'
+import type { CompanionActionDefinitions } from '@companion-module/base'
+import type { CompanionActionWithCallback } from './common.js'
 import { CardsCommands as Commands } from '../commands/cards.js'
-import { InstanceBaseExt } from '../types.js'
-import { WingConfig } from '../config.js'
+import type { InstanceBaseExt } from '../types.js'
+import type { WingConfig } from '../config.js'
 import {
 	getCardsLinkChoices,
 	getCardsAutoInChoices,

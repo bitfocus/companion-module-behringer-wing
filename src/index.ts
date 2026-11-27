@@ -1,20 +1,16 @@
-import {
-	InstanceBase,
-	InstanceStatus,
-	SomeCompanionConfigField,
-	Regex,
-	CompanionVariableValues,
-	ModuleLogger,
-	createModuleLogger,
-} from '@companion-module/base'
-import { InstanceBaseExt, WingTypes } from './types.js'
-import { GetConfigFields, WingConfig } from './config.js'
+import type { SomeCompanionConfigField, CompanionVariableValues, ModuleLogger } from '@companion-module/base'
+import { InstanceBase, InstanceStatus, Regex, createModuleLogger } from '@companion-module/base'
+import type { InstanceBaseExt, WingTypes } from './types.js'
+import type { WingConfig } from './config.js'
+import { GetConfigFields } from './config.js'
 import { createActions } from './actions/index.js'
 import { GetFeedbacksList } from './feedbacks/index.js'
-import { OscMessage } from 'osc'
+import type { OscMessage } from 'osc'
 import { WingTransitions } from './handlers/transitions.js'
-import { WingDeviceDetectorInstance, WingDeviceDetectorInterface } from './handlers/device-detector.js'
-import { ModelSpec, WingModel } from './models/types.js'
+import type { WingDeviceDetectorInterface } from './handlers/device-detector.js'
+import { WingDeviceDetectorInstance } from './handlers/device-detector.js'
+import type { ModelSpec } from './models/types.js'
+import { WingModel } from './models/types.js'
 import { getDeskModel } from './models/index.js'
 import { GetPresets } from './presets/index.js'
 import { ConnectionHandler } from './handlers/connection-handler.js'

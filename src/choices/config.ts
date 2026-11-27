@@ -1,4 +1,4 @@
-import { DropdownChoice } from '@companion-module/base'
+import type { DropdownChoice } from '@companion-module/base'
 import { getIdLabelPair } from './utils.js'
 
 export function getMonitorOptions(): DropdownChoice[] {

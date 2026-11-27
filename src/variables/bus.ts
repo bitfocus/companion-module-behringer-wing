@@ -1,5 +1,5 @@
-import { ModelSpec } from '../models/types.js'
-import { VariableDefinition } from './index.js'
+import type { ModelSpec } from '../models/types.js'
+import type { VariableDefinition } from './index.js'
 
 export function getBusVariables(model: ModelSpec): VariableDefinition[] {
 	const variables: VariableDefinition[] = []

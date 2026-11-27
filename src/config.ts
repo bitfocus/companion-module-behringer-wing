@@ -1,7 +1,7 @@
-import { type SomeCompanionConfigField } from '@companion-module/base'
+import type { SomeCompanionConfigField } from '@companion-module/base'
 import { WingDeviceDetectorInstance } from './handlers/device-detector.js'
 import { ModelChoices, WingModel } from './models/types.js'
-import { InstanceBaseExt } from './types.js'
+import type { InstanceBaseExt } from './types.js'
 // import { ModelChoices, WingModel } from './models/types.js'
 
 export const fadeUpdateRateDefault = 50

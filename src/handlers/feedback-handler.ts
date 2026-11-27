@@ -1,9 +1,9 @@
 import EventEmitter from 'events'
 import debounceFn from 'debounce-fn'
-import { FeedbackId } from '../feedbacks/index.js'
-import { OscMessage } from 'osc'
+import type { FeedbackId } from '../feedbacks/index.js'
+import type { OscMessage } from 'osc'
 import { WingSubscriptions } from '../state/index.js'
-import { ModuleLogger } from '@companion-module/base'
+import type { ModuleLogger } from '@companion-module/base'
 
 /**
  * Handles feedback updates based on incoming OSC messages and manages feedback subscriptions.

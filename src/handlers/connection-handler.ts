@@ -1,7 +1,8 @@
-import osc, { OscMessage } from 'osc'
+import type { OscMessage } from 'osc'
+import osc from 'osc'
 
 import { EventEmitter } from 'events'
-import { ModuleLogger, OSCSomeArguments } from '@companion-module/base'
+import type { ModuleLogger, OSCSomeArguments } from '@companion-module/base'
 
 /**
  * Handles OSC UDP connection management, message sending, and event emission for the Behringer Wing module.

@@ -1,11 +1,11 @@
-import { CompanionActionDefinition } from '@companion-module/base'
-import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
+import type { CompanionActionDefinition } from '@companion-module/base'
+import type { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
 
 export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition, 'callback'>
 
-import { CompanionActionDefinitions } from '@companion-module/base'
-import { InstanceBaseExt } from '../types.js'
-import { WingConfig } from '../config.js'
+import type { CompanionActionDefinitions } from '@companion-module/base'
+import type { InstanceBaseExt } from '../types.js'
+import type { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
 import { ConfigurationCommands } from '../commands/config.js'
 import { getIdLabelPair } from '../choices/utils.js'

@@ -1,9 +1,9 @@
-import { CompanionActionDefinition } from '@companion-module/base'
-import { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
+import type { CompanionActionDefinition } from '@companion-module/base'
+import type { SetRequired } from 'type-fest' // eslint-disable-line n/no-missing-import
 
 export type CompanionActionWithCallback = SetRequired<CompanionActionDefinition, 'callback'>
 
-import { CompanionActionDefinitions } from '@companion-module/base'
+import type { CompanionActionDefinitions } from '@companion-module/base'
 import {
 	GetDropdown,
 	GetColorDropdown,
@@ -20,8 +20,8 @@ import {
 	GetSendSourceDestinationFields,
 } from '../choices/common.js'
 import { runTransition } from './utils.js'
-import { InstanceBaseExt } from '../types.js'
-import { WingConfig } from '../config.js'
+import type { InstanceBaseExt } from '../types.js'
+import type { WingConfig } from '../config.js'
 import * as ActionUtil from './utils.js'
 import { StateUtil } from '../state/index.js'
 import { FadeDurationChoice } from '../choices/fades.js'

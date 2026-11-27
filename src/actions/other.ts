@@ -1,7 +1,8 @@
-import { CompanionActionDefinitions, Regex } from '@companion-module/base'
-import { CompanionActionWithCallback } from './common.js'
-import { InstanceBaseExt } from '../types.js'
-import { WingConfig } from '../config.js'
+import type { CompanionActionDefinitions } from '@companion-module/base'
+import { Regex } from '@companion-module/base'
+import type { CompanionActionWithCallback } from './common.js'
+import type { InstanceBaseExt } from '../types.js'
+import type { WingConfig } from '../config.js'
 import { getStringWithVariables } from './utils.js'
 import { getTextField } from '../choices/common.js'
 
