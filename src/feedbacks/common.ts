@@ -32,7 +32,7 @@ export function createCommonFeedbacks(self: InstanceBaseExt<WingConfig>): Compan
 
 	const sendDestinations = [...state.namedChoices.busses, ...state.namedChoices.mains, ...state.namedChoices.matrices]
 
-	// Last invalid send warning logged per feedback instance, so re-checks of the same options don't flood the log
+	// Warn once per feedback, not on every check
 	const loggedSendWarnings = new Map<string, string>()
 
 	return {

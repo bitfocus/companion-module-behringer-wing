@@ -118,9 +118,6 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 
 	const sendDestinations = [...state.namedChoices.busses, ...state.namedChoices.mains, ...state.namedChoices.matrices]
 
-	/**
-	 * Logs and returns true if the send source/destination pair is not supported by the desk
-	 */
 	const skipInvalidSend = (src: string, dest: string): boolean => {
 		const warning = ActionUtil.getInvalidSendWarning(src, dest)
 		if (warning) logger?.warn(warning)

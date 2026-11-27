@@ -173,8 +173,7 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 	}
 
 	/**
-	 * Request the data the module needs from the console. Runs when the connection opens and again
-	 * when the console answers after a liveness timeout.
+	 * Request the data the module needs from the console.
 	 */
 	private runStartupSteps(): void {
 		this.feedbackHandler?.startPolling()

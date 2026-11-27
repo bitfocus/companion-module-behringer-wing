@@ -135,9 +135,7 @@ function describeSendNode(id: string): string {
 }
 
 /**
- * Check a send source/destination pair the desk does not support.
- *
- * @returns A warning to log if the send must be skipped, or undefined if the pair is valid.
+ * @returns A warning if the desk cannot send from `src` to `dest`, otherwise undefined.
  */
 export function getInvalidSendWarning(src: string, dest: string): string | undefined {
 	if (!src.startsWith('/main') || dest.startsWith('/mtx')) return undefined

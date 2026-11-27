@@ -34,12 +34,12 @@ export type WingConfig = {
 
 	/** @deprecated no longer used, Companion's log level controls debug output */
 	debugMode?: boolean
-	/** @deprecated unused since v2.2.4 and removed from the config page in v3.0.0. The v2.2.0 upgrade script still writes it */
+	/** @deprecated kept because the v2.2.0 upgrade script writes it */
 	statusPollUpdateRate?: number
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
-	/** Config field ids must be unique, so each spacer gets its own id */
+	// Companion drops config fields with duplicate ids
 	const spacer = (n: number): SomeCompanionConfigField => ({
 		type: 'static-text',
 		id: `spacer${n}`,

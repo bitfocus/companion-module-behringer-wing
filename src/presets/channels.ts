@@ -12,10 +12,8 @@ import type { ModelSpec } from '../models/types.js'
 const SEL_EXPR = { isExpression: true as const, value: '`${$(local:base)}/${$(local:index)}`' }
 
 /**
- * Button text expression: the console's name for the current template instance
- * (e.g. `$(wing:ch1_name)`, `$(wing:aux3_name)`), falling back to
- * "<prefix> CH 1" style text while the name is empty or not yet known.
- * Companion rewrites the `wing` label to the connection's actual label on import.
+ * Button text expression: the console's name for the strip, or "<prefix> CH 1" style text while the name is empty.
+ * Companion replaces the `wing` label with the connection's label when the preset is added.
  */
 function nameOrFallbackText(prefix: string): string {
 	const kind = 'replaceAll($(local:base), "/", "")'

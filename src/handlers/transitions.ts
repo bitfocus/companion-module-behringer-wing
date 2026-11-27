@@ -140,11 +140,12 @@ export class WingTransitions {
 /**
  * Converts a fader position in float to the value of that fader in dB
  * @param f Fader position between 0.0 and 1.0
- * @param logger Module logger. Eased steps can overshoot the range, so this only logs at debug level
+ * @param logger Module logger
  * @returns Value of the fader position in dB
  */
 function floatToDb(f: number, logger?: ModuleLogger): number {
 	if (f > 1.0 || f < 0.0) {
+		// Eased steps can overshoot the range, so this is not a warning
 		logger?.debug(`Illegal value for fader float ([0.0, 1.0]) = ${f}`)
 	}
 	if (f >= 0.5) {
@@ -163,7 +164,7 @@ function floatToDb(f: number, logger?: ModuleLogger): number {
 /**
  * Converts a fader value in dB to a fader position
  * @param d A value of a fader in dB
- * @param logger Module logger for out-of-range values
+ * @param logger Module logger
  * @returns The fader position between 0.0 and 1.0
  */
 function dbToFloat(d: number, logger?: ModuleLogger): number {

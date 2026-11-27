@@ -4,9 +4,9 @@ import osc from 'osc'
 import { EventEmitter } from 'events'
 import type { ModuleLogger, OSCSomeArguments } from '@companion-module/base'
 
-/** Interval in milliseconds at which the liveness probe (`/?`) is sent. */
+/** Interval in milliseconds at which the connection liveness is probed. */
 const LIVENESS_PROBE_INTERVAL = 2000
-/** Time in milliseconds without any OSC message after which the console counts as unreachable. */
+/** Time in milliseconds without an answer after which the console counts as unreachable. */
 const LIVENESS_TIMEOUT = 5000
 
 type Liveness = 'waiting' | 'alive' | 'timed-out'
@@ -14,9 +14,8 @@ type Liveness = 'waiting' | 'alive' | 'timed-out'
 /**
  * Handles OSC UDP connection management, message sending, and event emission for the Behringer Wing module.
  * Emits 'ready', 'message', 'error' and 'close' events, plus the liveness events:
- * - 'alive' (recovered: boolean) when the console answers for the first time, again after an 'error'
- *   (recovered = false), or again after a timeout (recovered = true).
- * - 'timeout' when no OSC message arrived for {@link LIVENESS_TIMEOUT} ms.
+ * - 'alive' (recovered: boolean) when the console answers; `recovered` is true after a 'timeout'.
+ * - 'timeout' when the console has not answered for {@link LIVENESS_TIMEOUT} ms.
  */
 export class ConnectionHandler extends EventEmitter {
 	private osc: osc.UDPPort
@@ -62,8 +61,6 @@ export class ConnectionHandler extends EventEmitter {
 
 		this.osc.on('error', (err: Error) => {
 			this.logger?.error(`OSC error: ${err.message}`)
-			// The status now shows the error, so the next message has to report the console alive again.
-			// A timed-out console stays timed out, so its next answer still counts as a recovery.
 			if (this.liveness === 'alive') this.liveness = 'waiting'
 			this.emit('error', err)
 		})
@@ -122,8 +119,8 @@ export class ConnectionHandler extends EventEmitter {
 	}
 
 	/**
-	 * Start the liveness check: probe the console with `/?` every {@link LIVENESS_PROBE_INTERVAL} ms
-	 * and emit 'timeout' when no OSC message arrives for {@link LIVENESS_TIMEOUT} ms.
+	 * Start the liveness check: probe the console every {@link LIVENESS_PROBE_INTERVAL} ms
+	 * and emit 'timeout' when it does not answer for {@link LIVENESS_TIMEOUT} ms.
 	 */
 	private startLivenessCheck(): void {
 		this.stopLivenessCheck()
@@ -145,7 +142,7 @@ export class ConnectionHandler extends EventEmitter {
 	}
 
 	/**
-	 * Send the liveness probe. Sent directly (not via sendCommand) so it goes out once per interval.
+	 * Send the liveness probe.
 	 */
 	private sendProbe(): void {
 		try {
@@ -166,7 +163,7 @@ export class ConnectionHandler extends EventEmitter {
 	}
 
 	/**
-	 * Record that an OSC message arrived from the console.
+	 * Mark the console as alive.
 	 */
 	private markAlive(): void {
 		if (this.probeTimer === undefined) return
@@ -178,7 +175,7 @@ export class ConnectionHandler extends EventEmitter {
 	}
 
 	/**
-	 * Send the OSC subscription command to the remote device now, e.g. after the console came back.
+	 * Renew the OSC subscription immediately.
 	 */
 	resubscribe(): void {
 		this.sendSubscriptionCommand()

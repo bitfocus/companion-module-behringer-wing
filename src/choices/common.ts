@@ -185,7 +185,7 @@ export function GetSendSourceDestinationFields(
 ): [
 	CompanionInputFieldDropdown, // Source Dropdown
 	CompanionInputFieldDropdown, // Destination Dropdown
-	CompanionInputFieldStaticText, // Note on the valid Send Destinations for a Main source
+	CompanionInputFieldStaticText, // Send Destination Note
 ] {
 	return [
 		GetDropdown('From', 'src', sendSources),
