@@ -12,7 +12,7 @@ See also HELP.md and LICENSE
 - The module manifest lists WING, WING Compact and WING Rack as products, with keywords and a longer description
 - The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback now have a single "To" dropdown that lists Buses, Mains and Matrices, instead of two "To" dropdowns. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
 - The module now runs on Node 26 (Companion module runtime `node26`)
-- `companion/HELP.md` is regenerated with `yarn docs` instead of in the pre-commit hook
+- `companion/HELP.md` is regenerated and formatted with `yarn docs` instead of in the pre-commit hook. It now documents every configuration field, the feedbacks, the presets and the connection statuses
 - The GitHub workflows, issue templates and pre-commit hook match the Companion module template
 
 ### Removed

@@ -10,7 +10,7 @@
 		"build": "rimraf dist && run build:main",
 		"build:main": "tsc -p tsconfig.build.json",
 		"dev": "tsc -p tsconfig.build.json --watch",
-		"docs": "node scripts/update-actions-md.js",
+		"docs": "node scripts/update-actions-md.js && prettier -w companion/HELP.md",
 		"lint:raw": "eslint",
 		"lint": "run lint:raw ."
 	},

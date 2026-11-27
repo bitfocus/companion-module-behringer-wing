@@ -3,7 +3,7 @@
 ## Description
 
 This Module controls the Behringer WING series of consoles.
-See the [offical Behringer website](https://www.behringer.com/product.html?modelCode=P0BV2) to get additional information about the consoles, their capabilities and firmware updates.
+See the [official Behringer website](https://www.behringer.com/product.html?modelCode=P0BV2) to get additional information about the consoles, their capabilities and firmware updates.
 
 ## Capabilities
 
@@ -28,27 +28,43 @@ If you find any missing features that you would like to see implemented, please 
 - **Desk IP**: The IP address of the desk to connect to. Auto-detects any WING type console in the same network.
 - **Desk Type**: Specifies the type of desk that is connected.
 - **Fader Update Rate**: Specifies how often the module sends fader level updates to the console when using smooth fader movements. Lower values result in smoother fades but increase network traffic.
-- **Variable Update Rates** Specifies the rate at which received console information is processed and variables are updated. Higher values reduce CPU usage but may result in slower variable updates.
+- **Variable Update Rate**: Specifies the rate at which received console information is processed and variables are updated. Higher values reduce CPU usage but may result in slower variable updates.
+- **Fetch variables on startup**: Requests the values of all variables when the module connects to the console. If disabled, variables fill in as the console reports changes.
 
-## Subcription
+### Advanced options
 
-This module uses a subscription to receive updates from the console. When any change on the console occurs, such as a fader level change, the console sends this information to the companion module.
+These fields are shown when **Show advanced options** is enabled. There is no guarantee that every combination works.
+
+- **Request Timeout (ms)**: How long the module waits for the answer to a request before the request counts as lost.
+- **Panic on lost request**: If enabled, a lost request sets the connection status to Connection Failure.
+- **Variable Request Chunk** and **Variable Request Wait Time (ms)**: When the module fetches all variables on startup, it requests them in chunks of this size and waits this long between chunks.
+- **Subscription Interval (ms)**: How often the module renews its subscription. The console drops a subscription that is not renewed within 10 seconds.
+- **Enable OSC Forwarding**, **OSC Forwarding Host** and **OSC Forwarding Port**: Forward every OSC message received from the console to another host and port, for example to another application that needs the subscription data.
+
+## Subscription
+
+This module uses a subscription to receive updates from the console. When any change on the console occurs, such as a fader level change, the console sends this information to the Companion module.
 Unlike other Behringer consoles, the WING series only supports one active subscription at a time, with the most recent one being the **only** receiver.
 
-If you want to use another application that depends on WING subscription data, some of the data may not be coherent across subscribers.
-The WING allows only one OSC event subscriber at a time, so don't point two subscribing clients at the same desk.
+Don't point two subscribing clients (for example two Companion connections, or Companion and another OSC application) at the same desk, or some of the data will not be coherent. To give another application the same data, use OSC Forwarding (see Advanced options).
 
 ## Troubleshooting
 
+The connection status shows whether the console answers:
+
+- **Connecting**: The module waits for the first answer from the console.
+- **Disconnected** with "No answer from console at <host>": Nothing arrived from the console for 5 seconds. Check the Desk IP, that the console is switched on, and the network connection. The status returns to OK as soon as the console answers again.
+- **Connection Failure**: An OSC error occurred. The status returns to OK with the next message from the console.
+
 If you experience issues with the module not receiving updates from the console, try the following steps:
 
-1. Restart the companion instance to re-establish the subscription.
+1. Restart the Companion connection to re-establish the subscription.
 2. Ensure that no other application is actively subscribed to the console.
-3. Check the network connection between the companion host and the console.
+3. Check the network connection between the Companion host and the console.
 
 If you continue to experience issues, you can open an issue on the [GitHub repository](https://github.com/bitfocus/companion-module-behringer-wing/issues) for further assistance.
 
-## Detailed Action Reference
+## Reference
 
 ### Supported Actions
 
@@ -151,6 +167,40 @@ If you continue to experience issues, you can open an issue on the [GitHub repos
 | USB Player    | USB: Record Action                 | Start, stop, pause or create a new file in the USB recorder.                               |
 | USB Player    | USB: Set Repeat                    | Enable the repeat functionality of the USB player                                          |
 
+### Supported Feedbacks
+
+All feedbacks are boolean feedbacks: they change the button style while their condition is true.
+
+| Category      | Name                  | Description                                                             |
+| ------------- | --------------------- | ----------------------------------------------------------------------- |
+| Cards         | WLive SD State        | React to the state of the WLive SD Cards.                               |
+| Cards         | WLive Playback State  | React to the playback state of a WLive Card.                            |
+| Common        | Mute                  | React to a change in a channel's mute state.                            |
+| Common        | Send Mute             | React to a change in a channel's send mute state.                       |
+| Common        | Solo                  | React to a change in a channel's solo state.                            |
+| Common        | Insert On             | React to a change for an insert on a channel, aux, bus, matrix or main. |
+| Configuration | Solo Dim              | React to the dim state of the solo output.                              |
+| Configuration | Solo Mono             | React to the mono state of the solo output.                             |
+| Configuration | Solo LR Swap          | React to the left-right channel swap state of the solo output.          |
+| Configuration | Talkback              | React to the status of a talkback channel.                              |
+| Configuration | Talkback Assign       | React to the assignment of a talkback channel to a bus, matrix or main. |
+| Control       | GPIO State            | React to a change in a GPIO's state.                                    |
+| Control       | Active Scene          | React to the currently active scene.                                    |
+| Control       | SOF Active            | React to the Sends on Fader mode.                                       |
+| IO            | Main/Alt Input Source | React to the selected input source group (Main or Alt).                 |
+| IO            | AES Status            | Status of an AES connection.                                            |
+| USB Player    | USB Recorder State    | React to the current state of the USB Recorder.                         |
+| USB Player    | USB Player State      | React to the current state of the USB Player.                           |
+
+### Presets
+
+- **Mute** and **Solo**: A button for every channel, aux, bus, matrix, main and DCA.
+- **Sends on Fader**: A button for every channel, aux, bus, matrix and main.
+- **Boost & Center**: A button for every channel and aux.
+- **Control**: Talkback A and B, and Lights (Bright and Dark).
+
+The strip buttons show the console's name for the strip, or "Mute CH 1" style text while the name is empty.
+
 ### Supported Variables
 
 The list of all variables that are supported by this module is far too long. Please find the explanation of the variable naming scheme below:
@@ -161,4 +211,4 @@ The property names are constructed in a way that they are similar to the action 
 
 If a variable relates to a property that is specific for one strip to another, the variable name starts with the source and destination identifiers. For example, the send level from channel 1 to bus 1 is available in the variable `ch1_to_bus1_send_level`.
 
-To use a variable in a text field, use the following syntax: `${<module_name>:<variable_name>}`. For example, to use the fader level of channel 1 and your instance of the module is named `wing`, use `${wing:ch1_level}`.
+To use a variable in a text field, use the following syntax: `$(<connection_label>:<variable_name>)`. For example, to use the fader level of channel 1 when your connection is labelled `wing`, use `$(wing:ch1_level)`.
