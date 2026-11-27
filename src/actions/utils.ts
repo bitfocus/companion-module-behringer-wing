@@ -117,14 +117,31 @@ export function GetSendSourceDestinationFieldsWithVariables(event: CompanionActi
 	src: string
 	dest: string
 } {
-	const src = getStringWithVariables(event, 'src')
-	let dest
-	if (src.startsWith('/main')) {
-		dest = getStringWithVariables(event, 'mainDest')
-	} else {
-		dest = getStringWithVariables(event, 'dest')
-	}
-	return { src, dest }
+	return { src: getStringWithVariables(event, 'src'), dest: getStringWithVariables(event, 'dest') }
+}
+
+const SendNodeNames: Record<string, string> = {
+	ch: 'Channel',
+	aux: 'Aux',
+	bus: 'Bus',
+	main: 'Main',
+	mtx: 'Matrix',
+}
+
+function describeSendNode(id: string): string {
+	const [, type, num] = id.split('/')
+	const name = SendNodeNames[type]
+	return name && num ? `${name} ${num}` : id
+}
+
+/**
+ * Check a send source/destination pair the desk does not support.
+ *
+ * @returns A warning to log if the send must be skipped, or undefined if the pair is valid.
+ */
+export function getInvalidSendWarning(src: string, dest: string): string | undefined {
+	if (!src.startsWith('/main') || dest.startsWith('/mtx')) return undefined
+	return `Send ${describeSendNode(src)} → ${describeSendNode(dest)} skipped: Main sources can only send to Matrices`
 }
 
 export function runTransition(

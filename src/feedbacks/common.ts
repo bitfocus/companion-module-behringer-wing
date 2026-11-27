@@ -30,12 +30,10 @@ export function createCommonFeedbacks(self: InstanceBaseExt<WingConfig>): Compan
 		...state.namedChoices.mains,
 	]
 
-	const channelAuxBusSendDestinations = [
-		...state.namedChoices.busses,
-		...state.namedChoices.mains,
-		...state.namedChoices.matrices,
-	]
-	const mainSendDestinations = [...state.namedChoices.matrices]
+	const sendDestinations = [...state.namedChoices.busses, ...state.namedChoices.mains, ...state.namedChoices.matrices]
+
+	// Last invalid send warning logged per feedback instance, so re-checks of the same options don't flood the log
+	const loggedSendWarnings = new Map<string, string>()
 
 	return {
 		[FeedbackId.Mute]: createFeedback(ctx, {
@@ -58,15 +56,24 @@ export function createCommonFeedbacks(self: InstanceBaseExt<WingConfig>): Compan
 			name: 'Send Mute',
 			description: "React to a change in a channel's send mute state",
 			options: [
-				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
+				...GetSendSourceDestinationFields(allSendSources, sendDestinations),
 				GetMuteDropdown('mute', 'Mute', false),
 			],
 			defaultStyle: { bgcolor: combineRgb(0, 255, 0), color: combineRgb(0, 0, 0) },
 			paths: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (ActionUtil.getInvalidSendWarning(src, dest)) return []
 				return [ActionUtil.getSendMuteCommand(src, dest)]
 			},
 			callback: (event, [cmd]) => {
+				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				const warning = ActionUtil.getInvalidSendWarning(src, dest)
+				if (warning) {
+					if (loggedSendWarnings.get(event.id) !== warning) self.logger?.warn(warning)
+					loggedSendWarnings.set(event.id, warning)
+					return false
+				}
+				loggedSendWarnings.delete(event.id)
 				let val = ActionUtil.getNumberWithVariables(event, 'mute')
 				// Mute states are inverted for sends
 				if (val != -1) {
