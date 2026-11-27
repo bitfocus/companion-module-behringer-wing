@@ -11,6 +11,19 @@ import type { ModelSpec } from '../models/types.js'
  */
 const SEL_EXPR = { isExpression: true as const, value: '`${$(local:base)}/${$(local:index)}`' }
 
+/**
+ * Button text expression: the console's name for the current template instance
+ * (e.g. `$(wing:ch1_name)`, `$(wing:aux3_name)`), falling back to
+ * "<prefix> CH 1" style text while the name is empty or not yet known.
+ * Companion rewrites the `wing` label to the connection's actual label on import.
+ */
+function nameOrFallbackText(prefix: string): string {
+	const kind = 'replaceAll($(local:base), "/", "")'
+	const name = `parseVariables(\`$(wing:\${${kind}}\${$(local:index)}_name)\`, "")`
+	const fallback = `\`${prefix} \${toUpperCase(${kind})} \${$(local:index)}\``
+	return `${name} || ${fallback}`
+}
+
 interface ChannelTypeSpec {
 	id: string
 	name: string
@@ -36,7 +49,7 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Mute',
 		style: {
-			text: '`Mute ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			text: nameOrFallbackText('Mute'),
 			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
@@ -69,7 +82,7 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Solo',
 		style: {
-			text: '`Solo ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			text: nameOrFallbackText('Solo'),
 			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
@@ -102,7 +115,7 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Sends on Fader',
 		style: {
-			text: '`SOF ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			text: nameOrFallbackText('SOF'),
 			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
@@ -131,7 +144,7 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		type: 'simple',
 		name: 'Boost & Center',
 		style: {
-			text: '`Boost & Center ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
+			text: nameOrFallbackText('Boost & Center'),
 			textExpression: true,
 			size: 'auto',
 			color: combineRgb(255, 255, 255),
