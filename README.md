@@ -4,6 +4,25 @@ See also HELP.md and LICENSE
 
 # Changelog
 
+## 2.4.0-alpha.3
+
+### Changed
+
+- The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback now have a single "To" dropdown that lists Buses, Mains and Matrices, instead of two "To" dropdowns. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
+- The module now runs on Node 26 (Companion module runtime `node26`)
+- `companion/HELP.md` is regenerated with `yarn docs` instead of in the pre-commit hook
+- The GitHub workflows, issue templates and pre-commit hook match the Companion module template
+
+### Fixed
+
+- Send actions and the Send Mute feedback that use variables or expressions keep working after the upgrade
+- The connection status no longer stays at "Connecting" when the console is off or the IP is wrong. After 5 s without an answer the status changes to "Disconnected" ("No answer from console at <host>"). When the console answers again, the status returns to OK and the variables update
+- Channel presets show the console's channel name, and fall back to the previous "Mute CH 1" style text while the name is empty
+
+### Known issues
+
+- An alpha tester who set a send action or feedback `src` to an expression and gave the two old "To" fields different values by hand keeps the first "To" value (`dest`) after the upgrade. Check these buttons and set "To" again if needed
+
 ## 2.4.0
 
 ### Breaking
