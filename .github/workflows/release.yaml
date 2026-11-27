@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package module
+
+    # The template itself cannot be packaged, as its manifest still holds placeholders
+    if: ${{ !contains(github.repository, 'companion-module-template-') }}
+
+    permissions:
+      packages: read
+
+    uses: bitfocus/actions/.github/workflows/module-checks.yaml@main
+    with:
+      # A release can be published against any tag, not just the default branch
+      git-ref: ${{ github.event.release.tag_name }}
+      prerelease: ${{ github.event.release.prerelease }}
+      upload-artifact: true
+
+  attach:
+    name: Attach package to release
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # Needed to upload the built package as a release asset
+      contents: write
+
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v8
+        with:
+          # The shared workflow always uploads its package as 'pkg', holding pkg.tgz
+          name: pkg
+      - name: Attach package to release
+        # gh is preinstalled on the runner, so this needs no third party action.
+        # --clobber lets the workflow be re-run against a release that already has
+        # the asset attached.
+        run: |
+          NAME="${GITHUB_REPOSITORY#*/companion-module-}-${TAG#v}"
+          ASSET="${NAME//[^a-zA-Z0-9.-]/-}.tgz"
+          mv pkg.tgz "$ASSET"
+          gh release upload "$TAG" "$ASSET" --clobber --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}

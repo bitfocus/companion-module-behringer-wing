@@ -15,12 +15,14 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18.x
-        # This should match the version of Node.js you have defined in the manifest.json runtime field
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: 18.x
+          persist-credentials: false
+      - name: Use Node.js 26.x
+        # This should match the version of Node.js you have defined in the manifest.json runtime field
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26.x
       - name: Prepare Environment
         run: |
           corepack enable
@@ -56,11 +58,11 @@ jobs:
   #   timeout-minutes: 15
 
   #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Use Node.js 22.x
-  #       uses: actions/setup-node@v4
+  #     - uses: actions/checkout@v7
+  #     - name: Use Node.js 26.x
+  #       uses: actions/setup-node@v6
   #       with:
-  #         node-version: 22.x
+  #         node-version: 26.x
   #     - name: Prepare Environment
   #       run: |
   #         corepack enable
@@ -72,5 +74,3 @@ jobs:
   #         yarn test
   #       env:
   #         CI: true
-  #     - name: Send coverage
-  #       uses: codecov/codecov-action@v5
