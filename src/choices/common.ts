@@ -2,6 +2,7 @@ import type {
 	CompanionInputFieldCheckbox,
 	CompanionInputFieldDropdown,
 	CompanionInputFieldNumber,
+	CompanionInputFieldStaticText,
 	CompanionInputFieldTextInput,
 	DropdownChoice,
 } from '@companion-module/base'
@@ -176,19 +177,20 @@ export function GetFaderDeltaInputField(
 	return [GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0, true), ...FadeDurationChoice()]
 }
 
+const MainSendNote = 'Main sources can only send to Matrices.'
+
 export function GetSendSourceDestinationFields(
 	sendSources: DropdownChoice[],
-	channelAuxBusSendDestinations: DropdownChoice[],
-	mainSendDestinations: DropdownChoice[],
+	sendDestinations: DropdownChoice[],
 ): [
 	CompanionInputFieldDropdown, // Source Dropdown
-	CompanionInputFieldDropdown, // Destination Dropdown (source != main)
-	CompanionInputFieldDropdown, // Destination Dropdown (source == main)
+	CompanionInputFieldDropdown, // Destination Dropdown
+	CompanionInputFieldStaticText, // Note on valid Main destinations
 ] {
 	return [
 		GetDropdown('From', 'src', sendSources),
-		GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-		GetDropdown('To', 'mainDest', mainSendDestinations),
+		GetDropdown('To', 'dest', sendDestinations, undefined, MainSendNote),
+		{ type: 'static-text', id: 'send_dest_note', label: '', value: MainSendNote },
 	]
 }
 

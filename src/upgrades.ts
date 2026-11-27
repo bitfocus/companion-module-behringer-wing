@@ -112,6 +112,23 @@ function upgradeLegacyVariableOptions(options: CompanionMigrationOptionValues, n
 	return changed
 }
 
+/**
+ * Fold the v2.3.x / v2.4.0-alpha.2 `mainDest` option into the single `dest` option.
+ * A plain Main source used `mainDest`, every other source used `dest`.
+ * Returns true if anything was changed.
+ */
+function mergeSendMainDestination(options: CompanionMigrationOptionValues): boolean {
+	if (!('mainDest' in options)) return false
+	const src = options.src
+	const isPlainMainSource =
+		src?.isExpression === false && typeof src.value === 'string' && src.value.startsWith('/main')
+	if (isPlainMainSource && options.mainDest !== undefined) {
+		options.dest = options.mainDest
+	}
+	delete options.mainDest
+	return true
+}
+
 export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 	/*
 	 * Place your upgrade scripts here
@@ -180,6 +197,14 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 			updatedConfig: null,
 			updatedActions,
 			updatedFeedbacks,
+		}
+	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
+	// Merge the separate Main send destination (`mainDest`) into the single `dest` option (v2.4.0)
+	((_context, props): CompanionStaticUpgradeResult<WingConfig, undefined> => {
+		return {
+			updatedConfig: null,
+			updatedActions: props.actions.filter((action) => mergeSendMainDestination(action.options)),
+			updatedFeedbacks: props.feedbacks.filter((feedback) => mergeSendMainDestination(feedback.options)),
 		}
 	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
 ]

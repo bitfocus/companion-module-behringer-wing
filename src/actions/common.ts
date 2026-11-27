@@ -116,12 +116,16 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		...state.namedChoices.mains,
 	]
 
-	const channelAuxBusSendDestinations = [
-		...state.namedChoices.busses,
-		...state.namedChoices.mains,
-		...state.namedChoices.matrices,
-	]
-	const mainSendDestinations = [...state.namedChoices.matrices]
+	const sendDestinations = [...state.namedChoices.busses, ...state.namedChoices.mains, ...state.namedChoices.matrices]
+
+	/**
+	 * Logs and returns true if the send source/destination pair is not supported by the desk
+	 */
+	const skipInvalidSend = (src: string, dest: string): boolean => {
+		const warning = ActionUtil.getInvalidSendWarning(src, dest)
+		if (warning) logger?.warn(warning)
+		return warning !== undefined
+	}
 
 	const actions: { [id in CommonActions]: CompanionActionWithCallback | undefined } = {
 		////////////////////////////////////////////////////////////////
@@ -749,48 +753,47 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 		[CommonActions.SetSendFader]: {
 			name: 'Set Send Level',
 			description: 'Set the send level from a destination channel strip to a source',
-			options: [
-				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
-				...GetFaderInputField('level'),
-			],
+			options: [...GetSendSourceDestinationFields(allSendSources, sendDestinations), ...GetFaderInputField('level')],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (skipInvalidSend(src, dest)) return
 				const level = ActionUtil.getNumberWithVariables(event, 'level')
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				runTransition(cmd, 'level', event, state, transitions, level)
 			},
 			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (ActionUtil.getInvalidSendWarning(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
-			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 		},
 		[CommonActions.StoreSendFader]: {
 			name: 'Store Send Level',
 			description: 'Store the send level from a destination channel strip to a source',
-			options: [...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations)],
+			options: [...GetSendSourceDestinationFields(allSendSources, sendDestinations)],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (skipInvalidSend(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				StateUtil.storeValueForCommand(cmd, state)
 			},
 			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (ActionUtil.getInvalidSendWarning(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
-			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 		},
 		[CommonActions.RestoreSendFader]: {
 			name: 'Restore Send Level',
 			description: 'Restore the send level from a destination channel strip to a source',
-			options: [
-				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
-				...FadeDurationChoice(),
-			],
+			options: [...GetSendSourceDestinationFields(allSendSources, sendDestinations), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (skipInvalidSend(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				const restoreVal = StateUtil.getValueFromKey(cmd, state)
 				ActionUtil.runTransition(cmd, 'level', event, state, transitions, restoreVal)
@@ -800,11 +803,12 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			name: 'Adjust Send Level',
 			description: 'Adjust the send level from a destination channel strip to a source',
 			options: [
-				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
+				...GetSendSourceDestinationFields(allSendSources, sendDestinations),
 				...GetFaderDeltaInputField('delta', 'Adjust'),
 			],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (skipInvalidSend(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = ActionUtil.getNumberWithVariables(event, 'delta')
@@ -819,20 +823,19 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (ActionUtil.getInvalidSendWarning(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
-			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 		},
 		[CommonActions.UndoDeltaSendFader]: {
 			name: 'Undo Send Level Adjust',
 			description: 'Undo the previous send level adjustment from a destination channel strip to a source',
-			options: [
-				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
-				...FadeDurationChoice(),
-			],
+			options: [...GetSendSourceDestinationFields(allSendSources, sendDestinations), ...FadeDurationChoice()],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (skipInvalidSend(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				let targetValue = StateUtil.getNumberFromState(cmd, state)
 				const delta = state.restoreDelta(cmd)
@@ -843,20 +846,22 @@ export function createCommonActions(self: InstanceBaseExt<WingConfig>): Companio
 			},
 			subscribe: (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (ActionUtil.getInvalidSendWarning(src, dest)) return
 				const cmd = ActionUtil.getSendLevelCommand(src, dest)
 				ensureLoaded(cmd)
 			},
-			optionsToMonitorForSubscribe: ['src', 'dest', 'mainDest'],
+			optionsToMonitorForSubscribe: ['src', 'dest'],
 		},
 		[CommonActions.SetSendMute]: {
 			name: 'Set Send Mute',
 			description: 'Set or toggle the mute state of a send from a destination channel strip to a source',
 			options: [
-				...GetSendSourceDestinationFields(allSendSources, channelAuxBusSendDestinations, mainSendDestinations),
+				...GetSendSourceDestinationFields(allSendSources, sendDestinations),
 				GetMuteDropdown('mute', 'Mute', true),
 			],
 			callback: async (event) => {
 				const { src, dest } = ActionUtil.GetSendSourceDestinationFieldsWithVariables(event)
+				if (skipInvalidSend(src, dest)) return
 				const cmd = ActionUtil.getSendMuteCommand(src, dest)
 				let val = ActionUtil.getNumberWithVariables(event, 'mute')
 				// Mute states are inverted for sends
