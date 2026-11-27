@@ -4,10 +4,12 @@ See also HELP.md and LICENSE
 
 # Changelog
 
-## 2.4.0-alpha.3
+## 3.0.0-alpha.3
 
 ### Changed
 
+- The version is now 3.0.0 instead of 2.4.0, because the module requires Companion 5.0 or newer (see 3.0.0 Breaking). The earlier alphas were published as 2.4.0-alpha.1 and 2.4.0-alpha.2
+- The module manifest lists WING, WING Compact and WING Rack as products, with keywords and a longer description
 - The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback now have a single "To" dropdown that lists Buses, Mains and Matrices, instead of two "To" dropdowns. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
 - The module now runs on Node 26 (Companion module runtime `node26`)
 - `companion/HELP.md` is regenerated with `yarn docs` instead of in the pre-commit hook
@@ -23,11 +25,11 @@ See also HELP.md and LICENSE
 
 - An alpha tester who set a send action or feedback `src` to an expression and gave the two old "To" fields different values by hand keeps the first "To" value (`dest`) after the upgrade. Check these buttons and set "To" again if needed
 
-## 2.4.0
+## 3.0.0
 
 ### Breaking
 
-- Requires Companion 5.0 or newer (module API v2.1, `@companion-module/base` ~2.1.3)
+- Requires Companion 5.0 or newer (module API v2.1, `@companion-module/base` ~2.1.3). Because the module no longer runs on older Companion versions, this release is version 3.0.0 instead of 2.4.0
 - The "Use Variables" checkboxes and their separate variable text fields were removed. Every option can now be switched to expression mode in Companion to use variables or expressions instead. Existing actions and feedbacks are converted by an upgrade script
 - The percentage mode of "Adjust Fader Level" and "Adjust Direct Input Level" was removed. Existing percentage adjustments are converted to the equivalent dB value (percent / 100), which is how they were applied before
 - Number options that used to be text fields are now number fields. Existing values and variables are converted automatically

@@ -12,7 +12,7 @@ import type { WingConfig } from './config.js'
 type OptionValue = ExpressionOrValue<JsonValue | undefined> | undefined
 
 /**
- * Action number fields which were textinputs with variable support before v2.4.0 (API v1)
+ * Action number fields which were textinputs with variable support before v3.0.0 (API v1)
  */
 const LegacyNumericTextInputs = [
 	'session',
@@ -172,7 +172,7 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 			updatedFeedbacks,
 		}
 	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
-	// Convert the v2.3.x "Use Variables" options to API v2 expressions (v2.4.0)
+	// Convert the v2.3.x "Use Variables" options to API v2 expressions (v3.0.0)
 	((_context, props): CompanionStaticUpgradeResult<WingConfig, undefined> => {
 		const updatedActions = []
 		const updatedFeedbacks = []
@@ -199,7 +199,7 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 			updatedFeedbacks,
 		}
 	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
-	// Merge the separate Main send destination (`mainDest`) into the single `dest` option (v2.4.0)
+	// Merge the separate Main send destination (`mainDest`) into the single `dest` option (v3.0.0)
 	((_context, props): CompanionStaticUpgradeResult<WingConfig, undefined> => {
 		return {
 			updatedConfig: null,
