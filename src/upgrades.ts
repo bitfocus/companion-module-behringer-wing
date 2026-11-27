@@ -113,11 +113,11 @@ function upgradeLegacyVariableOptions(options: CompanionMigrationOptionValues, n
 }
 
 /**
- * Fold the v2.3.x / v2.4.0-alpha.2 `mainDest` option into the single `dest` option.
+ * Fold the legacy `mainDest` option (v2.3.x / v2.4.0-alpha.2) into `dest`, the single Send Destination option.
  * A plain Main source used `mainDest`, every other source used `dest`.
  * Returns true if anything was changed.
  */
-function mergeSendMainDestination(options: CompanionMigrationOptionValues): boolean {
+function foldLegacyMainDestOption(options: CompanionMigrationOptionValues): boolean {
 	if (!('mainDest' in options)) return false
 	const src = options.src
 	const isPlainMainSource =
@@ -199,12 +199,12 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 			updatedFeedbacks,
 		}
 	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
-	// Merge the separate Main send destination (`mainDest`) into the single `dest` option (v3.0.0)
+	// Fold the legacy `mainDest` option into the single Send Destination option `dest` (v3.0.0)
 	((_context, props): CompanionStaticUpgradeResult<WingConfig, undefined> => {
 		return {
 			updatedConfig: null,
-			updatedActions: props.actions.filter((action) => mergeSendMainDestination(action.options)),
-			updatedFeedbacks: props.feedbacks.filter((feedback) => mergeSendMainDestination(feedback.options)),
+			updatedActions: props.actions.filter((action) => foldLegacyMainDestOption(action.options)),
+			updatedFeedbacks: props.feedbacks.filter((feedback) => foldLegacyMainDestOption(feedback.options)),
 		}
 	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
 ]

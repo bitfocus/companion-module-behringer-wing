@@ -30,8 +30,6 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 	config!: WingConfig
 	model: ModelSpec
 
-	connected: boolean = false
-
 	deviceDetector: WingDeviceDetectorInterface | undefined
 	connection: ConnectionHandler | undefined
 	stateHandler: StateHandler | undefined
@@ -145,7 +143,6 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 
 		this.connection?.on('alive', (recovered: boolean) => {
 			this.updateStatus(InstanceStatus.Ok)
-			this.connected = true
 			this.logger?.info(`Console at ${this.config.host} is answering`)
 			if (recovered) {
 				this.connection?.resubscribe()
@@ -155,7 +152,6 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 
 		this.connection?.on('timeout', () => {
 			this.updateStatus(InstanceStatus.Disconnected, `No answer from console at ${this.config.host}`)
-			this.connected = false
 			this.logger?.warn(`No answer from console at ${this.config.host}`)
 		})
 
@@ -166,7 +162,6 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 
 		this.connection?.on('close', () => {
 			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
-			this.connected = false
 			this.stateHandler?.clearState()
 		})
 

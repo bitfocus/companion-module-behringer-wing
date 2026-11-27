@@ -23,6 +23,7 @@ See also HELP.md and LICENSE
 
 - Send actions and the Send Mute feedback that use variables or expressions keep working after the upgrade
 - The connection status no longer stays at "Connecting" when the console is off or the IP is wrong. After 5 s without an answer the status changes to "Disconnected" ("No answer from console at <host>"). When the console answers again, the status returns to OK and the variables update
+- After an OSC connection error, the status returns to OK with the next message from the console instead of staying at "Connection Failure"
 - Channel presets show the console's channel name, and fall back to the previous "Mute CH 1" style text while the name is empty
 - All three layout gaps on the configuration page show again. They shared one field id, and Companion 5 drops duplicate ids
 

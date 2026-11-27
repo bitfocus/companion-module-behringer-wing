@@ -14,7 +14,8 @@ type Liveness = 'waiting' | 'alive' | 'timed-out'
 /**
  * Handles OSC UDP connection management, message sending, and event emission for the Behringer Wing module.
  * Emits 'ready', 'message', 'error' and 'close' events, plus the liveness events:
- * - 'alive' (recovered: boolean) when the console answers for the first time, or again after a timeout.
+ * - 'alive' (recovered: boolean) when the console answers for the first time, again after an 'error'
+ *   (recovered = false), or again after a timeout (recovered = true).
  * - 'timeout' when no OSC message arrived for {@link LIVENESS_TIMEOUT} ms.
  */
 export class ConnectionHandler extends EventEmitter {
@@ -61,6 +62,9 @@ export class ConnectionHandler extends EventEmitter {
 
 		this.osc.on('error', (err: Error) => {
 			this.logger?.error(`OSC error: ${err.message}`)
+			// The status now shows the error, so the next message has to report the console alive again.
+			// A timed-out console stays timed out, so its next answer still counts as a recovery.
+			if (this.liveness === 'alive') this.liveness = 'waiting'
 			this.emit('error', err)
 		})
 
