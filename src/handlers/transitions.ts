@@ -1,3 +1,4 @@
+import type { ModuleLogger } from '@companion-module/base'
 import type { WingConfig } from '../config.js'
 import { Easing } from '../easings.js'
 import type { InstanceBaseExt } from '../types.js'
@@ -110,8 +111,8 @@ export class WingTransitions {
 		} else {
 			// Map the transition in dB to a linear scale (=linear fader movement)
 			if (mapLinearToDb != false) {
-				from = dbToFloat(from)
-				to = dbToFloat(to)
+				from = dbToFloat(from, this.instance.logger)
+				to = dbToFloat(to, this.instance.logger)
 			}
 			const diff = to - from
 			const steps: number[] = []
@@ -122,7 +123,7 @@ export class WingTransitions {
 				if (mapLinearToDb == false) {
 					steps.push(from + diff * fraction)
 				} else {
-					steps.push(floatToDb(from + diff * fraction)) // map back to dB
+					steps.push(floatToDb(from + diff * fraction, this.instance.logger)) // map back to dB
 				}
 			}
 
@@ -139,11 +140,12 @@ export class WingTransitions {
 /**
  * Converts a fader position in float to the value of that fader in dB
  * @param f Fader position between 0.0 and 1.0
+ * @param logger Module logger. Eased steps can overshoot the range, so this only logs at debug level
  * @returns Value of the fader position in dB
  */
-function floatToDb(f: number): number {
+function floatToDb(f: number, logger?: ModuleLogger): number {
 	if (f > 1.0 || f < 0.0) {
-		console.error(`Illegal value for fader float ([0.0, 1.0]) = ${f}`)
+		logger?.debug(`Illegal value for fader float ([0.0, 1.0]) = ${f}`)
 	}
 	if (f >= 0.5) {
 		return f * 40 - 30
@@ -161,11 +163,12 @@ function floatToDb(f: number): number {
 /**
  * Converts a fader value in dB to a fader position
  * @param d A value of a fader in dB
+ * @param logger Module logger for out-of-range values
  * @returns The fader position between 0.0 and 1.0
  */
-function dbToFloat(d: number): number {
-	if (d > 1.0 || d < 0.0) {
-		console.error(`Illegal value for fader ([-144 10]) = ${d}`)
+function dbToFloat(d: number, logger?: ModuleLogger): number {
+	if (d > 10 || d < -144) {
+		logger?.warn(`Illegal value for fader ([-144 10]) = ${d}`)
 	}
 
 	let f: number

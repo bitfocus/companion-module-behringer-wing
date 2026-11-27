@@ -13,7 +13,7 @@ See also HELP.md and LICENSE
 - The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback now have a single "To" dropdown that lists Buses, Mains and Matrices, instead of two "To" dropdowns. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
 - The module now runs on Node 26 (Companion module runtime `node26`)
 - `companion/HELP.md` is regenerated and formatted with `yarn docs` instead of in the pre-commit hook. It now documents every configuration field, the feedbacks, the presets and the connection statuses
-- The GitHub workflows, issue templates and pre-commit hook match the Companion module template
+- The GitHub workflows, issue templates and pre-commit hook match the Companion module template. The extra pre-push hook (and its tag and README check scripts), the issue-template opt-out marker and the unused `images/` files were removed
 
 ### Removed
 
@@ -26,6 +26,7 @@ See also HELP.md and LICENSE
 - After an OSC connection error, the status returns to OK with the next message from the console instead of staying at "Connection Failure"
 - Channel presets show the console's channel name, and fall back to the previous "Mute CH 1" style text while the name is empty
 - All three layout gaps on the configuration page show again. They shared one field id, and Companion 5 drops duplicate ids
+- Fades no longer report a false "Illegal value for fader" error for normal dB values. A fade to a value outside -144 to +10 dB is logged as a warning in the Companion log
 
 ### Known issues
 
