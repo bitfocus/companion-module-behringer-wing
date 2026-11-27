@@ -140,12 +140,23 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 
 		this.connection?.on('ready', () => {
 			this.updateStatus(InstanceStatus.Connecting, 'Waiting for answer from console...')
-			this.feedbackHandler?.startPolling()
-			this.stateHandler?.state?.requestNames(this)
-			if (this.config.prefetchVariablesOnStartup) {
-				void this.stateHandler?.state?.requestAllVariables(this)
+			this.runStartupSteps()
+		})
+
+		this.connection?.on('alive', (recovered: boolean) => {
+			this.updateStatus(InstanceStatus.Ok)
+			this.connected = true
+			this.logger?.info(`Console at ${this.config.host} is answering`)
+			if (recovered) {
+				this.connection?.resubscribe()
+				this.runStartupSteps()
 			}
-			this.stateHandler?.requestUpdate()
+		})
+
+		this.connection?.on('timeout', () => {
+			this.updateStatus(InstanceStatus.Disconnected, `No answer from console at ${this.config.host}`)
+			this.connected = false
+			this.logger?.warn(`No answer from console at ${this.config.host}`)
 		})
 
 		this.connection?.on('error', (err: Error) => {
@@ -156,7 +167,6 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 		this.connection?.on('close', () => {
 			this.updateStatus(InstanceStatus.Disconnected, 'OSC connection closed')
 			this.connected = false
-			this.feedbackHandler?.startPolling()
 			this.stateHandler?.clearState()
 		})
 
@@ -167,14 +177,20 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 		})
 	}
 
-	private handleMessages(): void {
-		if (this.connected == false) {
-			this.updateStatus(InstanceStatus.Ok)
-			this.connected = true
-
-			this.logger?.info('OSC connection established')
+	/**
+	 * Request the data the module needs from the console. Runs when the connection opens and again
+	 * when the console answers after a liveness timeout.
+	 */
+	private runStartupSteps(): void {
+		this.feedbackHandler?.startPolling()
+		this.stateHandler?.state?.requestNames(this)
+		if (this.config.prefetchVariablesOnStartup) {
+			void this.stateHandler?.state?.requestAllVariables(this)
 		}
-		this.feedbackHandler?.clearPollTimeout()
+		this.stateHandler?.requestUpdate()
+	}
+
+	private handleMessages(): void {
 		this.stateHandler?.processMessage(this.messages)
 		this.feedbackHandler?.processMessage(this.messages)
 		this.variableHandler?.processMessage(this.messages)
@@ -207,7 +223,6 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 
 	private setupFeedbackHandler(): void {
 		this.feedbackHandler = new FeedbackHandler(this.logger)
-		this.feedbackHandler.setPollInterval(this.config.statusPollUpdateRate ?? 3000)
 
 		this.feedbackHandler.on('check-feedbacks', (feedbacks: string[]) => {
 			if (feedbacks.length > 0) this.checkFeedbacks(...(feedbacks as [string, ...string[]]))
@@ -218,11 +233,6 @@ export default class WingInstance extends InstanceBase<WingTypes> implements Ins
 				this.logger?.info(path)
 				this.stateHandler?.ensureLoaded(path)
 			})
-		})
-
-		this.feedbackHandler.on('poll-connection-timeout', () => {
-			this.updateStatus(InstanceStatus.Disconnected, 'Connection timed out')
-			this.connected = false
 		})
 	}
 
