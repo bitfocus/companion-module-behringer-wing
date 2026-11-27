@@ -28,7 +28,6 @@ If you find any missing features that you would like to see implemented, please 
 - **Desk IP**: The IP address of the desk to connect to. Auto-detects any WING type console in the same network.
 - **Desk Type**: Specifies the type of desk that is connected.
 - **Fader Update Rate**: Specifies how often the module sends fader level updates to the console when using smooth fader movements. Lower values result in smoother fades but increase network traffic.
-- **Status Poll Rate**: Specifies how often the module polls the console for status updates. Higher values reduce network traffic but may result in slower updates.
 - **Variable Update Rates** Specifies the rate at which received console information is processed and variables are updated. Higher values reduce CPU usage but may result in slower variable updates.
 
 ## Subcription

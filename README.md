@@ -15,11 +15,16 @@ See also HELP.md and LICENSE
 - `companion/HELP.md` is regenerated with `yarn docs` instead of in the pre-commit hook
 - The GitHub workflows, issue templates and pre-commit hook match the Companion module template
 
+### Removed
+
+- The "Status Poll Rate" configuration option. It has had no effect since v2.2.4: the scene list for "Recall Scene by Name" is fetched once per connection, and the USB player state arrives as console events
+
 ### Fixed
 
 - Send actions and the Send Mute feedback that use variables or expressions keep working after the upgrade
 - The connection status no longer stays at "Connecting" when the console is off or the IP is wrong. After 5 s without an answer the status changes to "Disconnected" ("No answer from console at <host>"). When the console answers again, the status returns to OK and the variables update
 - Channel presets show the console's channel name, and fall back to the previous "Mute CH 1" style text while the name is empty
+- All three layout gaps on the configuration page show again. They shared one field id, and Companion 5 drops duplicate ids
 
 ### Known issues
 
@@ -35,6 +40,7 @@ See also HELP.md and LICENSE
 - Number options that used to be text fields are now number fields. Existing values and variables are converted automatically
 - Removed the unused variables `desk_ip` and `desk_name` (they were never populated)
 - Removed the "Debug Mode" configuration option. Use Companion's log level to see debug output instead
+- Removed the "Status Poll Rate" configuration option, which has had no effect since v2.2.4
 
 ### Added
 
