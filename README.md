@@ -14,6 +14,8 @@ See also HELP.md and LICENSE
 - The module now runs on Node 26 (Companion module runtime `node26`)
 - `companion/HELP.md` is regenerated and formatted with `yarn docs` instead of in the pre-commit hook. It now documents every configuration field, the feedbacks, the presets and the connection statuses
 - The GitHub workflows, issue templates and pre-commit hook match the Companion module template. The extra pre-push hook (and its tag and README check scripts), the issue-template opt-out marker and the unused `images/` files were removed
+- The development toolchain matches the Companion module template: TypeScript 6, ESLint 10 and the template's versions of the other development dependencies
+- The `ws` package (pulled in by the `osc` library) is pinned to 8.21.0 or newer to clear two security advisories. The module only uses UDP, so it was not affected
 
 ### Removed
 
@@ -46,6 +48,7 @@ See also HELP.md and LICENSE
 
 ### Added
 
+- Channel presets (Mute, Solo, SOF, Boost & Center) show the console's channel name, and fall back to "Mute CH 1" style text while the name is empty
 - Status variables `last_msg_received_timestamp`, `last_msg_path` and `last_msg_value` for the last message received from the console
 - Dropdowns list their valid values when switched to expression mode
 
@@ -64,6 +67,11 @@ See also HELP.md and LICENSE
 
 ### Changed
 
+- The module runs on Node 26 (Companion module runtime `node26`)
+- The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback have a single "To" dropdown that lists Buses, Mains and Matrices. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
+- The module checks continuously that the console answers. After 5 s without an answer the status changes to "Disconnected" ("No answer from console at <host>"), and it returns to OK when the console answers again
+- The module manifest lists WING, WING Compact and WING Rack as products
+- `companion/HELP.md` documents every configuration field, the feedbacks, the presets and the connection statuses
 - Switched to Companion's built-in module logger
 - Presets were rewritten as template presets that can be used for any channel strip
 - Feedbacks and presets are split into separate files per category
