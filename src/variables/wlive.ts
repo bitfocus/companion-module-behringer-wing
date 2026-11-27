@@ -1,4 +1,4 @@
-import { VariableDefinition } from './index.js'
+import type { VariableDefinition } from './index.js'
 import * as Commands from '../commands/index.js'
 
 export function getWliveVariables(): VariableDefinition[] {

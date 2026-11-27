@@ -12,7 +12,7 @@ import type { WingConfig } from './config.js'
 type OptionValue = ExpressionOrValue<JsonValue | undefined> | undefined
 
 /**
- * Action number fields which were textinputs with variable support before v2.4.0 (API v1)
+ * Action number fields which were textinputs with variable support before v3.0.0 (API v1)
  */
 const LegacyNumericTextInputs = [
 	'session',
@@ -112,6 +112,22 @@ function upgradeLegacyVariableOptions(options: CompanionMigrationOptionValues, n
 	return changed
 }
 
+/**
+ * Fold the legacy `mainDest` option into `dest`. Only plain Main sources used `mainDest`.
+ * @returns true if the options changed
+ */
+function foldLegacyMainDestOption(options: CompanionMigrationOptionValues): boolean {
+	if (!('mainDest' in options)) return false
+	const src = options.src
+	const isPlainMainSource =
+		src?.isExpression === false && typeof src.value === 'string' && src.value.startsWith('/main')
+	if (isPlainMainSource && options.mainDest !== undefined) {
+		options.dest = options.mainDest
+	}
+	delete options.mainDest
+	return true
+}
+
 export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 	/*
 	 * Place your upgrade scripts here
@@ -155,7 +171,7 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 			updatedFeedbacks,
 		}
 	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
-	// Convert the v2.3.x "Use Variables" options to API v2 expressions (v2.4.0)
+	// Convert the v2.3.x "Use Variables" options to API v2 expressions (v3.0.0)
 	((_context, props): CompanionStaticUpgradeResult<WingConfig, undefined> => {
 		const updatedActions = []
 		const updatedFeedbacks = []
@@ -180,6 +196,14 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<WingConfig>[] = [
 			updatedConfig: null,
 			updatedActions,
 			updatedFeedbacks,
+		}
+	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
+	// Single Send Destination option (v3.0.0)
+	((_context, props): CompanionStaticUpgradeResult<WingConfig, undefined> => {
+		return {
+			updatedConfig: null,
+			updatedActions: props.actions.filter((action) => foldLegacyMainDestOption(action.options)),
+			updatedFeedbacks: props.feedbacks.filter((feedback) => foldLegacyMainDestOption(feedback.options)),
 		}
 	}) satisfies CompanionStaticUpgradeScript<WingConfig>,
 ]

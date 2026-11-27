@@ -1,4 +1,4 @@
-import { CompanionInputFieldDropdown, CompanionInputFieldNumber } from '@companion-module/base'
+import type { CompanionInputFieldDropdown, CompanionInputFieldNumber } from '@companion-module/base'
 
 export const FadeDurationChoice = (
 	isVisibleExpression?: string,

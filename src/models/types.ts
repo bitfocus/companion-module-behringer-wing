@@ -1,4 +1,4 @@
-import { DropdownChoice } from '@companion-module/base'
+import type { DropdownChoice } from '@companion-module/base'
 
 export enum WingModel {
 	Full = 'full',

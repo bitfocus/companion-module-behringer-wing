@@ -1,4 +1,4 @@
-import { WingState } from './state.js'
+import type { WingState } from './state.js'
 
 export function getStringFromState(cmd: string, state: WingState): string | undefined {
 	const currentState = state.get(cmd)

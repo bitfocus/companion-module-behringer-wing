@@ -6,10 +6,12 @@ import { FeedbackId } from '../feedbacks/index.js'
 import type { ModelSpec } from '../models/types.js'
 
 /**
- * Expression that resolves to the OSC path for the current template instance,
- * e.g. "/ch/1", "/aux/3". Requires local variables `base` and `index`.
+ * Button text: the console's name for the strip, or the fallback while the name is empty.
+ * Companion replaces the `wing` label with the connection's label when the preset is added.
  */
-const SEL_EXPR = { isExpression: true as const, value: '`${$(local:base)}/${$(local:index)}`' }
+function nameOrFallbackText(chType: ChannelTypeSpec, index: number, fallback: string): string {
+	return `$(wing:${chType.id}${index}_name) || ${JSON.stringify(fallback)}`
+}
 
 interface ChannelTypeSpec {
 	id: string
@@ -21,174 +23,113 @@ interface ChannelTypeSpec {
 	hasBoostAndCenter: boolean
 }
 
-/**
- * Builds template preset definitions for all channel strip types
- * (channels, aux buses, buses, matrices, mains, DCAs) and adds the
- * corresponding sections/groups to the context.
- *
- * Template presets are defined once and instantiated per channel via
- * the `template` group type, overriding the `index` local variable.
- * The `name` field on each templateValue entry provides the descriptive
- * label shown in the Companion preset picker.
- */
-export function createChannelPresets(context: WingPresetsContext, model: ModelSpec): void {
-	context.definitions['tpl-mute'] = {
+type ChannelPreset = WingPresetsContext['definitions'][string]
+
+const textStyle = {
+	textExpression: true,
+	size: 'auto',
+	color: combineRgb(255, 255, 255),
+	bgcolor: combineRgb(0, 0, 0),
+} as const
+
+const fade = { fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' }
+
+function mutePreset(sel: string, name: string, text: string): ChannelPreset {
+	return {
 		type: 'simple',
-		name: 'Mute',
-		style: {
-			text: '`Mute ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
-			textExpression: true,
-			size: 'auto',
-			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0),
-		},
+		name,
+		style: { ...textStyle, text },
 		options: { stepAutoProgress: true },
-		steps: [
-			{
-				down: [{ actionId: CommonActions.SetMute, options: { sel: SEL_EXPR, mute: '-1' } }],
-				up: [],
-			},
-		],
+		steps: [{ down: [{ actionId: CommonActions.SetMute, options: { sel, mute: '-1' } }], up: [] }],
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.Mute,
-				options: { sel: SEL_EXPR, mute: '1' },
-				style: {
-					color: combineRgb(255, 255, 255),
-					bgcolor: combineRgb(255, 0, 0),
-				},
+				options: { sel, mute: '1' },
+				style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
 			},
-		],
-		localVariables: [
-			{ variableType: 'simple', variableName: 'base', startupValue: '/ch' },
-			{ variableType: 'simple', variableName: 'index', startupValue: 1 },
 		],
 	}
+}
 
-	context.definitions['tpl-solo'] = {
+function soloPreset(sel: string, name: string, text: string): ChannelPreset {
+	return {
 		type: 'simple',
-		name: 'Solo',
-		style: {
-			text: '`Solo ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
-			textExpression: true,
-			size: 'auto',
-			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0),
-		},
+		name,
+		style: { ...textStyle, text },
 		options: { stepAutoProgress: true },
-		steps: [
-			{
-				down: [{ actionId: CommonActions.SetSolo, options: { sel: SEL_EXPR, solo: '-1' } }],
-				up: [],
-			},
-		],
+		steps: [{ down: [{ actionId: CommonActions.SetSolo, options: { sel, solo: '-1' } }], up: [] }],
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.Solo,
-				options: { sel: SEL_EXPR, solo: '1' },
-				style: {
-					color: combineRgb(0, 0, 0),
-					bgcolor: combineRgb(255, 255, 0),
-				},
+				options: { sel, solo: '1' },
+				style: { color: combineRgb(0, 0, 0), bgcolor: combineRgb(255, 255, 0) },
 			},
-		],
-		localVariables: [
-			{ variableType: 'simple', variableName: 'base', startupValue: '/ch' },
-			{ variableType: 'simple', variableName: 'index', startupValue: 1 },
 		],
 	}
+}
 
-	context.definitions['tpl-sof'] = {
+function sofPreset(sel: string, name: string, text: string): ChannelPreset {
+	return {
 		type: 'simple',
-		name: 'Sends on Fader',
-		style: {
-			text: '`SOF ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
-			textExpression: true,
-			size: 'auto',
-			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0),
-		},
-		steps: [
-			{
-				down: [{ actionId: OtherActionId.SetSOF, options: { toggle: true, channel: SEL_EXPR } }],
-				up: [],
-			},
-		],
+		name,
+		style: { ...textStyle, text },
+		steps: [{ down: [{ actionId: OtherActionId.SetSOF, options: { toggle: true, channel: sel } }], up: [] }],
 		feedbacks: [
 			{
 				feedbackId: FeedbackId.SofActive,
-				options: { channel: SEL_EXPR },
+				options: { channel: sel },
 				style: { bgcolor: combineRgb(255, 165, 0) },
 			},
 		],
-		localVariables: [
-			{ variableType: 'simple', variableName: 'base', startupValue: '/ch' },
-			{ variableType: 'simple', variableName: 'index', startupValue: 1 },
-		],
 	}
+}
 
-	context.definitions['tpl-boost-center'] = {
+function boostAndCenterPreset(sel: string, name: string, text: string): ChannelPreset {
+	return {
 		type: 'simple',
-		name: 'Boost & Center',
-		style: {
-			text: '`Boost & Center ${toUpperCase(replaceAll($(local:base), "/", ""))} ${$(local:index)}`',
-			textExpression: true,
-			size: 'auto',
-			color: combineRgb(255, 255, 255),
-			bgcolor: combineRgb(0, 0, 0),
-		},
+		name,
+		style: { ...textStyle, text },
 		options: { stepAutoProgress: true },
 		steps: [
 			{
-				// Step 1: boost fader by +3 dB and center panorama
+				// Boost by 3 dB and center, storing the previous values for step 2
 				down: [
-					{ actionId: CommonActions.StoreFader, options: { sel: SEL_EXPR } },
-					{
-						actionId: CommonActions.DeltaFader,
-						options: {
-							sel: SEL_EXPR,
-							delta: 3,
-							fadeDuration: 1000,
-							fadeAlgorithm: 'quadratic',
-							fadeType: 'ease-in-out',
-						},
-					},
-					{ actionId: CommonActions.StorePanorama, options: { sel: SEL_EXPR } },
-					{
-						actionId: CommonActions.SetPanorama,
-						options: {
-							sel: SEL_EXPR,
-							pan: 0,
-							fadeDuration: 1000,
-							fadeAlgorithm: 'quadratic',
-							fadeType: 'ease-in-out',
-						},
-					},
+					{ actionId: CommonActions.StoreFader, options: { sel } },
+					{ actionId: CommonActions.DeltaFader, options: { sel, delta: 3, ...fade } },
+					{ actionId: CommonActions.StorePanorama, options: { sel } },
+					{ actionId: CommonActions.SetPanorama, options: { sel, pan: 0, ...fade } },
 				],
 				up: [],
 			},
 			{
-				// Step 2: restore fader and panorama to stored values
 				down: [
-					{
-						actionId: CommonActions.RestoreFader,
-						options: { sel: SEL_EXPR, fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
-					},
-					{
-						actionId: CommonActions.RestorePanorama,
-						options: { sel: SEL_EXPR, fadeDuration: 1000, fadeAlgorithm: 'quadratic', fadeType: 'ease-in-out' },
-					},
+					{ actionId: CommonActions.RestoreFader, options: { sel, ...fade } },
+					{ actionId: CommonActions.RestorePanorama, options: { sel, ...fade } },
 				],
 				up: [],
 			},
 		],
 		feedbacks: [],
-		localVariables: [
-			{ variableType: 'simple', variableName: 'base', startupValue: '/ch' },
-			{ variableType: 'simple', variableName: 'index', startupValue: 1 },
-		],
 	}
+}
 
+const presetKinds = [
+	{ id: 'mute', name: 'Mute', label: 'Mute', create: mutePreset, applies: () => true },
+	{ id: 'solo', name: 'Solo', label: 'Solo', create: soloPreset, applies: () => true },
+	{ id: 'sof', name: 'Sends on Fader', label: 'SOF', create: sofPreset, applies: (ct: ChannelTypeSpec) => ct.hasSof },
+	{
+		id: 'boost-center',
+		name: 'Boost & Center',
+		label: 'Boost & Center',
+		create: boostAndCenterPreset,
+		applies: (ct: ChannelTypeSpec) => ct.hasBoostAndCenter,
+	},
+]
+
+/**
+ * Adds one preset per strip and preset kind, grouped by strip type.
+ */
+export function createChannelPresets(context: WingPresetsContext, model: ModelSpec): void {
 	const channelTypes: ChannelTypeSpec[] = [
 		{
 			id: 'ch',
@@ -199,15 +140,7 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 			hasSof: true,
 			hasBoostAndCenter: true,
 		},
-		{
-			id: 'aux',
-			name: 'Auxes',
-			base: '/aux',
-			label: 'AUX',
-			count: model.auxes,
-			hasSof: true,
-			hasBoostAndCenter: true,
-		},
+		{ id: 'aux', name: 'Auxes', base: '/aux', label: 'AUX', count: model.auxes, hasSof: true, hasBoostAndCenter: true },
 		{
 			id: 'bus',
 			name: 'Buses',
@@ -237,44 +170,22 @@ export function createChannelPresets(context: WingPresetsContext, model: ModelSp
 		},
 		{ id: 'dca', name: 'DCAs', base: '/dca', label: 'DCA', count: model.dcas, hasSof: false, hasBoostAndCenter: false },
 	]
-
 	const active = channelTypes.filter((ct) => ct.count > 0)
 
-	const makeGroup = (presetId: string, chType: ChannelTypeSpec, prefix: string) => ({
-		id: `${chType.id}-${presetId}`,
-		type: 'template' as const,
-		name: chType.name,
-		presetId: `tpl-${presetId}`,
-		templateVariableName: 'index',
-		templateValues: Array.from({ length: chType.count }, (_, i) => ({
-			name: `${prefix} ${chType.label} ${i + 1}`,
-			value: i + 1,
-		})),
-		commonVariableValues: { base: chType.base },
-	})
-
-	context.sections.push(
-		{
-			id: 'mute',
-			name: 'Mute',
-			definitions: active.map((ct) => makeGroup('mute', ct, 'Mute')),
-		},
-		{
-			id: 'solo',
-			name: 'Solo',
-			definitions: active.map((ct) => makeGroup('solo', ct, 'Solo')),
-		},
-		{
-			id: 'sof',
-			name: 'Sends on Fader',
-			definitions: active.filter((ct) => ct.hasSof).map((ct) => makeGroup('sof', ct, 'SOF')),
-		},
-		{
-			id: 'boost-center',
-			name: 'Boost & Center',
-			definitions: active
-				.filter((ct) => ct.hasBoostAndCenter)
-				.map((ct) => makeGroup('boost-center', ct, 'Boost & Center')),
-		},
-	)
+	for (const kind of presetKinds) {
+		context.sections.push({
+			id: kind.id,
+			name: kind.name,
+			definitions: active.filter(kind.applies).map((ct) => {
+				const presets: string[] = []
+				for (let index = 1; index <= ct.count; index++) {
+					const presetId = `${ct.id}${index}-${kind.id}`
+					const name = `${kind.label} ${ct.label} ${index}`
+					context.definitions[presetId] = kind.create(`${ct.base}/${index}`, name, nameOrFallbackText(ct, index, name))
+					presets.push(presetId)
+				}
+				return { id: `${ct.id}-${kind.id}`, type: 'simple' as const, name: ct.name, presets }
+			}),
+		})
+	}
 }

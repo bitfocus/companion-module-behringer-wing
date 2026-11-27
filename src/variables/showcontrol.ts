@@ -1,4 +1,4 @@
-import { VariableDefinition } from './index.js'
+import type { VariableDefinition } from './index.js'
 
 export function getShowControlVariables(): VariableDefinition[] {
 	const variables: VariableDefinition[] = []

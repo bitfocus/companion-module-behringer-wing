@@ -1,4 +1,4 @@
-import { DropdownChoice, SomeCompanionActionInputField } from '@companion-module/base'
+import type { DropdownChoice, SomeCompanionActionInputField } from '@companion-module/base'
 import { getIdLabelPair } from '../choices/utils.js'
 
 export const EqTypes = {

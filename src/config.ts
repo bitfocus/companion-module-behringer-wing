@@ -1,11 +1,10 @@
-import { type SomeCompanionConfigField } from '@companion-module/base'
+import type { SomeCompanionConfigField } from '@companion-module/base'
 import { WingDeviceDetectorInstance } from './handlers/device-detector.js'
 import { ModelChoices, WingModel } from './models/types.js'
-import { InstanceBaseExt } from './types.js'
+import type { InstanceBaseExt } from './types.js'
 // import { ModelChoices, WingModel } from './models/types.js'
 
 export const fadeUpdateRateDefault = 50
-export const pollUpdateRateDefault = 3000
 export const variableUpdateRateDefault = 100
 
 export const DeskTypes = [
@@ -18,7 +17,6 @@ export type WingConfig = {
 	host?: string
 	model?: WingModel
 	fadeUpdateRate?: number
-	statusPollUpdateRate?: number
 	variableUpdateRate?: number
 	/** When enabled, the module will request values for all variables on startup */
 	prefetchVariablesOnStartup?: boolean
@@ -36,10 +34,19 @@ export type WingConfig = {
 
 	/** @deprecated no longer used, Companion's log level controls debug output */
 	debugMode?: boolean
+	/** @deprecated kept because the v2.2.0 upgrade script writes it */
+	statusPollUpdateRate?: number
 }
 
 export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompanionConfigField[] {
-	const spacer = { type: 'static-text', id: 'spacer', width: 12, label: '', value: '' } as SomeCompanionConfigField
+	// Companion drops config fields with duplicate ids
+	const spacer = (n: number): SomeCompanionConfigField => ({
+		type: 'static-text',
+		id: `spacer${n}`,
+		width: 12,
+		label: '',
+		value: '',
+	})
 
 	function calcUpdateRate(ms: number): number {
 		if (ms > 0) {
@@ -59,7 +66,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 				'This module works with all Behringer Wing desks. Make sure to have the latest firmware installed. </br>' +
 				'You can find the firmware and more information on the <a href="https://www.behringer.com/product.html?modelCode=0603-AEN" target="_blank">official Behringer website</a>',
 		},
-		spacer,
+		spacer(1),
 		{
 			type: 'dropdown',
 			id: 'host',
@@ -81,7 +88,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			choices: ModelChoices,
 			default: WingModel.Full.toString(),
 		},
-		spacer,
+		spacer(2),
 		{
 			type: 'static-text',
 			id: 'update-rate-info',
@@ -101,17 +108,6 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			min: 20,
 			max: 60000,
 			default: fadeUpdateRateDefault,
-		},
-		{
-			type: 'number',
-			id: 'statusPollUpdateRate',
-			label: `Status Poll Rate (${calcUpdateRate(_self.config?.statusPollUpdateRate ?? pollUpdateRateDefault)} updates/sec)`,
-			tooltip:
-				'Some values need to be actively requested from the desk, this number sets the interval in milliseconds at which those requests occur.',
-			width: 6,
-			min: 20,
-			max: 60000,
-			default: pollUpdateRateDefault,
 		},
 		{
 			type: 'number',
@@ -141,7 +137,7 @@ export function GetConfigFields(_self: InstanceBaseExt<WingConfig>): SomeCompani
 			width: 12,
 			default: false,
 		},
-		spacer,
+		spacer(3),
 		{
 			type: 'number',
 			id: 'requestTimeout',

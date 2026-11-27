@@ -1,4 +1,4 @@
-import { ModelSpec } from '../models/types.js'
+import type { ModelSpec } from '../models/types.js'
 import { getAuxVariables } from './auxiliary.js'
 import { getBusVariables } from './bus.js'
 import { getChannelVariables } from './channel.js'

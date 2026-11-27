@@ -1,7 +1,7 @@
-import { WingTransitions } from '../handlers/transitions.js'
-import { WingState } from '../state/index.js'
-import { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
-import { Easing } from '../easings.js'
+import type { WingTransitions } from '../handlers/transitions.js'
+import type { WingState } from '../state/index.js'
+import type { CompanionActionInfo, CompanionFeedbackInfo } from '@companion-module/base'
+import type { Easing } from '../easings.js'
 import * as StateUtils from '../state/utils.js'
 import { ChannelCommands } from '../commands/channel.js'
 import { AuxCommands } from '../commands/auxes.js'
@@ -117,14 +117,29 @@ export function GetSendSourceDestinationFieldsWithVariables(event: CompanionActi
 	src: string
 	dest: string
 } {
-	const src = getStringWithVariables(event, 'src')
-	let dest
-	if (src.startsWith('/main')) {
-		dest = getStringWithVariables(event, 'mainDest')
-	} else {
-		dest = getStringWithVariables(event, 'dest')
-	}
-	return { src, dest }
+	return { src: getStringWithVariables(event, 'src'), dest: getStringWithVariables(event, 'dest') }
+}
+
+const SendNodeNames: Record<string, string> = {
+	ch: 'Channel',
+	aux: 'Aux',
+	bus: 'Bus',
+	main: 'Main',
+	mtx: 'Matrix',
+}
+
+function describeSendNode(id: string): string {
+	const [, type, num] = id.split('/')
+	const name = SendNodeNames[type]
+	return name && num ? `${name} ${num}` : id
+}
+
+/**
+ * @returns A warning if the desk cannot send from `src` to `dest`, otherwise undefined.
+ */
+export function getInvalidSendWarning(src: string, dest: string): string | undefined {
+	if (!src.startsWith('/main') || dest.startsWith('/mtx')) return undefined
+	return `Send ${describeSendNode(src)} → ${describeSendNode(dest)} skipped: Main sources can only send to Matrices`
 }
 
 export function runTransition(

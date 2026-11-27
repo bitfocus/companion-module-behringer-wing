@@ -1,13 +1,13 @@
-import { CompanionActionDefinitions } from '@companion-module/base'
+import type { CompanionActionDefinitions } from '@companion-module/base'
 import { GetDropdown } from '../choices/common.js'
 import { getChannelProcessOrderChoices, getFilterModelOptions } from '../choices/channel.js'
 import { ChannelCommands as Commands } from '../commands/channel.js'
 import * as ActionUtil from './utils.js'
-import { CompanionActionWithCallback } from './common.js'
+import type { CompanionActionWithCallback } from './common.js'
 import { EqModelDropdown, EqParameterDropdown } from '../choices/eq.js'
 import { EqModelChoice } from '../choices/eq.js'
-import { InstanceBaseExt } from '../types.js'
-import { WingConfig } from '../config.js'
+import type { InstanceBaseExt } from '../types.js'
+import type { WingConfig } from '../config.js'
 import { getStringFromState } from '../state/utils.js'
 
 export enum ChannelActions {

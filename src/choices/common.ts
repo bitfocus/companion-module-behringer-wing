@@ -1,7 +1,8 @@
-import {
+import type {
 	CompanionInputFieldCheckbox,
 	CompanionInputFieldDropdown,
 	CompanionInputFieldNumber,
+	CompanionInputFieldStaticText,
 	CompanionInputFieldTextInput,
 	DropdownChoice,
 } from '@companion-module/base'
@@ -95,7 +96,36 @@ export function GetDropdown(
  * Lists the valid choice ids of a dropdown, so they can be used in expression mode
  */
 export function GetChoiceIdDescription(choices: DropdownChoice[]): string {
-	return `Valid values: ${choices.map((choice) => `${choice.id} (${choice.label})`).join(', ')}`
+	const parts: string[] = []
+	let i = 0
+	while (i < choices.length) {
+		const start = splitNumberedId(choices[i].id)
+		let end = i
+		while (
+			start &&
+			end + 1 < choices.length &&
+			isNextNumberedId(splitNumberedId(choices[end + 1].id), start.prefix, start.num + (end + 1 - i))
+		) {
+			end++
+		}
+		if (end - i >= 2) {
+			parts.push(`${choices[i].id} to ${choices[end].id}`)
+			i = end + 1
+		} else {
+			parts.push(`${choices[i].id} (${choices[i].label})`)
+			i++
+		}
+	}
+	return `Valid values: ${parts.join(', ')}`
+}
+
+function splitNumberedId(id: DropdownChoice['id']): { prefix: string; num: number } | undefined {
+	const match = /^(.*?)(\d+)$/.exec(String(id))
+	return match ? { prefix: match[1], num: Number(match[2]) } : undefined
+}
+
+function isNextNumberedId(next: { prefix: string; num: number } | undefined, prefix: string, num: number): boolean {
+	return next !== undefined && next.prefix === prefix && next.num === num
 }
 
 export function GetMuteDropdown(id: string, label?: string, includeToggle?: boolean): CompanionInputFieldDropdown {
@@ -176,19 +206,20 @@ export function GetFaderDeltaInputField(
 	return [GetNumberField(name ?? 'Level (dB)', id, -154, 154, 1, 0, true), ...FadeDurationChoice()]
 }
 
+const MainSendNote = 'Main sources can only send to Matrices.'
+
 export function GetSendSourceDestinationFields(
 	sendSources: DropdownChoice[],
-	channelAuxBusSendDestinations: DropdownChoice[],
-	mainSendDestinations: DropdownChoice[],
+	sendDestinations: DropdownChoice[],
 ): [
 	CompanionInputFieldDropdown, // Source Dropdown
-	CompanionInputFieldDropdown, // Destination Dropdown (source != main)
-	CompanionInputFieldDropdown, // Destination Dropdown (source == main)
+	CompanionInputFieldDropdown, // Destination Dropdown
+	CompanionInputFieldStaticText, // Send Destination Note
 ] {
 	return [
 		GetDropdown('From', 'src', sendSources),
-		GetDropdown('To', 'dest', channelAuxBusSendDestinations),
-		GetDropdown('To', 'mainDest', mainSendDestinations),
+		GetDropdown('To', 'dest', sendDestinations, undefined, MainSendNote),
+		{ type: 'static-text', id: 'send_dest_note', label: '', value: MainSendNote },
 	]
 }
 

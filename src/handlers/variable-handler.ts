@@ -1,11 +1,12 @@
 import EventEmitter from 'events'
-import { ModelSpec } from '../models/types.js'
-import osc, { OscMessage } from 'osc'
-import { CompanionVariableDefinitions, CompanionVariableValues, OSCMetaArgument } from '@companion-module/base'
+import type { ModelSpec } from '../models/types.js'
+import type { OscMessage } from 'osc'
+import type osc from 'osc'
+import type { CompanionVariableDefinitions, CompanionVariableValues, OSCMetaArgument } from '@companion-module/base'
 import * as ActionUtil from '../actions/utils.js'
 import { IoCommands } from '../commands/io.js'
 import debounceFn from 'debounce-fn'
-import { ModuleLogger } from '@companion-module/base'
+import type { ModuleLogger } from '@companion-module/base'
 import { getAllVariables } from '../variables/index.js'
 
 const RE_NAME = /\/(\w+)\/(\d+)\/\$?name/

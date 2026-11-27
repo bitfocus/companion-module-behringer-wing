@@ -1,8 +1,8 @@
-import { InstanceBase, InstanceTypes } from '@companion-module/base'
-import { WingConfig } from './config.js'
-import { WingTransitions } from './handlers/transitions.js'
-import { ModelSpec } from './models/types.js'
-import { ModuleLogger } from '@companion-module/base'
+import type { InstanceBase, InstanceTypes } from '@companion-module/base'
+import type { WingConfig } from './config.js'
+import type { WingTransitions } from './handlers/transitions.js'
+import type { ModelSpec } from './models/types.js'
+import type { ModuleLogger } from '@companion-module/base'
 
 export interface WingTypes extends InstanceTypes {
 	config: WingConfig

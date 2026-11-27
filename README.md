@@ -4,19 +4,53 @@ See also HELP.md and LICENSE
 
 # Changelog
 
-## 2.4.0
+## 3.0.0-alpha.3
+
+### Changed
+
+- The version is now 3.0.0 instead of 2.4.0, because the module requires Companion 5.0 or newer (see 3.0.0 Breaking). The earlier alphas were published as 2.4.0-alpha.1 and 2.4.0-alpha.2
+- The module manifest lists WING, WING Compact and WING Rack as products, with keywords and a longer description
+- Channel presets are plain presets again, one per strip. Buttons made from them use normal dropdowns instead of expressions, so the selected strip can be changed directly
+- In expression mode, the list of valid values shortens numbered ids to ranges (e.g. `/ch/1 to /ch/40`) instead of listing every channel
+- The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback now have a single "To" dropdown that lists Buses, Mains and Matrices, instead of two "To" dropdowns. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
+- The module now runs on Node 26 (Companion module runtime `node26`)
+- `companion/HELP.md` is regenerated and formatted with `yarn docs` instead of in the pre-commit hook. It now documents every configuration field, the feedbacks, the presets and the connection statuses
+- The GitHub workflows, issue templates and pre-commit hook match the Companion module template. The extra pre-push hook (and its tag and README check scripts), the issue-template opt-out marker and the unused `images/` files were removed
+- The development toolchain matches the Companion module template: TypeScript 6, ESLint 10 and the template's versions of the other development dependencies
+- The `ws` package (pulled in by the `osc` library) is pinned to 8.21.0 or newer to clear two security advisories. The module only uses UDP, so it was not affected
+
+### Removed
+
+- The "Status Poll Rate" configuration option. It has had no effect since v2.2.4: the scene list for "Recall Scene by Name" is fetched once per connection, and the USB player state arrives as console events
+
+### Fixed
+
+- Send actions and the Send Mute feedback that use variables or expressions keep working after the upgrade
+- The connection status no longer stays at "Connecting" when the console is off or the IP is wrong. After 5 s without an answer the status changes to "Disconnected" ("No answer from console at <host>"). When the console answers again, the status returns to OK and the variables update
+- After an OSC connection error, the status returns to OK with the next message from the console instead of staying at "Connection Failure"
+- Channel presets show the console's channel name, and fall back to the previous "Mute CH 1" style text while the name is empty
+- All three layout gaps on the configuration page show again. They shared one field id, and Companion 5 drops duplicate ids
+- Fades no longer report a false "Illegal value for fader" error for normal dB values. A fade to a value outside -144 to +10 dB is logged as a warning in the Companion log
+
+### Known issues
+
+- An alpha tester who set a send action or feedback `src` to an expression and gave the two old "To" fields different values by hand keeps the first "To" value (`dest`) after the upgrade. Check these buttons and set "To" again if needed
+
+## 3.0.0
 
 ### Breaking
 
-- Requires Companion 5.0 or newer (module API v2.1, `@companion-module/base` ~2.1.3)
+- Requires Companion 5.0 or newer (module API v2.1, `@companion-module/base` ~2.1.3). Because the module no longer runs on older Companion versions, this release is version 3.0.0 instead of 2.4.0
 - The "Use Variables" checkboxes and their separate variable text fields were removed. Every option can now be switched to expression mode in Companion to use variables or expressions instead. Existing actions and feedbacks are converted by an upgrade script
 - The percentage mode of "Adjust Fader Level" and "Adjust Direct Input Level" was removed. Existing percentage adjustments are converted to the equivalent dB value (percent / 100), which is how they were applied before
 - Number options that used to be text fields are now number fields. Existing values and variables are converted automatically
 - Removed the unused variables `desk_ip` and `desk_name` (they were never populated)
 - Removed the "Debug Mode" configuration option. Use Companion's log level to see debug output instead
+- Removed the "Status Poll Rate" configuration option, which has had no effect since v2.2.4
 
 ### Added
 
+- Channel presets (Mute, Solo, SOF, Boost & Center) show the console's channel name, and fall back to "Mute CH 1" style text while the name is empty
 - Status variables `last_msg_received_timestamp`, `last_msg_path` and `last_msg_value` for the last message received from the console
 - Dropdowns list their valid values when switched to expression mode
 
@@ -35,8 +69,13 @@ See also HELP.md and LICENSE
 
 ### Changed
 
+- The module runs on Node 26 (Companion module runtime `node26`)
+- The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback have a single "To" dropdown that lists Buses, Mains and Matrices. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
+- The module checks continuously that the console answers. After 5 s without an answer the status changes to "Disconnected" ("No answer from console at <host>"), and it returns to OK when the console answers again
+- The module manifest lists WING, WING Compact and WING Rack as products
+- `companion/HELP.md` documents every configuration field, the feedbacks, the presets and the connection statuses
 - Switched to Companion's built-in module logger
-- Presets were rewritten as template presets that can be used for any channel strip
+- Presets are grouped by section (Mute, Solo, Sends on Fader, Boost & Center, Control) and strip type
 - Feedbacks and presets are split into separate files per category
 
 ## 2.3.1

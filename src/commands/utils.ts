@@ -1,4 +1,4 @@
-import { DropdownChoice, OSCSomeArguments } from '@companion-module/base'
+import type { DropdownChoice, OSCSomeArguments } from '@companion-module/base'
 
 export function intToOsc(i: number): OSCSomeArguments {
 	return { type: 'i', value: i }

@@ -1,7 +1,8 @@
-import { CompanionBooleanFeedbackDefinition, CompanionFeedbackInfo } from '@companion-module/base'
-import { InstanceBaseExt } from '../types.js'
-import { WingConfig } from '../config.js'
-import { StateUtil, WingState, WingSubscriptions } from '../state/index.js'
+import type { CompanionBooleanFeedbackDefinition, CompanionFeedbackInfo } from '@companion-module/base'
+import type { InstanceBaseExt } from '../types.js'
+import type { WingConfig } from '../config.js'
+import type { WingState, WingSubscriptions } from '../state/index.js'
+import { StateUtil } from '../state/index.js'
 import * as ActionUtil from '../actions/utils.js'
 
 export enum FeedbackId {
