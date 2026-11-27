@@ -10,6 +10,7 @@ See also HELP.md and LICENSE
 
 - The version is now 3.0.0 instead of 2.4.0, because the module requires Companion 5.0 or newer (see 3.0.0 Breaking). The earlier alphas were published as 2.4.0-alpha.1 and 2.4.0-alpha.2
 - The module manifest lists WING, WING Compact and WING Rack as products, with keywords and a longer description
+- In expression mode, the list of valid values shortens numbered ids to ranges (e.g. `/ch/1 to /ch/40`) instead of listing every channel
 - The send actions (Set/Store/Restore/Adjust/Undo Send Level, Set Send Mute) and the Send Mute feedback now have a single "To" dropdown that lists Buses, Mains and Matrices, instead of two "To" dropdowns. Main sources can only send to Matrices: any other destination does nothing and logs a warning. Existing actions and feedbacks are converted by an upgrade script
 - The module now runs on Node 26 (Companion module runtime `node26`)
 - `companion/HELP.md` is regenerated and formatted with `yarn docs` instead of in the pre-commit hook. It now documents every configuration field, the feedbacks, the presets and the connection statuses
